@@ -31,10 +31,9 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 #include "file-parser.h"
-#include <utility>
-#include <cassert>
 #include <cassert>
 #include <memory>
+#include <utility>
 
 /**
  * namespace containing wrappers for Libxml2 functions returning smart pointers
@@ -61,7 +60,7 @@ smartXmlString xmlGetPropUnique(const xmlNode *node, const char *name) {
   return {xmlGetProp(node, BAD_CAST name), xmlFree};
 }
 
-}
+} // namespace
 
 namespace visualization {
 
@@ -94,7 +93,7 @@ GlobalConfiguration FileParser::readGlobalConfiguration() {
       auto value = xmlGetStringUnique(doc, node->children);
       assert(value != nullptr); // No configuration element may be valueless
 
-      config.millisecondsPerFrame = std::stod(reinterpret_cast<const char *> (value.get()));
+      config.millisecondsPerFrame = std::stod(reinterpret_cast<const char *>(value.get()));
     }
   }
 
@@ -117,6 +116,23 @@ std::vector<Node> FileParser::readNodes() {
   }
 
   return nodes;
+}
+
+std::vector<Building> FileParser::readBuildings() {
+  xmlNodePtr cursor = xmlDocGetRootElement(doc);
+  assert(cursor != nullptr);
+
+  auto context = makeUniqueContext(doc);
+  auto result = xPathEvalUnique("/visualizer3d/buildings/*", context.get());
+  auto nodeSet = result->nodesetval;
+
+  std::vector<Building> buildings;
+  buildings.reserve(nodeSet->nodeNr);
+  for (auto i = 0; i < nodeSet->nodeNr; i++) {
+    buildings.push_back(parseBuilding(nodeSet->nodeTab[i]));
+  }
+
+  return buildings;
 }
 
 Node FileParser::parseNode(xmlNodePtr cursor) {
@@ -163,6 +179,67 @@ Node FileParser::parseNode(xmlNodePtr cursor) {
   }
 
   return node;
+}
+
+Building FileParser::parseBuilding(xmlNodePtr cursor) {
+  Building building{};
+
+  auto value = xmlGetPropUnique(cursor, "id");
+  if (value != nullptr) {
+    building.id = std::stoul(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "opacity");
+  if (value != nullptr) {
+    building.opacity = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "visible");
+  if (value != nullptr) {
+    building.visible = xmlStrEqual(value.get(), BAD_CAST "1");
+  }
+
+  value = xmlGetPropUnique(cursor, "floors");
+  if (value != nullptr) {
+    building.floors = std::stoi(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "rooms-x");
+  if (value != nullptr) {
+    building.roomsX = std::stoi(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "x-min");
+  if (value != nullptr) {
+    building.xMin = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "x-max");
+  if (value != nullptr) {
+    building.xMax = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "y-min");
+  if (value != nullptr) {
+    building.yMin = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "y-max");
+  if (value != nullptr) {
+    building.yMax = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "z-min");
+  if (value != nullptr) {
+    building.zMin = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "z-max");
+  if (value != nullptr) {
+    building.zMax = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  return building;
 }
 
 } // namespace visualization

@@ -50,4 +50,21 @@ struct Node {
   osg::Vec3d position;
 };
 
+struct Building {
+  uint32_t id = 0;
+  double opacity = 1.0;
+  bool visible = true;
+  uint16_t floors = 0;
+  uint16_t roomsX = 0;
+  uint16_t roomsY = 0;
+  double xMin = 0.0;
+  double xMax = 0.0;
+
+  double yMin = 0.0;
+  double yMax = 0.0;
+
+  double zMin = 0.0;
+  double zMax = 0.0;
+};
+
 } // namespace visualization

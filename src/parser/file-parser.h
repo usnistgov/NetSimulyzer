@@ -47,11 +47,13 @@ public:
 
   GlobalConfiguration readGlobalConfiguration();
   std::vector<Node> readNodes();
+  std::vector<Building> readBuildings();
 
 private:
   std::string path;
   xmlDocPtr doc = nullptr;
   static Node parseNode(xmlNodePtr cursor);
+  static Building parseBuilding(xmlNodePtr cursor);
 };
 
 } // namespace visualization
