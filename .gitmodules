@@ -1,0 +1,4 @@
+[submodule "lib/OpenSceneGraph"]
+	path = lib/OpenSceneGraph
+	url = https://github.com/openscenegraph/OpenSceneGraph.git
+	ignore = all
