@@ -30,34 +30,23 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
+
 #pragma once
-#include "../event/model.h"
-#include "model.h"
-#include <deque>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
-#include <string>
-#include <vector>
+#include <cstdint>
+#include <osg/Vec3d>
+#include <variant>
 
 namespace visualization {
 
-class FileParser {
-public:
-  explicit FileParser(std::string path);
-  ~FileParser();
-
-  GlobalConfiguration readGlobalConfiguration();
-  std::vector<Node> readNodes();
-  std::vector<Building> readBuildings();
-  std::deque<Event> readEvents();
-
-private:
-  std::string path;
-  xmlDocPtr doc = nullptr;
-  static Node parseNode(xmlNodePtr cursor);
-  static Building parseBuilding(xmlNodePtr cursor);
-  static MoveEvent parseMoveEvent(xmlNodePtr cursor);
+struct MoveEvent {
+  double time = 0.0;
+  uint32_t nodeId = 0;
+  osg::Vec3d targetPosition;
 };
+
+/**
+ * Variant defined for every event model
+ */
+using Event = std::variant<MoveEvent>;
 
 } // namespace visualization

@@ -135,6 +135,26 @@ std::vector<Building> FileParser::readBuildings() {
   return buildings;
 }
 
+std::deque<Event> FileParser::readEvents() {
+  xmlNodePtr cursor = xmlDocGetRootElement(doc);
+  assert(cursor != nullptr);
+
+  auto context = makeUniqueContext(doc);
+  auto result = xPathEvalUnique("/visualizer3d/events/*", context.get());
+  auto nodeSet = result->nodesetval;
+
+  std::deque<Event> events;
+  for (auto i = 0; i < nodeSet->nodeNr; i++) {
+    auto node = nodeSet->nodeTab[i];
+
+    if (xmlStrEqual(node->name, BAD_CAST "position")) {
+      events.emplace_back(parseMoveEvent(node));
+    }
+  }
+
+  return events;
+}
+
 Node FileParser::parseNode(xmlNodePtr cursor) {
   Node node{};
 
@@ -240,6 +260,37 @@ Building FileParser::parseBuilding(xmlNodePtr cursor) {
   }
 
   return building;
+}
+
+MoveEvent FileParser::parseMoveEvent(xmlNodePtr cursor) {
+  MoveEvent event{};
+
+  auto value = xmlGetPropUnique(cursor, "milliseconds");
+  if (value != nullptr) {
+    event.time = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "id");
+  if (value != nullptr) {
+    event.nodeId = std::stoul(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "x");
+  if (value != nullptr) {
+    event.targetPosition[0] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "y");
+  if (value != nullptr) {
+    event.targetPosition[1] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "z");
+  if (value != nullptr) {
+    event.targetPosition[2] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  return event;
 }
 
 } // namespace visualization
