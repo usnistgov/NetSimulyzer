@@ -135,7 +135,7 @@ std::vector<Building> FileParser::readBuildings() {
   return buildings;
 }
 
-std::deque<Event> FileParser::readEvents() {
+std::vector<Event> FileParser::readEvents() {
   xmlNodePtr cursor = xmlDocGetRootElement(doc);
   assert(cursor != nullptr);
 
@@ -143,7 +143,8 @@ std::deque<Event> FileParser::readEvents() {
   auto result = xPathEvalUnique("/visualizer3d/events/*", context.get());
   auto nodeSet = result->nodesetval;
 
-  std::deque<Event> events;
+  std::vector<Event> events;
+  events.reserve(nodeSet->nodeNr);
   for (auto i = 0; i < nodeSet->nodeNr; i++) {
     auto node = nodeSet->nodeTab[i];
 

@@ -33,7 +33,6 @@
 #pragma once
 #include "../event/model.h"
 #include "model.h"
-#include <deque>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
@@ -50,7 +49,7 @@ public:
   GlobalConfiguration readGlobalConfiguration();
   std::vector<Node> readNodes();
   std::vector<Building> readBuildings();
-  std::deque<Event> readEvents();
+  std::vector<Event> readEvents();
 
 private:
   std::string path;
