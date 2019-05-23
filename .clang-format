@@ -1,4 +1,5 @@
 Language: Cpp
+AccessModifierOffset: -2
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 BreakBeforeBraces: Attach
