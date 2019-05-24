@@ -31,55 +31,27 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "group/building/BuildingGroup.h"
-#include "group/node/NodeGroup.h"
-#include "parser/file-parser.h"
-#include <iostream>
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/Viewer>
-#include <unordered_map>
+#pragma once
+#include "../../parser/model.h"
+#include <osg/Geode>
+#include <osg/Group>
+#include <osg/Switch>
+#include <osg/ref_ptr>
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Error: file argument required\n"
-              << "Usage: " << argv[1] << " (output_file.xml)\n";
+namespace visualization {
 
-    return 1;
+class BuildingGroup : public osg::Group {
+  BuildingGroup() = default;
+  META_Node(osg, BuildingGroup);
+
+  osg::ref_ptr<osg::Switch> visible;
+  osg::ref_ptr<osg::Geode> geode;
+
+public:
+  static osg::ref_ptr<BuildingGroup> makeGroup(const visualization::Building &config);
+  explicit BuildingGroup(const Group &Group, const osg::CopyOp &Copyop = osg::CopyOp::SHALLOW_COPY)
+      : osg::Group(Group, Copyop) {
   }
+};
 
-  visualization::FileParser parser{argv[1]};
-  auto config = parser.readGlobalConfiguration();
-  auto nodes = parser.readNodes();
-
-  osg::ref_ptr<osg::Group> root = new osg::Group();
-
-  std::unordered_map<uint32_t, osg::ref_ptr<visualization::NodeGroup>> nodeGroups;
-  nodeGroups.reserve(nodes.size());
-  for (auto &node : nodes) {
-    auto nodeGroup = visualization::NodeGroup::MakeGroup(node);
-    nodeGroups.insert({node.id, nodeGroup});
-    root->addChild(nodeGroup);
-  }
-
-  auto buildings = parser.readBuildings();
-  for (auto &building : buildings) {
-    auto group = visualization::BuildingGroup::makeGroup(building);
-    root->addChild(group);
-  }
-
-  auto events = parser.readEvents();
-  for (auto &event : events) {
-    std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
-  }
-
-  osgViewer::Viewer viewer;
-  viewer.setUpViewInWindow(0, 0, 640, 480);
-  viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
-  viewer.realize();
-
-  double currentTime = 0.0;
-  while (!viewer.done()) {
-    viewer.frame(currentTime += config.millisecondsPerFrame);
-  }
-}
+} // namespace visualization
