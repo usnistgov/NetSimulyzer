@@ -41,65 +41,76 @@
 namespace {
 
 osg::ref_ptr<osg::Geometry> makeOutsideWalls(const visualization::Building &building) {
-  osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array();
+  auto vertices = new osg::Vec3Array();
+  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
+  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMin)); // 1
+  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMax)); // 2
+  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMax)); // 3
+  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMin)); // 4
+  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMin)); // 5
+  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMax)); // 7
+
+  auto drawElements = new osg::DrawElementsUInt(GL_TRIANGLES);
+  drawElements->reserve(36); // 6 points per side, 6 sides
 
   // Front
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMin)); // 1
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMax)); // 2
+  drawElements->push_back(0);
+  drawElements->push_back(1);
+  drawElements->push_back(2);
 
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMax)); // 3
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMax)); // 2
+  drawElements->push_back(3);
+  drawElements->push_back(0);
+  drawElements->push_back(2);
 
   // Right
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMin)); // 1
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMin)); // 5
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(1);
+  drawElements->push_back(5);
+  drawElements->push_back(6);
 
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMax)); // 2
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMin)); // 1
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(2);
+  drawElements->push_back(1);
+  drawElements->push_back(6);
 
   // Back
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMin)); // 4
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMin)); // 5
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(4);
+  drawElements->push_back(5);
+  drawElements->push_back(6);
 
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMax)); // 7
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMin)); // 4
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(7);
+  drawElements->push_back(4);
+  drawElements->push_back(6);
 
   // Left
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMin)); // 4
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMax)); // 7
+  drawElements->push_back(0);
+  drawElements->push_back(4);
+  drawElements->push_back(7);
 
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMax)); // 3
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMax)); // 7
+  drawElements->push_back(3);
+  drawElements->push_back(0);
+  drawElements->push_back(7);
 
   // Bottom
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMin)); // 1
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMin)); // 5
+  drawElements->push_back(0);
+  drawElements->push_back(1);
+  drawElements->push_back(5);
 
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMin)); // 4
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMin)); // 5
+  drawElements->push_back(4);
+  drawElements->push_back(0);
+  drawElements->push_back(5);
 
   // Top
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMax)); // 3
-  vertices->push_back(osg::Vec3(building.xMax, building.yMin, building.zMax)); // 2
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(3);
+  drawElements->push_back(2);
+  drawElements->push_back(6);
 
-  vertices->push_back(osg::Vec3(building.xMin, building.yMax, building.zMax)); // 7
-  vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMax)); // 3
-  vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
+  drawElements->push_back(7);
+  drawElements->push_back(3);
+  drawElements->push_back(6);
 
   osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
-  geometry->setVertexArray(vertices.get());
-  geometry->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, vertices->size()));
+  geometry->setVertexArray(vertices);
+  geometry->addPrimitiveSet(drawElements);
 
   return geometry;
 }
