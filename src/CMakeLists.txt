@@ -4,7 +4,7 @@ find_package(OpenSceneGraph REQUIRED COMPONENTS osgViewer osgDB osgGA osgText os
 
 find_package(LibXml2 REQUIRED)
 
-add_executable(visualization main.cpp parser/file-parser.cpp parser/file-parser.h parser/model.h event/model.h group/node/NodeGroup.cpp group/node/NodeGroup.h group/building/BuildingGroup.cpp group/building/BuildingGroup.h)
+add_executable(visualization main.cpp parser/file-parser.cpp parser/file-parser.h parser/model.h event/model.h group/node/NodeGroup.cpp group/node/NodeGroup.h group/building/BuildingGroup.cpp group/building/BuildingGroup.h hud/hud.h hud/hud.cpp)
 target_compile_features(visualization PRIVATE cxx_std_17)
 
 target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)

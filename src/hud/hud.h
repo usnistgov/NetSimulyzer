@@ -31,59 +31,46 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "group/building/BuildingGroup.h"
-#include "group/node/NodeGroup.h"
-#include "hud/hud.h"
-#include "parser/file-parser.h"
-#include <iostream>
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/Viewer>
-#include <unordered_map>
+#pragma once
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Error: file argument required\n"
-              << "Usage: " << argv[1] << " (output_file.xml)\n";
+#include <osg/Callback>
+#include <osg/Camera>
+#include <osg/ref_ptr>
 
-    return 1;
+namespace visualization {
+
+/**
+ * Callback to update the current simulation timestamp
+ */
+class HudCallback : public osg::Callback {
+  META_Object(osg, HudCallback);
+
+public:
+  HudCallback() = default;
+  explicit HudCallback(const Callback &Cb, const osg::CopyOp &Copyop = osg::CopyOp::SHALLOW_COPY)
+      : osg::Callback(Cb, Copyop) {
   }
 
-  visualization::FileParser parser{argv[1]};
-  auto config = parser.readGlobalConfiguration();
-  auto nodes = parser.readNodes();
+  bool run(osg::Object *object, osg::Object *data) override;
+};
 
-  osg::ref_ptr<osg::Group> root = new osg::Group();
+/**
+ * A camera with an osg::Text element in the bottom left of the screen
+ * and an attached callback to update the text
+ */
+class HudCamera : public osg::Camera {
+public:
+  /**
+   * Make a HUD camera showing the current timestamp
+   * in the bottom left of the screen
+   *
+   * \param xResolution
+   * The width of the current window in pixels
+   *
+   * \param yResolution
+   * The height of the current window in pixels
+   */
+  HudCamera(double xResolution, double yResolution);
+};
 
-  std::unordered_map<uint32_t, osg::ref_ptr<visualization::NodeGroup>> nodeGroups;
-  nodeGroups.reserve(nodes.size());
-  for (auto &node : nodes) {
-    auto nodeGroup = visualization::NodeGroup::MakeGroup(node);
-    nodeGroups.insert({node.id, nodeGroup});
-    root->addChild(nodeGroup);
-  }
-
-  auto buildings = parser.readBuildings();
-  for (auto &building : buildings) {
-    auto group = visualization::BuildingGroup::makeGroup(building);
-    root->addChild(group);
-  }
-
-  auto events = parser.readEvents();
-  for (auto &event : events) {
-    std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
-  }
-
-  // Add the HUD with the current time (filling the whole screen)
-  root->addChild(new visualization::HudCamera(640, 480));
-
-  osgViewer::Viewer viewer;
-  viewer.setUpViewInWindow(0, 0, 640, 480);
-  viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
-  viewer.realize();
-
-  double currentTime = 0.0;
-  while (!viewer.done()) {
-    viewer.frame(currentTime += config.millisecondsPerFrame);
-  }
-}
+} // namespace visualization

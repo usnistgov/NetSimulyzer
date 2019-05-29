@@ -31,59 +31,46 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "group/building/BuildingGroup.h"
-#include "group/node/NodeGroup.h"
-#include "hud/hud.h"
-#include "parser/file-parser.h"
-#include <iostream>
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/Viewer>
-#include <unordered_map>
+#include "hud.h"
+#include <osgText/Font>
+#include <osgText/Text>
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Error: file argument required\n"
-              << "Usage: " << argv[1] << " (output_file.xml)\n";
+namespace visualization {
 
-    return 1;
-  }
+bool HudCallback::run(osg::Object *object, osg::Object *data) {
+  auto text = dynamic_cast<osgText::Text *>(object);
+  auto nodeVisitor = dynamic_cast<osg::NodeVisitor *>(data);
+  auto time = nodeVisitor->getFrameStamp()->getSimulationTime();
 
-  visualization::FileParser parser{argv[1]};
-  auto config = parser.readGlobalConfiguration();
-  auto nodes = parser.readNodes();
+  text->setText(std::to_string(time) + "ms");
 
-  osg::ref_ptr<osg::Group> root = new osg::Group();
-
-  std::unordered_map<uint32_t, osg::ref_ptr<visualization::NodeGroup>> nodeGroups;
-  nodeGroups.reserve(nodes.size());
-  for (auto &node : nodes) {
-    auto nodeGroup = visualization::NodeGroup::MakeGroup(node);
-    nodeGroups.insert({node.id, nodeGroup});
-    root->addChild(nodeGroup);
-  }
-
-  auto buildings = parser.readBuildings();
-  for (auto &building : buildings) {
-    auto group = visualization::BuildingGroup::makeGroup(building);
-    root->addChild(group);
-  }
-
-  auto events = parser.readEvents();
-  for (auto &event : events) {
-    std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
-  }
-
-  // Add the HUD with the current time (filling the whole screen)
-  root->addChild(new visualization::HudCamera(640, 480));
-
-  osgViewer::Viewer viewer;
-  viewer.setUpViewInWindow(0, 0, 640, 480);
-  viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
-  viewer.realize();
-
-  double currentTime = 0.0;
-  while (!viewer.done()) {
-    viewer.frame(currentTime += config.millisecondsPerFrame);
-  }
+  return traverse(object, data);
 }
+
+HudCamera::HudCamera(double xResolution, double yResolution) {
+  // This camera will rewrite all current data, regardless of depth
+  // so we clear the depth buffer
+  setClearMask(GL_DEPTH_BUFFER_BIT);
+
+  // Render this camera after the normal scene
+  setRenderOrder(osg::Camera::POST_RENDER);
+
+  // The coordinates for this camera are not changed by anything else
+  setReferenceFrame(osg::Camera::ABSOLUTE_RF);
+
+  // We don't want the HUD camera to grab focus from the normal camera
+  setAllowEventFocus(false);
+
+  // Project over the whole window
+  setProjectionMatrix(osg::Matrix::ortho2D(0, xResolution, 0, yResolution));
+
+  auto currentTimeLabel = new osgText::Text;
+  currentTimeLabel->setCharacterSize(12.0f);
+  currentTimeLabel->setAxisAlignment(osgText::TextBase::XY_PLANE);
+  currentTimeLabel->setPosition({0, 0, 0});
+
+  currentTimeLabel->setUpdateCallback(new HudCallback);
+  addChild(currentTimeLabel);
+}
+
+} // namespace visualization
