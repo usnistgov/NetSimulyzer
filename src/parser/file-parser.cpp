@@ -230,6 +230,11 @@ Building FileParser::parseBuilding(xmlNodePtr cursor) {
     building.roomsX = std::stoi(reinterpret_cast<const char *>(value.get()));
   }
 
+  value = xmlGetPropUnique(cursor, "rooms-y");
+  if (value != nullptr) {
+    building.roomsY = std::stoi(reinterpret_cast<const char *>(value.get()));
+  }
+
   value = xmlGetPropUnique(cursor, "x-min");
   if (value != nullptr) {
     building.xMin = std::stod(reinterpret_cast<const char *>(value.get()));
