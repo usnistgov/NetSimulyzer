@@ -101,7 +101,7 @@ osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
 
   /*
    * Set the render order, so we can guarantee the outside walls are rendered
-   * before the floor (so the floor is visible from outside the building).
+   * after the floor (so the floor is visible from outside the building).
    *
    * Lower numbers are rendered first
    */
@@ -117,8 +117,8 @@ osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
   if (building.floors > 1) {
     osg::ref_ptr<osg::Geometry> floors = new osg::Geometry;
 
-    // make sure this render bin number is higher than the walls
-    geometry->getOrCreateStateSet()->setRenderBinDetails(2, "DepthSortedBin");
+    // make sure this render bin number is lower than the walls
+    floors->getOrCreateStateSet()->setRenderBinDetails(0, "DepthSortedBin");
 
     osg::ref_ptr<osg::Vec3Array> floorVertices = new osg::Vec3Array();
 
