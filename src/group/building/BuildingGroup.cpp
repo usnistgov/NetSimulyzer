@@ -40,7 +40,7 @@
 
 namespace {
 
-osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
+osg::ref_ptr<osg::Geometry> makeOutsideWalls(const visualization::Building &building) {
   osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array();
 
   // Front
@@ -98,6 +98,96 @@ osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
   vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
 
   osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
+  geometry->setVertexArray(vertices.get());
+  geometry->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, vertices->size()));
+
+  return geometry;
+}
+
+osg::ref_ptr<osg::Geometry> makeFloors(const visualization::Building &building) {
+  osg::ref_ptr<osg::Geometry> floors = new osg::Geometry;
+
+  osg::ref_ptr<osg::Vec3Array> floorVertices = new osg::Vec3Array();
+
+  // All floors are exactly the same height
+  // abs() the zMax and zMin just in case our coordinates are negative
+  auto floorHeight = (abs(building.zMax) - abs(building.zMin)) / building.floors;
+
+  // Start from the bottom and work our way to the top
+  // drawing each floor.
+  // Only loop until floors - 1 since there's no need to draw the roof this way
+  for (auto currentFloor = 1; currentFloor < building.floors; currentFloor++) {
+    auto currentHeight = floorHeight * currentFloor;
+    floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
+    floorVertices->push_back(osg::Vec3(building.xMax, building.yMin, currentHeight));
+    floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
+
+    floorVertices->push_back(osg::Vec3(building.xMin, building.yMax, currentHeight));
+    floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
+    floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
+  }
+
+  floors->setVertexArray(floorVertices.get());
+  floors->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, floorVertices->size()));
+
+  return floors;
+}
+
+osg::ref_ptr<osg::Geometry> makeWallsX(const visualization::Building &building) {
+  osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
+
+  osg::ref_ptr<osg::Vec3Array> wallVertices = new osg::Vec3Array();
+
+  // Find the size of each room
+  auto roomLength = (building.xMax - building.xMin) / building.roomsX;
+
+  for (auto currentRoom = 1; currentRoom < building.roomsX; currentRoom++) {
+    auto currentWallPosition = roomLength * currentRoom + building.xMin;
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMin));
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMin));
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMax));
+
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMax));
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMin));
+    wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMax));
+  }
+
+  walls->setVertexArray(wallVertices.get());
+  walls->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, wallVertices->size()));
+
+  return walls;
+}
+
+osg::ref_ptr<osg::Geometry> makeWallsY(const visualization::Building &building) {
+  osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
+
+  osg::ref_ptr<osg::Vec3Array> wallVertices = new osg::Vec3Array();
+
+  // Find the size of each room
+  auto roomLength = (building.yMax - building.yMin) / building.roomsY;
+
+  for (auto currentRoom = 1; currentRoom < building.roomsY; currentRoom++) {
+    auto currentWallPosition = roomLength * currentRoom + building.yMin;
+
+    wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMin));
+    wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMin));
+    wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMax));
+
+    wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMax));
+    wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMin));
+    wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMax));
+  }
+
+  walls->setVertexArray(wallVertices.get());
+  walls->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, wallVertices->size()));
+  return walls;
+}
+
+osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
+  const int outsideRenderBin = 1;
+  const int insideRenderBin = 0;
+
+  auto outsideGeometry = makeOutsideWalls(building);
 
   /*
    * Set the render order, so we can guarantee the outside walls are rendered
@@ -105,99 +195,34 @@ osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
    *
    * Lower numbers are rendered first
    */
-  geometry->getOrCreateStateSet()->setRenderBinDetails(1, "DepthSortedBin");
-
-  geometry->setVertexArray(vertices.get());
-  geometry->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, vertices->size()));
+  outsideGeometry->getOrCreateStateSet()->setRenderBinDetails(outsideRenderBin, "DepthSortedBin");
 
   osg::ref_ptr<osg::Geode> geo = new osg::Geode;
-  geo->addDrawable(geometry);
+  geo->addDrawable(outsideGeometry);
 
   // Floors
   if (building.floors > 1) {
-    osg::ref_ptr<osg::Geometry> floors = new osg::Geometry;
+    auto floorGeometry = makeFloors(building);
 
-    // make sure this render bin number is lower than the walls
-    floors->getOrCreateStateSet()->setRenderBinDetails(0, "DepthSortedBin");
-
-    osg::ref_ptr<osg::Vec3Array> floorVertices = new osg::Vec3Array();
-
-    // All floors are exactly the same height
-    // abs() the zMax and zMin just in case our coordinates are negative
-    auto floorHeight = (abs(building.zMax) - abs(building.zMin)) / building.floors;
-
-    // Start from the bottom and work our way to the top
-    // drawing each floor.
-    // Only loop until floors - 1 since there's no need to draw the roof this way
-    for (auto currentFloor = 1; currentFloor < building.floors; currentFloor++) {
-      auto currentHeight = floorHeight * currentFloor;
-      floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
-      floorVertices->push_back(osg::Vec3(building.xMax, building.yMin, currentHeight));
-      floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
-
-      floorVertices->push_back(osg::Vec3(building.xMin, building.yMax, currentHeight));
-      floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
-      floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
-    }
-
-    floors->setVertexArray(floorVertices.get());
-    floors->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, floorVertices->size()));
-    geo->addDrawable(floors);
+    // make sure this render bin number is lower than the outside walls
+    floorGeometry->getOrCreateStateSet()->setRenderBinDetails(insideRenderBin, "DepthSortedBin");
+    geo->addDrawable(floorGeometry);
   }
 
   if (building.roomsX > 1) {
-    osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
+    auto roomWallsX = makeWallsX(building);
 
     // make sure this render bin number is lower than the outside walls
-    walls->getOrCreateStateSet()->setRenderBinDetails(0, "DepthSortedBin");
-
-    osg::ref_ptr<osg::Vec3Array> wallVertices = new osg::Vec3Array();
-
-    // Find the size of each room
-    auto roomLength = (building.xMax - building.xMin) / building.roomsX;
-
-    for (auto currentRoom = 1; currentRoom < building.roomsX; currentRoom++) {
-      auto currentWallPosition = roomLength * currentRoom + building.xMin;
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMin));
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMin));
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMax));
-
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMax));
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMin, building.zMin));
-      wallVertices->push_back(osg::Vec3(currentWallPosition, building.yMax, building.zMax));
-    }
-
-    walls->setVertexArray(wallVertices.get());
-    walls->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, wallVertices->size()));
-    geo->addDrawable(walls);
+    roomWallsX->getOrCreateStateSet()->setRenderBinDetails(insideRenderBin, "DepthSortedBin");
+    geo->addDrawable(roomWallsX);
   }
 
   if (building.roomsY > 1) {
-    osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
+    auto roomWallsY = makeWallsY(building);
 
     // make sure this render bin number is lower than the outside walls
-    walls->getOrCreateStateSet()->setRenderBinDetails(0, "DepthSortedBin");
-
-    osg::ref_ptr<osg::Vec3Array> wallVertices = new osg::Vec3Array();
-
-    // Find the size of each room
-    auto roomLength = (building.yMax - building.yMin) / building.roomsY;
-
-    for (auto currentRoom = 1; currentRoom < building.roomsY; currentRoom++) {
-      auto currentWallPosition = roomLength * currentRoom + building.yMin;
-
-      wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMin));
-      wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMin));
-      wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMax));
-
-      wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMax));
-      wallVertices->push_back(osg::Vec3(building.xMin, currentWallPosition, building.zMin));
-      wallVertices->push_back(osg::Vec3(building.xMax, currentWallPosition, building.zMax));
-    }
-
-    walls->setVertexArray(wallVertices.get());
-    walls->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, wallVertices->size()));
-    geo->addDrawable(walls);
+    roomWallsY->getOrCreateStateSet()->setRenderBinDetails(insideRenderBin, "DepthSortedBin");
+    geo->addDrawable(roomWallsY);
   }
 
   return geo;
