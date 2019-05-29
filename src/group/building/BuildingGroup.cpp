@@ -36,6 +36,7 @@
 #include <osg/BlendFunc>
 #include <osg/Geometry>
 #include <osg/Material>
+#include <osgUtil/RenderBin>
 
 namespace {
 
@@ -97,11 +98,52 @@ osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
   vertices->push_back(osg::Vec3(building.xMax, building.yMax, building.zMax)); // 6
 
   osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
+
+  /*
+   * Set the render order, so we can guarantee the outside walls are rendered
+   * before the floor (so the floor is visible from outside the building).
+   *
+   * Lower numbers are rendered first
+   */
+  geometry->getOrCreateStateSet()->setRenderBinDetails(1, "DepthSortedBin");
+
   geometry->setVertexArray(vertices.get());
   geometry->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, vertices->size()));
 
   osg::ref_ptr<osg::Geode> geo = new osg::Geode;
   geo->addDrawable(geometry);
+
+  // Floors
+  if (building.floors > 1) {
+    osg::ref_ptr<osg::Geometry> floors = new osg::Geometry;
+
+    // make sure this render bin number is higher than the walls
+    geometry->getOrCreateStateSet()->setRenderBinDetails(2, "DepthSortedBin");
+
+    osg::ref_ptr<osg::Vec3Array> floorVertices = new osg::Vec3Array();
+
+    // All floors are exactly the same height
+    // abs() the zMax and zMin just in case our coordinates are negative
+    auto floorHeight = (abs(building.zMax) - abs(building.zMin)) / building.floors;
+
+    // Start from the bottom and work our way to the top
+    // drawing each floor.
+    // Only loop until floors - 1 since there's no need to draw the roof this way
+    for (auto currentFloor = 1; currentFloor < building.floors; currentFloor++) {
+      auto currentHeight = floorHeight * currentFloor;
+      floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
+      floorVertices->push_back(osg::Vec3(building.xMax, building.yMin, currentHeight));
+      floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
+
+      floorVertices->push_back(osg::Vec3(building.xMin, building.yMax, currentHeight));
+      floorVertices->push_back(osg::Vec3(building.xMin, building.yMin, currentHeight));
+      floorVertices->push_back(osg::Vec3(building.xMax, building.yMax, currentHeight));
+    }
+
+    floors->setVertexArray(floorVertices.get());
+    floors->addPrimitiveSet(new osg::DrawArrays(GL_TRIANGLES, 0, floorVertices->size()));
+    geo->addDrawable(floors);
+  }
 
   return geo;
 }
