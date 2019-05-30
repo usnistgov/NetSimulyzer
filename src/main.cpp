@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
 
   double currentTime = 0.0;
   while (!viewer.done()) {
-    viewer.frame(currentTime += config.millisecondsPerFrame);
+    viewer.frame(currentTime);
+    currentTime += config.millisecondsPerFrame;
   }
 }
