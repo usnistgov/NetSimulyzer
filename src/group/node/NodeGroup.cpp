@@ -87,6 +87,7 @@ osg::ref_ptr<NodeGroup> NodeGroup::MakeGroup(const visualization::Node &config) 
 
   return node;
 }
+
 void NodeGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 
   auto time = nv->getFrameStamp()->getSimulationTime();
@@ -96,27 +97,32 @@ void NodeGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
   auto &group = *static_cast<NodeGroup *>(node);
   auto &events = group.events;
 
-  if (events.empty()) {
-    traverse(node, nv);
-    return;
+  // Returns true after handling an event
+  // false otherwise
+  auto handleEvent = [&time, &group, &events](auto &&arg) {
+    // Strip off qualifiers, etc
+    // so T holds just the type
+    // so we can more easily match it
+    using T = std::decay_t<decltype(arg)>;
+
+    // All events have a time
+    // Make sure we don't handle one in the future
+    if (arg.time > time)
+      return false;
+
+    if constexpr (std::is_same_v<T, MoveEvent>) {
+      group.position->setPosition(arg.targetPosition);
+      events.pop_front();
+      return true;
+    }
+  };
+
+  // Handle current/past events
+  // Using the return std::visit to keep handling events
+  // only works if the events are sorted
+  while (!events.empty() && std::visit(handleEvent, events.front())) {
+    // Intentionally Blank
   }
-
-  const auto &event = events.front();
-  std::visit(
-      [&time, &group, &events](auto &&arg) {
-        // Strip off qualifiers, etc
-        // so T holds just the type
-        // so we can more easily match it
-        using T = std::decay_t<decltype(arg)>;
-
-        if constexpr (std::is_same_v<T, MoveEvent>) {
-          if (arg.time > time)
-            return;
-          group.position->setPosition(arg.targetPosition);
-          events.pop_front();
-        }
-      },
-      event);
 
   traverse(node, nv);
 }
