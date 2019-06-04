@@ -38,6 +38,7 @@
 #include <iostream>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
+#include <osgViewer/config/SingleWindow>
 #include <unordered_map>
 
 int main(int argc, char *argv[]) {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
   root->addChild(new visualization::HudCamera(640, 480));
 
   osgViewer::Viewer viewer;
-  viewer.setUpViewInWindow(0, 0, 640, 480);
+  viewer.apply(new osgViewer::SingleWindow(0, 0, 640, 480));
   viewer.setSceneData(root);
   viewer.setCameraManipulator(new osgGA::TrackballManipulator());
   viewer.realize();
