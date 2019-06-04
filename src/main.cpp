@@ -75,10 +75,10 @@ int main(int argc, char *argv[]) {
   }
 
   // Add the HUD with the current time (filling the whole screen)
-  root->addChild(new visualization::HudCamera(640, 480));
+  root->addChild(new visualization::HudCamera(1280, 720));
 
   osgViewer::Viewer viewer;
-  viewer.apply(new osgViewer::SingleWindow(0, 0, 640, 480));
+  viewer.apply(new osgViewer::SingleWindow(0, 0, 1280, 720));
   viewer.setSceneData(root);
   viewer.setCameraManipulator(new osgGA::TrackballManipulator());
   viewer.realize();
