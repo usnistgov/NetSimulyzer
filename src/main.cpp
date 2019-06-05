@@ -44,7 +44,7 @@
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     std::cerr << "Error: file argument required\n"
-              << "Usage: " << argv[1] << " (output_file.xml)\n";
+              << "Usage: " << argv[0] << " (output_file.xml)\n";
 
     return 1;
   }
