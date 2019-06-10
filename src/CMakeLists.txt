@@ -13,7 +13,8 @@ add_executable(visualization
         parser/file-parser.cpp parser/file-parser.h
         parser/model.h
         util/CoordinateGrid.cpp util/CoordinateGrid.h
-        util/PauseHandler.cpp util/PauseHandler.h)
+        util/PauseHandler.cpp util/PauseHandler.h
+        util/GroundPlane.cpp util/GroundPlane.h)
 
 target_compile_features(visualization PRIVATE cxx_std_17)
 
