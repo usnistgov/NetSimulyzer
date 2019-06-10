@@ -31,63 +31,40 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "group/building/BuildingGroup.h"
-#include "group/node/NodeGroup.h"
-#include "hud/hud.h"
-#include "parser/file-parser.h"
-#include "util/CoordinateGrid.h"
-#include <iostream>
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/Viewer>
-#include <osgViewer/config/SingleWindow>
-#include <unordered_map>
+#pragma once
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Error: file argument required\n"
-              << "Usage: " << argv[0] << " (output_file.xml)\n";
+#include <osg/Array>
+#include <osg/Group>
 
-    return 1;
-  }
+namespace visualization {
 
-  visualization::FileParser parser{argv[1]};
-  auto config = parser.readGlobalConfiguration();
-  auto nodes = parser.readNodes();
+/**
+ * Resizeable square grid aligned with the X axis
+ */
+class CoordinateGrid : public osg::Group {
+public:
+  /**
+   * Constructs a CoordinateGrid of a given size.
+   * size should be evenly divisible by steps for best results.
+   *
+   * @param size
+   * Total square size for the grid.
+   * Measured as the distance from the center of the square to the border
+   *
+   * @param steps
+   * Number of grid section on a given axis.
+   * Should be evenly divisible by size!
+   *
+   * @param centerLineColor
+   * The color for the center horizontal and vertical lines
+   * (the lines intersecting at (0, 0, 0))
+   *
+   * @param nonCenterLineColor
+   * The color for every line that isn't the center two lines
+   * of the grid
+   */
+  explicit CoordinateGrid(int size, int steps = 10, osg::Vec4 centerLineColor = osg::Vec4(0.53f, 0.53f, 0.53f, 1.0f),
+                          osg::Vec4 nonCenterLineColor = osg::Vec4(0.26f, 0.26f, 0.26f, 1.0f));
+};
 
-  osg::ref_ptr<osg::Group> root = new osg::Group();
-
-  std::unordered_map<uint32_t, osg::ref_ptr<visualization::NodeGroup>> nodeGroups;
-  nodeGroups.reserve(nodes.size());
-  for (auto &node : nodes) {
-    auto nodeGroup = visualization::NodeGroup::MakeGroup(node);
-    nodeGroups.insert({node.id, nodeGroup});
-    root->addChild(nodeGroup);
-  }
-
-  auto buildings = parser.readBuildings();
-  for (auto &building : buildings) {
-    auto group = visualization::BuildingGroup::makeGroup(building);
-    root->addChild(group);
-  }
-
-  auto events = parser.readEvents();
-  for (auto &event : events) {
-    std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
-  }
-
-  // Add the HUD with the current time (filling the whole screen)
-  root->addChild(new visualization::HudCamera(1280, 720));
-  root->addChild(new visualization::CoordinateGrid(100));
-
-  osgViewer::Viewer viewer;
-  viewer.apply(new osgViewer::SingleWindow(0, 0, 1280, 720));
-  viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
-  viewer.realize();
-
-  double currentTime = 0.0;
-  while (!viewer.done()) {
-    viewer.frame(currentTime);
-    currentTime += config.millisecondsPerFrame;
-  }
-}
+} // namespace visualization
