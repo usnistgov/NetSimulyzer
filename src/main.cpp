@@ -36,6 +36,7 @@
 #include "hud/hud.h"
 #include "parser/file-parser.h"
 #include "util/CoordinateGrid.h"
+#include "util/PauseHandler.h"
 #include <iostream>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
@@ -83,11 +84,16 @@ int main(int argc, char *argv[]) {
   viewer.apply(new osgViewer::SingleWindow(0, 0, 1280, 720));
   viewer.setSceneData(root);
   viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+
+  auto pauseHandler = new visualization::PauseHandler;
+  viewer.addEventHandler(pauseHandler);
+
   viewer.realize();
 
   double currentTime = 0.0;
   while (!viewer.done()) {
     viewer.frame(currentTime);
-    currentTime += config.millisecondsPerFrame;
+    if (!pauseHandler->isPaused())
+      currentTime += config.millisecondsPerFrame;
   }
 }
