@@ -77,8 +77,6 @@ FileParser::~FileParser() {
 }
 
 GlobalConfiguration FileParser::readGlobalConfiguration() {
-  xmlNodePtr cursor = xmlDocGetRootElement(doc);
-  assert(cursor != nullptr);
   GlobalConfiguration config{};
 
   auto context = makeUniqueContext(doc);
@@ -101,9 +99,6 @@ GlobalConfiguration FileParser::readGlobalConfiguration() {
 }
 
 std::vector<Node> FileParser::readNodes() {
-  xmlNodePtr cursor = xmlDocGetRootElement(doc);
-  assert(cursor != nullptr);
-
   auto context = makeUniqueContext(doc);
   auto result = xPathEvalUnique("/visualizer3d/nodes/*", context.get());
 
@@ -119,9 +114,6 @@ std::vector<Node> FileParser::readNodes() {
 }
 
 std::vector<Building> FileParser::readBuildings() {
-  xmlNodePtr cursor = xmlDocGetRootElement(doc);
-  assert(cursor != nullptr);
-
   auto context = makeUniqueContext(doc);
   auto result = xPathEvalUnique("/visualizer3d/buildings/*", context.get());
   auto nodeSet = result->nodesetval;
@@ -136,9 +128,6 @@ std::vector<Building> FileParser::readBuildings() {
 }
 
 std::vector<Event> FileParser::readEvents() {
-  xmlNodePtr cursor = xmlDocGetRootElement(doc);
-  assert(cursor != nullptr);
-
   auto context = makeUniqueContext(doc);
   auto result = xPathEvalUnique("/visualizer3d/events/*", context.get());
   auto nodeSet = result->nodesetval;
