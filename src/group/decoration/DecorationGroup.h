@@ -30,48 +30,26 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
+
 #pragma once
-#include <cstdint>
-#include <osg/Vec3d>
-#include <string>
+
+#include "../../parser/model.h"
+#include <osg/Group>
+#include <osg/MatrixTransform>
+#include <osg/PositionAttitudeTransform>
 
 namespace visualization {
 
-struct GlobalConfiguration {
-  double millisecondsPerFrame = 1.0;
-};
+/**
+ * Non-operative model, in the scene only for show
+ */
+class DecorationGroup : public osg::Group {
+  osg::ref_ptr<osg::PositionAttitudeTransform> position;
+  osg::ref_ptr<osg::MatrixTransform> scale;
+  osg::ref_ptr<osg::Geode> geode;
 
-struct Node {
-  uint32_t id = 0;
-  std::string model;
-  double scale = 1.0;
-  double opacity = 1.0;
-  bool visible = true;
-  osg::Vec3d position;
-};
-
-struct Building {
-  uint32_t id = 0;
-  double opacity = 1.0;
-  bool visible = true;
-  uint16_t floors = 0;
-  uint16_t roomsX = 0;
-  uint16_t roomsY = 0;
-  double xMin = 0.0;
-  double xMax = 0.0;
-
-  double yMin = 0.0;
-  double yMax = 0.0;
-
-  double zMin = 0.0;
-  double zMax = 0.0;
-};
-
-struct Decoration {
-  std::string model;
-  osg::Vec3d position;
-  double opacity = 1.0;
-  double scale = 1.0;
+public:
+  explicit DecorationGroup(const Decoration &config);
 };
 
 } // namespace visualization

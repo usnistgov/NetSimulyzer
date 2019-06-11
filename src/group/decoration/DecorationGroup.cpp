@@ -30,48 +30,50 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
-#pragma once
-#include <cstdint>
-#include <osg/Vec3d>
-#include <string>
+
+#include "DecorationGroup.h"
+#include <osg/BlendFunc>
+#include <osg/Material>
+#include <osgDB/ReadFile>
 
 namespace visualization {
 
-struct GlobalConfiguration {
-  double millisecondsPerFrame = 1.0;
-};
+DecorationGroup::DecorationGroup(const Decoration &config) {
+  osg::ref_ptr<osg::Node> model = osgDB::readRefNodeFile(config.model);
 
-struct Node {
-  uint32_t id = 0;
-  std::string model;
-  double scale = 1.0;
-  double opacity = 1.0;
-  bool visible = true;
-  osg::Vec3d position;
-};
+  if (config.opacity < 1) {
+    auto stateSet = model->getOrCreateStateSet();
 
-struct Building {
-  uint32_t id = 0;
-  double opacity = 1.0;
-  bool visible = true;
-  uint16_t floors = 0;
-  uint16_t roomsX = 0;
-  uint16_t roomsY = 0;
-  double xMin = 0.0;
-  double xMax = 0.0;
+    auto attr = stateSet->getAttribute(osg::StateAttribute::MATERIAL);
+    osg::ref_ptr<osg::Material> material;
 
-  double yMin = 0.0;
-  double yMax = 0.0;
+    if (attr)
+      material = dynamic_cast<osg::Material *>(attr);
+    else
+      material = new osg::Material;
 
-  double zMin = 0.0;
-  double zMax = 0.0;
-};
+    material->setColorMode(osg::Material::ColorMode::SPECULAR);
+    material->setAlpha(osg::Material::FRONT_AND_BACK, static_cast<float>(config.opacity));
+    stateSet->setAttributeAndModes(material, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
-struct Decoration {
-  std::string model;
-  osg::Vec3d position;
-  double opacity = 1.0;
-  double scale = 1.0;
-};
+    stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+    model->setStateSet(stateSet);
+
+    model->getOrCreateStateSet()->setAttributeAndModes(
+        new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA));
+  }
+
+  geode = new osg::Geode;
+  geode->addChild(model);
+
+  scale = new osg::MatrixTransform(osg::Matrix::scale(osg::Vec3d(config.scale, config.scale, config.scale)));
+  scale->addChild(geode);
+
+  position = new osg::PositionAttitudeTransform();
+  position->setPosition(config.position);
+  position->addChild(scale);
+  
+  addChild(position);
+}
 
 } // namespace visualization

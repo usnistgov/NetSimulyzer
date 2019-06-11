@@ -127,6 +127,20 @@ std::vector<Building> FileParser::readBuildings() {
   return buildings;
 }
 
+std::vector<Decoration> FileParser::readDecorations() {
+  auto context = makeUniqueContext(doc);
+  auto result = xPathEvalUnique("/visualizer3d/decorations/*", context.get());
+  auto nodeSet = result->nodesetval;
+
+  std::vector<Decoration> decorations;
+  decorations.reserve(nodeSet->nodeNr);
+  for (auto i = 0; i < nodeSet->nodeNr; i++) {
+    decorations.push_back(parseDecoration(nodeSet->nodeTab[i]));
+  }
+
+  return decorations;
+}
+
 std::vector<Event> FileParser::readEvents() {
   auto context = makeUniqueContext(doc);
   auto result = xPathEvalUnique("/visualizer3d/events/*", context.get());
@@ -255,6 +269,42 @@ Building FileParser::parseBuilding(xmlNodePtr cursor) {
   }
 
   return building;
+}
+
+Decoration FileParser::parseDecoration(xmlNodePtr cursor) {
+  Decoration decoration{};
+
+  auto value = xmlGetPropUnique(cursor, "model");
+  if (value != nullptr) {
+    decoration.model = reinterpret_cast<const char *>(value.get());
+  }
+
+  value = xmlGetPropUnique(cursor, "x");
+  if (value != nullptr) {
+    decoration.position[0] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "y");
+  if (value != nullptr) {
+    decoration.position[1] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "z");
+  if (value != nullptr) {
+    decoration.position[2] = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "opacity");
+  if (value != nullptr) {
+    decoration.opacity = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  value = xmlGetPropUnique(cursor, "scale");
+  if (value != nullptr) {
+    decoration.scale = std::stod(reinterpret_cast<const char *>(value.get()));
+  }
+
+  return decoration;
 }
 
 MoveEvent FileParser::parseMoveEvent(xmlNodePtr cursor) {

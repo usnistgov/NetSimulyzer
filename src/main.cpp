@@ -32,6 +32,7 @@
  */
 
 #include "group/building/BuildingGroup.h"
+#include "group/decoration/DecorationGroup.h"
 #include "group/node/NodeGroup.h"
 #include "hud/hud.h"
 #include "parser/file-parser.h"
@@ -69,6 +70,11 @@ int main(int argc, char *argv[]) {
   for (auto &building : buildings) {
     auto group = visualization::BuildingGroup::makeGroup(building);
     root->addChild(group);
+  }
+
+  auto decorations = parser.readDecorations();
+  for (const auto &decoration : decorations) {
+    root->addChild(new visualization::DecorationGroup(decoration));
   }
 
   auto events = parser.readEvents();

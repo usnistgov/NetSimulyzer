@@ -49,6 +49,7 @@ public:
   GlobalConfiguration readGlobalConfiguration();
   std::vector<Node> readNodes();
   std::vector<Building> readBuildings();
+  std::vector<Decoration> readDecorations();
   std::vector<Event> readEvents();
 
 private:
@@ -56,6 +57,7 @@ private:
   xmlDocPtr doc = nullptr;
   static Node parseNode(xmlNodePtr cursor);
   static Building parseBuilding(xmlNodePtr cursor);
+  static Decoration parseDecoration(xmlNodePtr cursor);
   static MoveEvent parseMoveEvent(xmlNodePtr cursor);
 };
 
