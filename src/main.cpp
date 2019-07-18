@@ -39,7 +39,7 @@
 #include "util/CoordinateGrid.h"
 #include "util/PauseHandler.h"
 #include <iostream>
-#include <osgGA/TrackballManipulator>
+#include <osgGA/OrbitManipulator>
 #include <osgViewer/Viewer>
 #include <osgViewer/config/SingleWindow>
 #include <unordered_map>
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   osgViewer::Viewer viewer;
   viewer.apply(new osgViewer::SingleWindow(0, 0, 1280, 720));
   viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+  viewer.setCameraManipulator(new osgGA::OrbitManipulator());
 
   auto pauseHandler = new visualization::PauseHandler;
   viewer.addEventHandler(pauseHandler);
