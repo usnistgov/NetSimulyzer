@@ -41,17 +41,12 @@
 namespace visualization {
 
 class BuildingGroup : public osg::Group {
-  BuildingGroup() = default;
-  META_Node(osg, BuildingGroup);
-
   osg::ref_ptr<osg::Switch> visible;
   osg::ref_ptr<osg::Geode> geode;
 
+  BuildingGroup(); // Keep this private to force clients to use MakeGroup()
 public:
   static osg::ref_ptr<BuildingGroup> makeGroup(const visualization::Building &config);
-  explicit BuildingGroup(const Group &Group, const osg::CopyOp &Copyop = osg::CopyOp::SHALLOW_COPY)
-      : osg::Group(Group, Copyop) {
-  }
 };
 
 } // namespace visualization

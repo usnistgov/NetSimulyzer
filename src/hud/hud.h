@@ -43,14 +43,7 @@ namespace visualization {
  * Callback to update the current simulation timestamp
  */
 class HudCallback : public osg::Callback {
-  META_Object(osg, HudCallback);
-
 public:
-  HudCallback() = default;
-  explicit HudCallback(const Callback &Cb, const osg::CopyOp &Copyop = osg::CopyOp::SHALLOW_COPY)
-      : osg::Callback(Cb, Copyop) {
-  }
-
   bool run(osg::Object *object, osg::Object *data) override;
 };
 

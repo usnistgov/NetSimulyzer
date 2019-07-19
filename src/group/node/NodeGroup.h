@@ -55,21 +55,17 @@ public:
  * of a Node From ns-3
  */
 class NodeGroup : public osg::Group {
-  friend NodeGroupEventCallback;
-  NodeGroup() = default;
+  friend NodeGroupEventCallback; // Only allow events to change position, scale, etc
 
-  META_Node(osg, NodeGroup);
   std::deque<Event> events;
   osg::ref_ptr<osg::Switch> visible;
   osg::ref_ptr<osg::PositionAttitudeTransform> position;
   osg::ref_ptr<osg::MatrixTransform> scale;
   osg::ref_ptr<osg::Geode> geode;
 
+  NodeGroup() = default; // Keep this private to force clients to use MakeGroup()
 public:
   static osg::ref_ptr<NodeGroup> MakeGroup(const visualization::Node &config);
-  explicit NodeGroup(const Group &Group, const osg::CopyOp &Copyop = osg::CopyOp::SHALLOW_COPY)
-      : osg::Group(Group, Copyop) {
-  }
 
   void enqueueEvent(const Event &event);
 };
