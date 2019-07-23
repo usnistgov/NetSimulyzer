@@ -44,7 +44,7 @@ class BuildingGroup : public osg::Group {
   osg::ref_ptr<osg::Switch> visible;
   osg::ref_ptr<osg::Geode> geode;
 
-  BuildingGroup(); // Keep this private to force clients to use MakeGroup()
+  BuildingGroup() = default; // Keep this private to force clients to use MakeGroup()
 public:
   static osg::ref_ptr<BuildingGroup> makeGroup(const visualization::Building &config);
 };
