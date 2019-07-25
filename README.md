@@ -7,6 +7,7 @@ A 3D visualizer for ns-3 scenarios.
   * Minimum supported compilers:
     * GCC 7.3.0
     * Clang 6.0.0
+* CMake 3.12 or greater
 * Libxml2
 * A graphics card supporting OpenGL 2
 * The OpenSceneGraph plugin dependencies for [plugins](http://www.openscenegraph.org/index.php/documentation/guides/user-guides/61-osgplugins) you wish to use
