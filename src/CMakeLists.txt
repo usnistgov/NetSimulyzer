@@ -1,9 +1,9 @@
-# TODO: Find a better way than manually building...
-# For some reason, CMake manages to find all
-# of the OSG componenets only if both of these
-# variables are specifed
-set(ENV{OSG_ROOT} ${PROJECT_SOURCE_DIR}/lib/OpenSceneGraph)
-set(OSG_DIR ${PROJECT_SOURCE_DIR}/lib/OpenSceneGraph/build/)
+# Be sure to set OSG_ROOT & OSG_DIR if OpenSceneGraph is not installed on your system
+# OSG_ROOT for the includes
+# OSG_DIR For the library code
+#
+# OSG_ROOT = ${PROJECT_SOURCE_DIR}/lib/OpenSceneGraph
+# OSG_DIR = ${PROJECT_SOURCE_DIR}/lib/OpenSceneGraph/build/
 find_package(OpenSceneGraph REQUIRED COMPONENTS osgViewer osgDB osgGA osgText osgUtil)
 
 find_package(LibXml2 REQUIRED)
