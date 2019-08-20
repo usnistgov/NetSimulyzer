@@ -52,9 +52,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  visualization::FileParser parser{argv[1]};
-  auto config = parser.readGlobalConfiguration();
-  auto nodes = parser.readNodes();
+  visualization::FileParser parser;
+  parser.parse(argv[1]);
+
+  const auto &config = parser.getConfiguration();
+  const auto &nodes = parser.getNodes();
 
   osg::ref_ptr<osg::Group> root = new osg::Group();
 
@@ -66,18 +68,18 @@ int main(int argc, char *argv[]) {
     root->addChild(nodeGroup);
   }
 
-  auto buildings = parser.readBuildings();
+  const auto &buildings = parser.getBuildings();
   for (auto &building : buildings) {
     auto group = visualization::BuildingGroup::makeGroup(building);
     root->addChild(group);
   }
 
-  auto decorations = parser.readDecorations();
+  const auto &decorations = parser.getDecorations();
   for (const auto &decoration : decorations) {
     root->addChild(new visualization::DecorationGroup(decoration));
   }
 
-  auto events = parser.readEvents();
+  const auto &events = parser.getEvents();
   for (auto &event : events) {
     std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
   }

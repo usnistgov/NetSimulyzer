@@ -43,22 +43,193 @@ namespace visualization {
 
 class FileParser {
 public:
-  explicit FileParser(std::string path);
-  ~FileParser();
+  /**
+   * States for any tags that have data actually within the tags
+   * (not all in the attributes)
+   */
+  enum class Tag { None, MsPerFrame };
 
-  GlobalConfiguration readGlobalConfiguration();
-  std::vector<Node> readNodes();
-  std::vector<Building> readBuildings();
-  std::vector<Decoration> readDecorations();
-  std::vector<Event> readEvents();
+  /**
+   * States for each collection in the document
+   */
+  enum class Section { None, Configuration, Nodes, Buildings, Decorations, Events };
+
+  /**
+   * Setup the internal callbacks for the parser
+   */
+  FileParser();
+
+  /**
+   * Read the XML file specified by path,
+   * sets the configuration, nodes, etc.
+   *
+   * @param path
+   * The path to the XML file
+   */
+  void parse(const char *path);
+
+  /**
+   * Gets the configuration from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The nodes specified by the parsed file
+   */
+  [[nodiscard]] const GlobalConfiguration &getConfiguration() const;
+
+  /**
+   * Gets the collection of nodes from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The nodes specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<Node> &getNodes() const;
+
+  /**
+   * Gets the collection of buildings from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The buildings specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<Building> &getBuildings() const;
+
+  /**
+   *  Gets the collection of decorations from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The decorations specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<Decoration> &getDecorations() const;
+
+  /**
+   * Gets the collection of events from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The events specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<Event> &getEvents() const;
 
 private:
-  std::string path;
-  xmlDocPtr doc = nullptr;
-  static Node parseNode(xmlNodePtr cursor);
-  static Building parseBuilding(xmlNodePtr cursor);
-  static Decoration parseDecoration(xmlNodePtr cursor);
-  static MoveEvent parseMoveEvent(xmlNodePtr cursor);
+  /**
+   * Handle the data in between an opening and closing tag.
+   * Based on the `currentTag`.
+   *
+   * @param data
+   * The content of the current tag
+   */
+  void interpretCharacters(const std::string &data);
+
+  /**
+   * Parse and emplace a node.
+   *
+   * @param attributes
+   * The attribute array from the 'node' tag
+   */
+  void parseNode(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a building
+   *
+   * @param attributes
+   * The attribute array from the 'building' tag
+   */
+  void parseBuilding(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a decoration
+   *
+   * @param attributes
+   * The attribute array from the 'decoration' tag
+   */
+  void parseDecoration(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a move event
+   *
+   * @param attributes
+   * The attribute array from the 'position' tag
+   */
+  void parseMoveEvent(const xmlChar *attributes[]);
+
+  /**
+   * SAX Handler for when the parser detects a tag has been opened
+   *
+   * @param user_data
+   * A pointer to the current FileParser
+   *
+   * @param name
+   * The tag name
+   *
+   * @param attrs
+   * The attribute array. May be null
+   */
+  static void startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs);
+
+  /**
+   * SAX Handler for when the parser detects tag content
+   *
+   * @param user_data
+   * A pointer to the current FileParser
+   *
+   * @param characters
+   * A C string containing (at least) the content of the tag
+   *
+   * @param length
+   * The length of `characters` containing the content of the tag
+   */
+  static void charactersCallback(void *user_data, const xmlChar *characters, int length);
+
+  /**
+   * SAX Handler for when the parser detects a tag has been closed
+   *
+   * @param user_data
+   * A pointer to the current FileParser
+   *
+   * @param name
+   * The tag name
+   */
+  static void endElementCallback(void *user_data, const xmlChar *name);
+
+  /**
+   * The overall configuration of the simulation
+   */
+  GlobalConfiguration globalConfiguration;
+
+  /**
+   * The Nodes defined by the 'nodes' XML collection
+   */
+  std::vector<Node> nodes;
+
+  /**
+   * The Buildings defined by the 'buildings' XML collection
+   */
+  std::vector<Building> buildings;
+
+  /**
+   * The Decorations defined by the 'decorations' XML collection
+   */
+  std::vector<Decoration> decorations;
+
+  /**
+   * The Events defined by the 'events' XML collection
+   */
+  std::vector<Event> events;
+
+  /**
+   * The handler from libxml2
+   * manages the tag callbacks
+   */
+  xmlSAXHandler saxHandler{};
+
+  /**
+   * Indicator of what tag we are in.
+   * Used for parsing character data within a tag
+   */
+  Tag currentTag = Tag::None;
+
+  /**
+   * Indicator of what section/collection we are currently in
+   */
+  Section currentSection = Section::None;
 };
 
 } // namespace visualization
