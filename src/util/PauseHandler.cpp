@@ -49,7 +49,7 @@ bool PauseHandler::handle(osgGA::Event *event, osg::Object *, osg::NodeVisitor *
     return false;
 
   if (guiEvent->getEventType() == osgGA::GUIEventAdapter::EventType::KEYDOWN && guiEvent->getKey() == pauseKey) {
-    // We don't need strict ordering for wether this is paused or not
+    // We don't need strict ordering for weather this is paused or not
     // since its checked so often
     paused.store(!paused.load(std::memory_order::memory_order_relaxed), std::memory_order::memory_order_relaxed);
     return true;
@@ -59,7 +59,7 @@ bool PauseHandler::handle(osgGA::Event *event, osg::Object *, osg::NodeVisitor *
 }
 
 bool PauseHandler::isPaused() const {
-  // We don't need strict ordering for wether this is paused or not
+  // We don't need strict ordering for weather this is paused or not
   // since its checked so often
   return paused.load(std::memory_order::memory_order_relaxed);
 }

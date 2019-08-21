@@ -40,12 +40,42 @@
 
 namespace visualization {
 
+/**
+ * @brief Representation of a ns-3 Building.
+ *
+ * A purely visual representation of a ns-3 Building.
+ * Does not support events.
+ *
+ * Unlike Nodes, Buildings are statically placed,
+ * so they can only be moved relative to where they started.
+ */
 class BuildingGroup : public osg::Group {
+  /**
+   * Member used to toggle the visibility of the Building
+   */
   osg::ref_ptr<osg::Switch> visible;
+
+  /**
+   * The actual, rendered geometry of the building
+   */
   osg::ref_ptr<osg::Geode> geode;
 
-  BuildingGroup() = default; // Keep this private to force clients to use MakeGroup()
+  /**
+   * Private default constructor.
+   * To make a `BuildingGroup` use `BuildingGroup::makeGroup`
+   */
+  BuildingGroup() = default;
+
 public:
+  /**
+   * Construct a building group based on the provided config
+   *
+   * @param config
+   * Configuration from the XML source
+   *
+   * @return
+   * A constructed `BuildingGroup`
+   */
   static osg::ref_ptr<BuildingGroup> makeGroup(const visualization::Building &config);
 };
 

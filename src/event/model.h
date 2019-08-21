@@ -38,9 +38,29 @@
 
 namespace visualization {
 
+/**
+ * Event that changes the position of the indicated node
+ */
 struct MoveEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
   double time = 0.0;
+
+  /**
+   * The Node to move to `targetPosition`
+   */
   uint32_t nodeId = 0;
+
+  /**
+   * The position in the scene to move the Node to.
+   *
+   * Note: this will act on the relative position of
+   * the node, not the absolute position.
+   * If the node is affected by another
+   * transform, this will be relative to that transform
+   */
   osg::Vec3d targetPosition;
 };
 

@@ -44,11 +44,28 @@ namespace visualization {
  * Non-operative model, in the scene only for show
  */
 class DecorationGroup : public osg::Group {
+  /**
+   * Relative position of the Decoration
+   */
   osg::ref_ptr<osg::PositionAttitudeTransform> position;
+
+  /**
+   * Scale of the Decoration
+   */
   osg::ref_ptr<osg::MatrixTransform> scale;
+
+  /**
+   * Actual geometry of the Decoration
+   */
   osg::ref_ptr<osg::Geode> geode;
 
 public:
+  /**
+   * Setup the position, scale, geode from the configuration
+   *
+   * @param config
+   * The configuration from the XML source to build the Decoration
+   */
   explicit DecorationGroup(const Decoration &config);
 };
 

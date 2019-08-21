@@ -51,22 +51,69 @@ public:
 };
 
 /**
- * Top level Group Node to manage all components
- * of a Node From ns-3
+ * @brief Representation of a ns-3 Node.
+ *
+ * Top level group that manages the components of a Node.
+ * All aspects of a Node may be managed by an Event
+ *
+ * Supports all possible events in the `Event` variant.
  */
 class NodeGroup : public osg::Group {
   friend NodeGroupEventCallback; // Only allow events to change position, scale, etc
 
+  /**
+   * Event queue that controls the Node
+   */
   std::deque<Event> events;
+
+  /**
+   * Toggle for weather the Node is rendered or not.
+   * Much cleaner then hiding with opacity
+   */
   osg::ref_ptr<osg::Switch> visible;
+
+  /**
+   * Relative position of the Node
+   */
   osg::ref_ptr<osg::PositionAttitudeTransform> position;
+
+  /**
+   * The X Y Z scale of the geometry
+   */
   osg::ref_ptr<osg::MatrixTransform> scale;
+
+  /**
+   * The actual geometry representing the Node
+   */
   osg::ref_ptr<osg::Geode> geode;
 
   NodeGroup() = default; // Keep this private to force clients to use MakeGroup()
 public:
+  /**
+   * Construct a Node group based on the provided config
+   *
+   * @param config
+   * Configuration from the XML source
+   *
+   * @return
+   * A constructed `NodeGroup`
+   */
   static osg::ref_ptr<NodeGroup> MakeGroup(const visualization::Node &config);
 
+  /**
+   * Add an event to the queue.
+   *
+   * Events should be added in order.
+   *
+   * If an event in the past is added it will be executed during the
+   * next update traversal.
+   *
+   * An event happening after the next event in the queue,
+   * then all events will be held until that event is executed
+   *
+   * @param event
+   * The event to add to the queue.
+   */
   void enqueueEvent(const Event &event);
 };
 

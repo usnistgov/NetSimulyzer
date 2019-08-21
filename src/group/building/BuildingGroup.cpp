@@ -38,8 +38,21 @@
 #include <osg/Material>
 #include <osgUtil/RenderBin>
 
+/**
+ * Separate anonymous namespace for constructing parts of the building geometry
+ */
 namespace {
 
+/**
+ * Build the outer walls of the building
+ *
+ * @param building
+ * The building we're building the outer walls for.
+ * Defines the dimensions, location of the walls.
+ *
+ * @return
+ * The constructed wall geometry
+ */
 osg::ref_ptr<osg::Geometry> makeOutsideWalls(const visualization::Building &building) {
   auto vertices = new osg::Vec3Array();
   vertices->push_back(osg::Vec3(building.xMin, building.yMin, building.zMin)); // 0
@@ -115,6 +128,17 @@ osg::ref_ptr<osg::Geometry> makeOutsideWalls(const visualization::Building &buil
   return geometry;
 }
 
+/**
+ * Build the interior 'floors' of the building (i.e. not the top/bottom).
+ * Only useful if the building has more than one floor
+ *
+ * @param building
+ * The building we're building the floors for.
+ * Defines the dimensions, location of the floors.
+ *
+ * @return
+ * The constructed floor geometry
+ */
 osg::ref_ptr<osg::Geometry> makeFloors(const visualization::Building &building) {
   osg::ref_ptr<osg::Geometry> floors = new osg::Geometry;
 
@@ -144,6 +168,18 @@ osg::ref_ptr<osg::Geometry> makeFloors(const visualization::Building &building) 
   return floors;
 }
 
+/**
+ * Build the interior walls for the rooms on the X axis.
+ * Only useful if the building has more than one room
+ * on the X axis (roomsX)
+ *
+ * @param building
+ * The building we're building the interior walls for.
+ * Defines the dimensions, location of the walls.
+ *
+ * @return
+ * The constructed wall geometry
+ */
 osg::ref_ptr<osg::Geometry> makeWallsX(const visualization::Building &building) {
   osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
 
@@ -169,6 +205,18 @@ osg::ref_ptr<osg::Geometry> makeWallsX(const visualization::Building &building) 
   return walls;
 }
 
+/**
+ * Build the interior walls for the rooms on the y axis.
+ * Only useful if the building has more than one room
+ * on the y axis (roomsY)
+ *
+ * @param building
+ * The building we're building the interior walls for.
+ * Defines the dimensions, location of the walls.
+ *
+ * @return
+ * The constructed wall geometry
+ */
 osg::ref_ptr<osg::Geometry> makeWallsY(const visualization::Building &building) {
   osg::ref_ptr<osg::Geometry> walls = new osg::Geometry;
 
@@ -194,18 +242,27 @@ osg::ref_ptr<osg::Geometry> makeWallsY(const visualization::Building &building) 
   return walls;
 }
 
+/**
+ * Construct and assemble the entire building geometry.
+ * Setup the transparency and the render bin for the
+ * interior/exterior walls/floors
+ *
+ * @param building
+ * The building to render
+ *
+ * @return
+ * The ready to render building geometry
+ */
 osg::ref_ptr<osg::Geode> makeGeode(const visualization::Building &building) {
   const int outsideRenderBin = 1;
   const int insideRenderBin = 0;
 
   auto outsideGeometry = makeOutsideWalls(building);
 
-  /*
-   * Set the render order, so we can guarantee the outside walls are rendered
-   * after the floor (so the floor is visible from outside the building).
-   *
-   * Lower numbers are rendered first
-   */
+  // Set the render order, so we can guarantee the outside walls are rendered
+  // after the floor (so the floor is visible from outside the building).
+  // Lower numbers are rendered first
+
   outsideGeometry->getOrCreateStateSet()->setRenderBinDetails(outsideRenderBin, "DepthSortedBin");
 
   osg::ref_ptr<osg::Geode> geo = new osg::Geode;
