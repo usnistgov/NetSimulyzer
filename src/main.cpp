@@ -84,9 +84,6 @@ int main(int argc, char *argv[]) {
     std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
   }
 
-  // TODO: Move this to a setting?
-  osg::DisplaySettings::instance()->setNumMultiSamples(8);
-
   // Add the HUD with the current time (filling the whole screen)
   root->addChild(new visualization::HudCamera(1280, 720));
   root->addChild(new visualization::CoordinateGrid(100));
