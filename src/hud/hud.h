@@ -36,6 +36,7 @@
 #include <osg/Callback>
 #include <osg/Camera>
 #include <osg/ref_ptr>
+#include <osgGA/GUIEventHandler>
 
 namespace visualization {
 
@@ -64,6 +65,34 @@ public:
    * The height of the current window in pixels
    */
   HudCamera(double xResolution, double yResolution);
+};
+
+/**
+ * Window event handler to update the HUD projection matrix
+ */
+class HudResizeHandler : public osgGA::GUIEventHandler {
+  osg::ref_ptr<HudCamera> camera;
+
+public:
+  /**
+   * @param camera
+   * Pointer to the HUD camera to manage
+   */
+  explicit HudResizeHandler(const osg::ref_ptr<HudCamera> &camera);
+
+  /**
+   * @param event
+   * GUI Event Adapter holding the new window size
+   *
+   * @param object
+   * Unused
+   *
+   * @param nv
+   * Unused
+   *
+   * @return true if the event wash handled, false otherwise
+   */
+  bool handle(osgGA::Event *event, osg::Object *object, osg::NodeVisitor *nv) override;
 };
 
 } // namespace visualization

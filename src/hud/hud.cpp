@@ -73,4 +73,22 @@ HudCamera::HudCamera(double xResolution, double yResolution) {
   addChild(currentTimeLabel);
 }
 
+HudResizeHandler::HudResizeHandler(const osg::ref_ptr<HudCamera> &camera) : camera(camera) {
+}
+
+bool HudResizeHandler::handle(osgGA::Event *event, osg::Object *, osg::NodeVisitor *) {
+  // We need this as a GUI event to retrieve the new screen size
+  auto guiEvent = event->asGUIEventAdapter();
+
+  // Just in case
+  if (!guiEvent)
+    return false;
+
+  if (guiEvent->getEventType() != osgGA::GUIEventAdapter::RESIZE)
+    return false;
+
+  camera->setProjectionMatrix(osg::Matrix::ortho2D(0, guiEvent->getWindowWidth(), 0, guiEvent->getWindowHeight()));
+  return true;
+}
+
 } // namespace visualization

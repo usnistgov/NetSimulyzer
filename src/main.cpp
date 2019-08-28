@@ -84,8 +84,6 @@ int main(int argc, char *argv[]) {
     std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
   }
 
-  // Add the HUD with the current time (filling the whole screen)
-  root->addChild(new visualization::HudCamera(1280, 720));
   root->addChild(new visualization::CoordinateGrid(100));
 
   osgViewer::Viewer viewer;
@@ -95,6 +93,12 @@ int main(int argc, char *argv[]) {
 
   auto pauseHandler = new visualization::PauseHandler;
   viewer.addEventHandler(pauseHandler);
+
+  // Add the HUD with the current time (filling the whole screen)
+  auto viewport = viewer.getCamera()->getViewport();
+  osg::ref_ptr<visualization::HudCamera> hud = new visualization::HudCamera(viewport->width(), viewport->height());
+  root->addChild(hud);
+  viewer.addEventHandler(new visualization::HudResizeHandler(hud));
 
   viewer.realize();
 
