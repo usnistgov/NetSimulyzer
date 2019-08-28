@@ -100,15 +100,15 @@ in your `LD_LIBRARY_PATH`
 The first path should be to `/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib`
 note the `build/lib` at the end of the path. This is the directory the *.so files were built
 
-The second path `/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.7.0`
-This is the same as the previous path except the for the `osgPlugins-3.7.0` at the end.
+The second path `/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.6.4`
+This is the same as the previous path except the for the `osgPlugins-3.6.4` at the end.
 Had you not included this path, the project would launch, but you'd be unable to load
 any outside models.
 
 Set your `LD_LIBRARY_PATH` based on the below. Note the `:` between paths.
 If `LD_LIBRARY_PATH` is not currently set on your system, you may ignore the first portion
 ```shell
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.7.0"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.6.4"
 ```
 
 #### Model Paths
