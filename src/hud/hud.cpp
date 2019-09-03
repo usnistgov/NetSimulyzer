@@ -65,6 +65,7 @@ HudCamera::HudCamera(double xResolution, double yResolution) {
   setProjectionMatrix(osg::Matrix::ortho2D(0, xResolution, 0, yResolution));
 
   auto currentTimeLabel = new osgText::Text;
+  currentTimeLabel->setDataVariance(osg::Object::DataVariance::DYNAMIC);
   currentTimeLabel->setCharacterSize(12.0f);
   currentTimeLabel->setAxisAlignment(osgText::TextBase::XY_PLANE);
   currentTimeLabel->setPosition({0, 0, 0});
