@@ -35,9 +35,12 @@
 #include "group/decoration/DecorationGroup.h"
 #include "group/node/NodeGroup.h"
 #include "hud/hud.h"
+#include "window/mainWindow.h"
+#include "window/osgWidget.h"
 #include "parser/file-parser.h"
 #include "util/CoordinateGrid.h"
-#include "util/PauseHandler.h"
+#include <QApplication>
+#include <QSurfaceFormat>
 #include <iostream>
 #include <osgGA/OrbitManipulator>
 #include <osgViewer/Viewer>
@@ -86,26 +89,15 @@ int main(int argc, char *argv[]) {
 
   root->addChild(new visualization::CoordinateGrid(100));
 
-  osgViewer::Viewer viewer;
-  viewer.apply(new osgViewer::SingleWindow(0, 0, 1280, 720));
-  viewer.setSceneData(root);
-  viewer.setCameraManipulator(new osgGA::OrbitManipulator());
+  QApplication application(argc, argv);
 
-  auto pauseHandler = new visualization::PauseHandler;
-  viewer.addEventHandler(pauseHandler);
+  QSurfaceFormat format;
+  format.setVersion(2, 1);
+  format.setProfile(QSurfaceFormat::CompatibilityProfile);
 
-  // Add the HUD with the current time (filling the whole screen)
-  auto viewport = viewer.getCamera()->getViewport();
-  osg::ref_ptr<visualization::HudCamera> hud = new visualization::HudCamera(viewport->width(), viewport->height());
-  root->addChild(hud);
-  viewer.addEventHandler(new visualization::HudResizeHandler(hud));
+  QSurfaceFormat::setDefaultFormat(format);
 
-  viewer.realize();
-
-  double currentTime = 0.0;
-  while (!viewer.done()) {
-    viewer.frame(currentTime);
-    if (!pauseHandler->isPaused())
-      currentTime += config.millisecondsPerFrame;
-  }
+  visualization::MainWindow mainWindow(config, root);
+  mainWindow.show();
+  return application.exec();
 }
