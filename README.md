@@ -14,6 +14,8 @@ A 3D visualizer for ns-3 scenarios.
   * See [the dependencies section](http://www.openscenegraph.org/index.php/download-section/dependencies) for more information
   * The FBX SDK is strongly recommended as it is very likely you will need to use FBX models. [Get it here](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
     * See the FBX Models section for more information
+  * The collada-dom library is necessary for reading COLLADA(.dae) files [Get it here](https://github.com/rdiankov/collada-dom)
+    * See the DAE Models section for more information
 
 
 ## Initial Setup
@@ -42,6 +44,43 @@ and specify the path to the (installed) AutoDesk SDK in `FBX_DIR`
 export FBX_DIR={where you installed the sdk}/AutoDeskSDK
 ```
 Note, once OpenSceneGraph has been configured CMake will remember this location for as long as you keep the configured directory
+
+#### DAE Models
+COLLADA files are a common exchange format for 3D applications. For the application to be able to read DAE files
+OpenSceneGraph will have to be build with [collada-dom](https://github.com/rdiankov/collada-dom) which will have to be built
+from source.
+
+Alternatively, if you wish to use a package instead there is a package available:
+* Debian Based distros: `libcollada-dom2.4-dp-dev`
+* Red Hat Based distros: `collada-dom-devel`
+
+##### Building collada-dom
+To build collada-dom you'll need CMake, Boost Filesystem, and Libxml2.
+
+For more information see the [collada wiki](https://www.khronos.org/collada/wiki/DOM_guide:_Setting_up)
+be careful though as some information seems dated.
+
+To make linking easier when building later, we'll do an in-source build.
+```shell
+git clone https://github.com/rdiankov/collada-dom.git
+cd collada-dom
+cmake .
+cmake --build .
+```
+
+##### Using collada-dom
+When configuring OpenSceneGraph, specify the collada-dom source/build directory in `COLLADA_DIR`
+
+```shell
+export COLLADA_DIR=/path/to/collada-dom
+```
+
+If you installed a package (or installed after you built from source, then you can ignore this section)
+Unfortunately, the project is set-up to be build only as a shared library,
+so it'll have to be added to your `LD_LIBRARY_PATH` to load DAE models at runtime.
+```shell
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/path/to/collada-dom
+```
 
 
 #### Building OpenSceneGraph
@@ -110,6 +149,11 @@ If `LD_LIBRARY_PATH` is not currently set on your system, you may ignore the fir
 ```shell
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.6.5"
 ```
+
+Note: if you plan to load DAE files then you'll have to add collada-dom to your `LD_LIBRARY_PATH` as well,
+unless you installed it of course.
+
+See: [Using collada-dom](#using-collada-dom)
 
 #### Model Paths
 By default OpenSceneGraph will search from the current working directory for models.
