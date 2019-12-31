@@ -65,8 +65,44 @@ struct MoveEvent {
 };
 
 /**
+ * Event that appends a value to an existing series
+ */
+struct XYSeriesAddValue {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The series to append the value to
+   */
+  uint32_t seriesId = 0u;
+
+  /**
+   * The x value to append to the series
+   */
+  double x = 0.0;
+
+  /**
+   * The y value to append to the series
+   */
+  double y = 0.0;
+};
+
+/**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent>;
+using Event = std::variant<MoveEvent, XYSeriesAddValue>;
+
+/**
+ * Events specific to Nodes
+ */
+using NodeEvent = std::variant<MoveEvent>;
+
+/**
+ * Event types specific to the charts model
+ */
+using ChartEvent = std::variant<XYSeriesAddValue>;
 
 } // namespace visualization

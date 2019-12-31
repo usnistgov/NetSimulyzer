@@ -74,4 +74,25 @@ struct Decoration {
   double scale = 1.0;
 };
 
+struct ValueAxis {
+  uint32_t id = 0u;
+  std::string name;
+  double min = 0.0;
+  double max = 10.0;
+  int ticks = 10;
+  int minorTicks = 0;
+};
+
+struct XYSeries {
+  enum class Connection { None, Line, Spline };
+
+  uint32_t id = 0u;
+  std::string name;
+  Connection connection = Connection::Line;
+  uint8_t red = 0u;
+  uint8_t green = 0u;
+  uint8_t blue = 0u;
+  uint8_t alpha = 255u;
+};
+
 } // namespace visualization

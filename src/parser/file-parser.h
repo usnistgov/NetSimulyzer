@@ -52,7 +52,7 @@ public:
   /**
    * States for each collection in the document
    */
-  enum class Section { None, Configuration, Nodes, Buildings, Decorations, Events };
+  enum class Section { None, Configuration, Nodes, Buildings, Decorations, Axes, Series, Events };
 
   /**
    * Setup the internal callbacks for the parser
@@ -108,6 +108,22 @@ public:
    */
   [[nodiscard]] const std::vector<Event> &getEvents() const;
 
+  /**
+   * Gets the collection of axes from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The ValueAxes defined by the parsed file
+   */
+  [[nodiscard]] const std::vector<ValueAxis> &getAxes() const;
+
+  /**
+   * Gets the collection of XY series from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The XY series specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<XYSeries> &getXYSeries() const;
+
 private:
   /**
    * Handle the data in between an opening and closing tag.
@@ -143,12 +159,36 @@ private:
   void parseDecoration(const xmlChar *attributes[]);
 
   /**
+   * Parse and emplace a ValueAxis
+   *
+   * @param attributes
+   * The attribute array from the 'value-axis' tag
+   */
+  void parseValueAxis(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a linear series
+   *
+   * @param attributes
+   * The attribute array from the 'linear-series' tag
+   */
+  void parseXYSeries(const xmlChar *attributes[]);
+
+  /**
    * Parse and emplace a move event
    *
    * @param attributes
    * The attribute array from the 'position' tag
    */
   void parseMoveEvent(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a series append event
+   *
+   * @param attributes
+   * The attribute array from the 'series-add' tag
+   */
+  void parseSeriesAppend(const xmlChar *attributes[]);
 
   /**
    * SAX Handler for when the parser detects a tag has been opened
@@ -213,6 +253,16 @@ private:
    * The Events defined by the 'events' XML collection
    */
   std::vector<Event> events;
+
+  /**
+   * The axes defined within the 'axes' tag
+   */
+  std::vector<ValueAxis> axes;
+
+  /**
+   * The XY Series defined within the 'series' XML collection
+   */
+  std::vector<XYSeries> xySeries;
 
   /**
    * The handler from libxml2

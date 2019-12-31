@@ -67,6 +67,14 @@ const std::vector<Event> &FileParser::getEvents() const {
   return events;
 }
 
+const std::vector<ValueAxis> &FileParser::getAxes() const {
+  return axes;
+}
+
+const std::vector<XYSeries> &FileParser::getXYSeries() const {
+  return xySeries;
+}
+
 void FileParser::interpretCharacters(const std::string &data) {
   switch (currentTag) {
   case Tag::None:
@@ -203,7 +211,95 @@ void FileParser::parseMoveEvent(const xmlChar *attributes[]) {
   events.emplace_back(event);
 }
 
+void FileParser::parseSeriesAppend(const xmlChar *attributes[]) {
+  std::string attribute;
+  XYSeriesAddValue event{};
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "series-id")
+        event.seriesId = std::stol(value);
+      else if (attribute == "milliseconds")
+        event.time = std::stod(value);
+      else if (attribute == "x")
+        event.x = std::stod(value);
+      else if (attribute == "y")
+        event.y = std::stod(value);
+    }
+  }
+
+  events.emplace_back(event);
+}
+
+void FileParser::parseValueAxis(const xmlChar *attributes[]) {
+  std::string attribute;
+  ValueAxis axis;
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        axis.id = std::stol(value);
+      else if (attribute == "name")
+        axis.name = value;
+      else if (attribute == "min")
+        axis.min = std::stod(value);
+      else if (attribute == "max")
+        axis.max = std::stod(value);
+      else if (attribute == "ticks")
+        axis.ticks = std::stoi(value);
+      else if (attribute == "minor-ticks")
+        axis.minorTicks = std::stoi(value);
+    }
+  }
+
+  axes.emplace_back(axis);
+}
+
+void FileParser::parseXYSeries(const xmlChar *attributes[]) {
+  std::string attribute;
+  XYSeries series;
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        series.id = std::stol(value);
+      else if (attribute == "connection") {
+        if (strcmp(value, "none") == 0)
+          series.connection = XYSeries::Connection::None;
+        else if (strcmp(value, "line") == 0)
+          series.connection = XYSeries::Connection::Line;
+        else if (strcmp(value, "spline") == 0)
+          series.connection = XYSeries::Connection::Spline;
+      } else if (attribute == "name")
+        series.name = value;
+      else if (attribute == "red")
+        series.red = std::stol(value);
+      else if (attribute == "green")
+        series.green = std::stol(value);
+      else if (attribute == "blue")
+        series.blue = std::stol(value);
+      else if (attribute == "alpha")
+        series.alpha = std::stol(value);
+    }
+  }
+
+  xySeries.emplace_back(series);
+}
+
 void FileParser::startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs) {
+  using Section = FileParser::Section;
   auto parser = static_cast<visualization::FileParser *>(user_data);
   std::string tagName(reinterpret_cast<const char *>(name));
   auto section = parser->currentSection;
@@ -219,7 +315,10 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
       parser->currentSection = FileParser::Section::Decorations;
     else if (tagName == "events")
       parser->currentSection = FileParser::Section::Events;
-
+    else if (tagName == "axes")
+      parser->currentSection = FileParser::Section::Axes;
+    else if (tagName == "series")
+      parser->currentSection = FileParser::Section::Series;
     return;
   }
 
@@ -235,12 +334,19 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
     parser->parseBuilding(attrs);
   else if (section == FileParser::Section::Decorations && tagName == "decoration")
     parser->parseDecoration(attrs);
-  else if (section == FileParser::Section::Events) {
+  else if (section == Section::Axes) {
+    if (tagName == "value-axis")
+      parser->parseValueAxis(attrs);
+  } else if (section == Section::Series) {
+    if (tagName == "xy-series")
+      parser->parseXYSeries(attrs);
+  } else if (section == Section::Events) {
     if (tagName == "position")
       parser->parseMoveEvent(attrs);
+    else if (tagName == "xy-series-append")
+      parser->parseSeriesAppend(attrs);
   }
 }
-
 void FileParser::charactersCallback(void *user_data, const xmlChar *characters, int length) {
   auto parser = static_cast<visualization::FileParser *>(user_data);
 
@@ -254,13 +360,12 @@ void FileParser::charactersCallback(void *user_data, const xmlChar *characters, 
   std::string data(reinterpret_cast<const char *>(characters), length);
   parser->interpretCharacters(data);
 }
-
 void FileParser::endElementCallback(void *user_data, const xmlChar *name) {
   auto parser = static_cast<visualization::FileParser *>(user_data);
   std::string tagName(reinterpret_cast<const char *>(name));
 
   if (tagName == "configuration" || tagName == "nodes" || tagName == "buildings" || tagName == "decorations" ||
-      tagName == "events") {
+      tagName == "events" || tagName == "series" || tagName == "axes") {
     parser->currentSection = FileParser::Section::None;
   }
 

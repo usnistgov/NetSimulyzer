@@ -64,7 +64,7 @@ class NodeGroup : public osg::Group {
   /**
    * Event queue that controls the Node
    */
-  std::deque<Event> events;
+  std::deque<NodeEvent> events;
 
   /**
    * Toggle for weather the Node is rendered or not.
@@ -114,7 +114,7 @@ public:
    * @param event
    * The event to add to the queue.
    */
-  void enqueueEvent(const Event &event);
+  void enqueueEvent(const NodeEvent &event);
 };
 
 } // namespace visualization
