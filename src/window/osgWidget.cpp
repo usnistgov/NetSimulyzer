@@ -65,8 +65,10 @@ void OSGWidget::paintEvent(QPaintEvent * /* paintEvent */) {
 }
 
 void OSGWidget::paintGL() {
-  if (!pauseHandler->isPaused())
+  if (!pauseHandler->isPaused()) {
     currentTime += config.millisecondsPerFrame;
+    emit timeAdvanced(currentTime);
+  }
 
   viewer->frame(currentTime);
 }

@@ -21,6 +21,9 @@ public:
                      QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
   ~OSGWidget() override;
 
+signals:
+  void timeAdvanced(double simulationTime);
+
 protected:
   void paintEvent(QPaintEvent *paintEvent) override;
   void paintGL() override;
