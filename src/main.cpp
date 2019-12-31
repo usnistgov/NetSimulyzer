@@ -31,21 +31,34 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
+#include "event/model.h"
 #include "group/building/BuildingGroup.h"
 #include "group/decoration/DecorationGroup.h"
 #include "group/node/NodeGroup.h"
 #include "hud/hud.h"
-#include "window/mainWindow.h"
-#include "window/osgWidget.h"
 #include "parser/file-parser.h"
 #include "util/CoordinateGrid.h"
+#include "window/mainWindow.h"
+#include "window/osgWidget.h"
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <deque>
 #include <iostream>
 #include <osgGA/OrbitManipulator>
 #include <osgViewer/Viewer>
 #include <osgViewer/config/SingleWindow>
 #include <unordered_map>
+
+// Compile time checking for a member nodeId
+template <typename T, typename = int> struct hasNodeId : std::false_type {}; // Default case
+
+template <typename T>
+struct hasNodeId<T, decltype((void)T::nodeId, int()) // Checking if ::nodeId exists, and its of type uint32_t. If
+                                                     // it doesn't exist then this specialization is ignored (SFINAE)
+                 > : std::true_type {};
+
+template <typename T, typename = int> struct hasSeriesId : std::false_type {};
+template <typename T> struct hasSeriesId<T, decltype((void)T::seriesId, int())> : std::true_type {};
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -82,9 +95,23 @@ int main(int argc, char *argv[]) {
     root->addChild(new visualization::DecorationGroup(decoration));
   }
 
+  std::deque<visualization::ChartEvent> chartEvents;
   const auto &events = parser.getEvents();
   for (auto &event : events) {
-    std::visit([&nodeGroups](auto &&arg) { nodeGroups[arg.nodeId]->enqueueEvent(arg); }, event);
+    std::visit(
+        [&nodeGroups, &chartEvents](auto &&arg) {
+          // Strip off qualifiers, etc
+          // so T holds just the type
+          // so we can more easily match it
+          using T = std::decay_t<decltype(arg)>;
+
+          // Only enqueue events with nodeIds's
+          if constexpr (hasNodeId<T>::value)
+            nodeGroups[arg.nodeId]->enqueueEvent(arg);
+          else if constexpr (hasSeriesId<T>::value)
+            chartEvents.emplace_back(arg);
+        },
+        event);
   }
 
   root->addChild(new visualization::CoordinateGrid(100));
@@ -97,7 +124,7 @@ int main(int argc, char *argv[]) {
 
   QSurfaceFormat::setDefaultFormat(format);
 
-  visualization::MainWindow mainWindow(config, root);
+  visualization::MainWindow mainWindow(config, chartEvents, parser, root);
   mainWindow.show();
-  return application.exec();
+  return QApplication::exec();
 }

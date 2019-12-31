@@ -40,7 +40,7 @@ find_package(OpenSceneGraph REQUIRED COMPONENTS osgViewer osgDB osgGA osgText os
 find_package(LibXml2 REQUIRED)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package(Qt5 COMPONENTS Core Widgets OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets OpenGL Charts REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -57,8 +57,9 @@ add_executable(visualization
         util/CoordinateGrid.cpp util/CoordinateGrid.h
         util/PauseHandler.cpp util/PauseHandler.h
         util/GroundPlane.cpp util/GroundPlane.h
-        window/mainWindow.cpp window/mainWindow.h
-        window/osgWidget.cpp window/osgWidget.h)
+        window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
+        window/osgWidget.cpp window/osgWidget.h
+        window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui)
 
 target_compile_features(visualization PRIVATE cxx_std_17)
 
@@ -72,4 +73,4 @@ target_link_libraries(visualization ${OPENSCENEGRAPH_LIBRARIES})
 target_include_directories(visualization SYSTEM PRIVATE LibXml2::LibXml2)
 target_link_libraries(visualization LibXml2::LibXml2)
 
-target_link_libraries(visualization Qt5::Core Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(visualization Qt5::Core Qt5::Widgets Qt5::OpenGL Qt5::Charts)
