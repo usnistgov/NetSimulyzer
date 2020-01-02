@@ -147,6 +147,7 @@ void ChartManager::addSeries(const XYSeries &s) {
     break;
   }
 
+  tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
   tie.qtSeries->setName(QString::fromStdString(s.name));
   tie.qtSeries->setPointLabelsVisible(true);
 
