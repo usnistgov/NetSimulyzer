@@ -194,9 +194,9 @@ void ChartManager::hideSeries(uint32_t seriesId) {
 void ChartManager::showAxis(uint32_t axisId, Qt::AlignmentFlag align) {
   auto existingAxis = activeAxes.find(align);
   if (existingAxis != activeAxes.end()) {
-    chart.removeAxis(existingAxis->second);
     if (activeSeries)
       activeSeries->detachAxis(existingAxis->second);
+    chart.removeAxis(existingAxis->second);
 
     // addAxis changes the chart to the owner, removeAxis unsets the chart as the owner
     // so we should retake the axis
