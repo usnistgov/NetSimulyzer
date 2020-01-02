@@ -135,7 +135,18 @@ void ChartManager::addValueAxis(const ValueAxis &model) {
 void ChartManager::addSeries(const XYSeries &s) {
   ChartManager::XYSeriesTie tie;
   tie.model = s;
-  tie.qtSeries = new QtCharts::QLineSeries(this);
+  switch (s.connection) {
+  case XYSeries::Connection::None:
+    tie.qtSeries = new QtCharts::QScatterSeries(this);
+    break;
+  case XYSeries::Connection::Line:
+    tie.qtSeries = new QtCharts::QLineSeries(this);
+    break;
+  case XYSeries::Connection::Spline:
+    tie.qtSeries = new QtCharts::QSplineSeries(this);
+    break;
+  }
+
   tie.qtSeries->setName(QString::fromStdString(s.name));
   tie.qtSeries->setPointLabelsVisible(true);
 

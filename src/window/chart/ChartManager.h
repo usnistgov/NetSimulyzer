@@ -60,7 +60,7 @@ class ChartManager : public QWidget {
 
   struct XYSeriesTie {
     XYSeries model;
-    QtCharts::QLineSeries *qtSeries;
+    QtCharts::QXYSeries *qtSeries;
   };
 
   std::deque<ChartEvent> events;
