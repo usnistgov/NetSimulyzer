@@ -67,8 +67,12 @@ const std::vector<Event> &FileParser::getEvents() const {
   return events;
 }
 
-const std::vector<ValueAxis> &FileParser::getAxes() const {
-  return axes;
+const std::vector<ValueAxis> &FileParser::getValueAxes() const {
+  return valueAxes;
+}
+
+const std::vector<LogarithmicAxis> &FileParser::getLogAxes() const {
+  return logAxes;
 }
 
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
@@ -260,7 +264,35 @@ void FileParser::parseValueAxis(const xmlChar *attributes[]) {
     }
   }
 
-  axes.emplace_back(axis);
+  valueAxes.emplace_back(axis);
+}
+
+void FileParser::parseLogAxis(const xmlChar *attributes[]) {
+  std::string attribute;
+  LogarithmicAxis axis;
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        axis.id = std::stol(value);
+      else if (attribute == "name")
+        axis.name = value;
+      else if (attribute == "base")
+        axis.base = std::stod(value);
+      else if (attribute == "min")
+        axis.min = std::stod(value);
+      else if (attribute == "max")
+        axis.max = std::stod(value);
+      else if (attribute == "minor-ticks")
+        axis.minorTicks = std::stoi(value);
+    }
+  }
+
+  logAxes.emplace_back(axis);
 }
 
 void FileParser::parseXYSeries(const xmlChar *attributes[]) {
@@ -297,7 +329,6 @@ void FileParser::parseXYSeries(const xmlChar *attributes[]) {
 
   xySeries.emplace_back(series);
 }
-
 void FileParser::startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs) {
   using Section = FileParser::Section;
   auto parser = static_cast<visualization::FileParser *>(user_data);
@@ -337,6 +368,8 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
   else if (section == Section::Axes) {
     if (tagName == "value-axis")
       parser->parseValueAxis(attrs);
+    else if (tagName == "logarithmic-axis")
+      parser->parseLogAxis(attrs);
   } else if (section == Section::Series) {
     if (tagName == "xy-series")
       parser->parseXYSeries(attrs);

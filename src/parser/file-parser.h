@@ -109,12 +109,20 @@ public:
   [[nodiscard]] const std::vector<Event> &getEvents() const;
 
   /**
-   * Gets the collection of axes from the parsed file
+   * Gets the collection of value axes from the parsed file
    * `parse()` should be called first
    *
    * @return The ValueAxes defined by the parsed file
    */
-  [[nodiscard]] const std::vector<ValueAxis> &getAxes() const;
+  [[nodiscard]] const std::vector<ValueAxis> &getValueAxes() const;
+
+  /**
+   * Gets the collection of logarithmic axes from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The LogarithmicAxes defined by the parsed file
+   */
+  [[nodiscard]] const std::vector<LogarithmicAxis> &getLogAxes() const;
 
   /**
    * Gets the collection of XY series from the parsed file
@@ -165,6 +173,14 @@ private:
    * The attribute array from the 'value-axis' tag
    */
   void parseValueAxis(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a LogarithmicAxis
+   *
+   * @param attributes
+   * The attribute array from the 'logarithmic-axis' tag
+   */
+  void parseLogAxis(const xmlChar *attributes[]);
 
   /**
    * Parse and emplace a linear series
@@ -255,9 +271,14 @@ private:
   std::vector<Event> events;
 
   /**
-   * The axes defined within the 'axes' tag
+   * The value axes defined within the 'axes' tag
    */
-  std::vector<ValueAxis> axes;
+  std::vector<ValueAxis> valueAxes;
+
+  /**
+   * The logarithmic axes defined within the 'axes' tag
+   */
+  std::vector<LogarithmicAxis> logAxes;
 
   /**
    * The XY Series defined within the 'series' XML collection

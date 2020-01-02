@@ -53,18 +53,13 @@ namespace visualization {
 class ChartManager : public QWidget {
   Q_OBJECT
 
-  struct ValueAxisTie {
-    ValueAxis model;
-    QtCharts::QAbstractAxis *qtAxis;
-  };
-
   struct XYSeriesTie {
     XYSeries model;
     QtCharts::QXYSeries *qtSeries;
   };
 
   std::deque<ChartEvent> events;
-  std::unordered_map<uint32_t, ValueAxisTie> axes;
+  std::unordered_map<uint32_t, QtCharts::QAbstractAxis*> axes;
   std::unordered_map<unsigned int, QtCharts::QAbstractAxis*> activeAxes;
 
   std::unordered_map<uint32_t, XYSeriesTie> series;
@@ -84,7 +79,8 @@ class ChartManager : public QWidget {
 public:
   explicit ChartManager(QWidget *parent);
   ~ChartManager() override;
-  void addValueAxis(const ValueAxis &model);
+  void addAxis(const ValueAxis &model);
+  void addAxis(const LogarithmicAxis &model);
   void addSeries(const XYSeries &s);
 
   void showSeries(uint32_t seriesId);

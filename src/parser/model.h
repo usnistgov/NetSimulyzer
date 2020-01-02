@@ -83,6 +83,15 @@ struct ValueAxis {
   int minorTicks = 0;
 };
 
+struct LogarithmicAxis {
+  uint32_t id = 0u;
+  std::string name;
+  double base = 10.0;
+  double min = 0.0;
+  double max = 10.0;
+  int minorTicks = 0;
+};
+
 struct XYSeries {
   enum class Connection { None, Line, Spline };
 

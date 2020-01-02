@@ -13,9 +13,14 @@ MainWindow::MainWindow(const GlobalConfiguration &config, const std::deque<Chart
   ui->horizontalLayout->addWidget(&osg);
   ui->horizontalLayout->addWidget(&charts);
 
-  const auto &axes = parser.getAxes();
-  for (const auto &axis: axes) {
-    charts.addValueAxis(axis);
+  const auto &valueAxes = parser.getValueAxes();
+  for (const auto &valueAxis: valueAxes) {
+    charts.addAxis(valueAxis);
+  }
+
+  const auto &logAxes = parser.getLogAxes();
+  for (const auto &logAxis: logAxes) {
+    charts.addAxis(logAxis);
   }
 
   const auto &xySeries = parser.getXYSeries();

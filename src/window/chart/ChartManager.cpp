@@ -115,19 +115,27 @@ void ChartManager::seriesSelected(int index) {
   activeSeries = series[seriesId].qtSeries;
 }
 
-void ChartManager::addValueAxis(const ValueAxis &model) {
-  ChartManager::ValueAxisTie tie;
-  tie.model = model;
-
+void ChartManager::addAxis(const ValueAxis &model) {
   auto axis = new QtCharts::QValueAxis(this);
   axis->setTitleText(QString::fromStdString(model.name));
   axis->setRange(model.min, model.max);
   axis->setTickCount(model.ticks);
   axis->setMinorTickCount(model.minorTicks);
-  tie.qtAxis = axis;
   // Alignment handled by the chart itself
 
-  axes.insert({model.id, tie});
+  axes.insert({model.id, axis});
+  ui->comboBoxBottomAxis->addItem(QString::fromStdString(model.name), model.id);
+  ui->comboBoxLeftAxis->addItem(QString::fromStdString(model.name), model.id);
+}
+
+void ChartManager::addAxis(const LogarithmicAxis &model) {
+  auto axis = new QtCharts::QLogValueAxis(this);
+  axis->setTitleText(QString::fromStdString(model.name));
+  axis->setRange(model.min, model.max);
+  axis->setBase(model.base);
+  axis->setMinorTickCount(model.minorTicks);
+
+  axes.insert({model.id, axis});
   ui->comboBoxBottomAxis->addItem(QString::fromStdString(model.name), model.id);
   ui->comboBoxLeftAxis->addItem(QString::fromStdString(model.name), model.id);
 }
@@ -203,11 +211,11 @@ void ChartManager::showAxis(uint32_t axisId, Qt::AlignmentFlag align) {
     return;
   const auto &axis = axisIterator->second;
 
-  activeAxes.insert_or_assign(align, axis.qtAxis);
-  chart.addAxis(axis.qtAxis, align);
+  activeAxes.insert_or_assign(align, axis);
+  chart.addAxis(axis, align);
 
   if (activeSeries)
-    activeSeries->attachAxis(axis.qtAxis);
+    activeSeries->attachAxis(axis);
 }
 
 void ChartManager::timeAdvanced(double time) {
