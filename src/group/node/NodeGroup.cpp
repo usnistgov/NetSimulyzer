@@ -127,7 +127,7 @@ void NodeGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
   traverse(node, nv);
 }
 
-void NodeGroup::enqueueEvent(const Event &event) {
+void NodeGroup::enqueueEvent(const NodeEvent &event) {
   events.push_back(event);
 }
 

@@ -1,3 +1,4 @@
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -32,77 +33,62 @@
  */
 
 #pragma once
+#include "../../event/model.h"
+#include "../../parser/model.h"
+#include "ui_chartManager.h"
+#include <QComboBox>
+#include <QFrame>
+#include <QGraphicsItem>
+#include <QLayout>
+#include <QObject>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
 #include <cstdint>
-#include <osg/Vec3d>
-#include <variant>
+#include <deque>
+#include <unordered_map>
+#include <optional>
 
 namespace visualization {
+class ChartManager : public QWidget {
+  Q_OBJECT
 
-/**
- * Event that changes the position of the indicated node
- */
-struct MoveEvent {
-  /**
-   * The simulation time (in milliseconds)
-   * for when the event should be run
-   */
-  double time = 0.0;
+  struct XYSeriesTie {
+    XYSeries model;
+    QtCharts::QXYSeries *qtSeries;
+  };
 
-  /**
-   * The Node to move to `targetPosition`
-   */
-  uint32_t nodeId = 0;
+  std::deque<ChartEvent> events;
+  std::unordered_map<uint32_t, QtCharts::QAbstractAxis*> axes;
+  std::unordered_map<unsigned int, QtCharts::QAbstractAxis*> activeAxes;
 
-  /**
-   * The position in the scene to move the Node to.
-   *
-   * Note: this will act on the relative position of
-   * the node, not the absolute position.
-   * If the node is affected by another
-   * transform, this will be relative to that transform
-   */
-  osg::Vec3d targetPosition;
+  std::unordered_map<uint32_t, XYSeriesTie> series;
+
+  QtCharts::QChart chart;
+
+  Ui::ChartManager *ui = new Ui::ChartManager;
+
+  // Used to re-enable previous axes when they're removed from the graph
+  std::optional<int> previousLeftIndex;
+  std::optional<int> previousBottomIndex;
+  QAbstractSeries *activeSeries = nullptr;
+
+  void bottomAxisSelected(int index);
+  void leftAxisSelected(int index);
+  void seriesSelected(int index);
+public:
+  explicit ChartManager(QWidget *parent);
+  ~ChartManager() override;
+  void addAxis(const ValueAxis &model);
+  void addAxis(const LogarithmicAxis &model);
+  void addSeries(const XYSeries &s);
+
+  void showSeries(uint32_t seriesId);
+  void hideSeries(uint32_t seriesId);
+  void showAxis(uint32_t axisId, Qt::AlignmentFlag align);
+
+  void timeAdvanced(double time);
+  void enqueueEvent(const ChartEvent &e);
 };
-
-/**
- * Event that appends a value to an existing series
- */
-struct XYSeriesAddValue {
-  /**
-   * The simulation time (in milliseconds)
-   * for when the event should be run
-   */
-  double time = 0.0;
-
-  /**
-   * The series to append the value to
-   */
-  uint32_t seriesId = 0u;
-
-  /**
-   * The x value to append to the series
-   */
-  double x = 0.0;
-
-  /**
-   * The y value to append to the series
-   */
-  double y = 0.0;
-};
-
-/**
- * Variant defined for every event model
- */
-using Event = std::variant<MoveEvent, XYSeriesAddValue>;
-
-/**
- * Events specific to Nodes
- */
-using NodeEvent = std::variant<MoveEvent>;
-
-/**
- * Event types specific to the charts model
- */
-using ChartEvent = std::variant<XYSeriesAddValue>;
 
 } // namespace visualization
