@@ -46,8 +46,8 @@
 #include <QtCharts/QValueAxis>
 #include <cstdint>
 #include <deque>
-#include <unordered_map>
 #include <optional>
+#include <unordered_map>
 
 namespace visualization {
 class ChartManager : public QWidget {
@@ -56,37 +56,23 @@ class ChartManager : public QWidget {
   struct XYSeriesTie {
     XYSeries model;
     QtCharts::QXYSeries *qtSeries;
+    QAbstractAxis *xAxis;
+    QAbstractAxis *yAxis;
   };
 
+  Ui::ChartManager *ui = new Ui::ChartManager;
   std::deque<ChartEvent> events;
-  std::unordered_map<uint32_t, QtCharts::QAbstractAxis*> axes;
-  std::unordered_map<unsigned int, QtCharts::QAbstractAxis*> activeAxes;
-
   std::unordered_map<uint32_t, XYSeriesTie> series;
-
   QtCharts::QChart chart;
 
-  Ui::ChartManager *ui = new Ui::ChartManager;
-
-  // Used to re-enable previous axes when they're removed from the graph
-  std::optional<int> previousLeftIndex;
-  std::optional<int> previousBottomIndex;
-  QAbstractSeries *activeSeries = nullptr;
-
-  void bottomAxisSelected(int index);
-  void leftAxisSelected(int index);
   void seriesSelected(int index);
+
 public:
   explicit ChartManager(QWidget *parent);
   ~ChartManager() override;
-  void addAxis(const ValueAxis &model);
-  void addAxis(const LogarithmicAxis &model);
+
   void addSeries(const XYSeries &s);
-
   void showSeries(uint32_t seriesId);
-  void hideSeries(uint32_t seriesId);
-  void showAxis(uint32_t axisId, Qt::AlignmentFlag align);
-
   void timeAdvanced(double time);
   void enqueueEvent(const ChartEvent &e);
 };

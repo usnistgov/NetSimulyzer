@@ -31,8 +31,27 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 #include "file-parser.h"
+#include <cassert>
 #include <cstring>
 #include <memory>
+
+visualization::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
+  if (mode == "fixed")
+    return visualization::ValueAxis::BoundMode::Fixed;
+  else if (mode == "highest value")
+    return visualization::ValueAxis::BoundMode::HighestValue;
+  else
+    assert(!"Unhandled ValueAxis::BoundMode mode");
+}
+
+visualization::ValueAxis::Scale scaleFromString(const std::string &mode) {
+  if (mode == "linear")
+    return visualization::ValueAxis::Scale::Linear;
+  else if (mode == "logarithmic")
+    return visualization::ValueAxis::Scale::Logarithmic;
+  else
+    assert(!"Unhandled ValueAxis::Scale mode");
+}
 
 namespace visualization {
 
@@ -65,14 +84,6 @@ const std::vector<Decoration> &FileParser::getDecorations() const {
 
 const std::vector<Event> &FileParser::getEvents() const {
   return events;
-}
-
-const std::vector<ValueAxis> &FileParser::getValueAxes() const {
-  return valueAxes;
-}
-
-const std::vector<LogarithmicAxis> &FileParser::getLogAxes() const {
-  return logAxes;
 }
 
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
@@ -239,62 +250,6 @@ void FileParser::parseSeriesAppend(const xmlChar *attributes[]) {
   events.emplace_back(event);
 }
 
-void FileParser::parseValueAxis(const xmlChar *attributes[]) {
-  std::string attribute;
-  ValueAxis axis;
-
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        axis.id = std::stol(value);
-      else if (attribute == "name")
-        axis.name = value;
-      else if (attribute == "min")
-        axis.min = std::stod(value);
-      else if (attribute == "max")
-        axis.max = std::stod(value);
-      else if (attribute == "ticks")
-        axis.ticks = std::stoi(value);
-      else if (attribute == "minor-ticks")
-        axis.minorTicks = std::stoi(value);
-    }
-  }
-
-  valueAxes.emplace_back(axis);
-}
-
-void FileParser::parseLogAxis(const xmlChar *attributes[]) {
-  std::string attribute;
-  LogarithmicAxis axis;
-
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        axis.id = std::stol(value);
-      else if (attribute == "name")
-        axis.name = value;
-      else if (attribute == "base")
-        axis.base = std::stod(value);
-      else if (attribute == "min")
-        axis.min = std::stod(value);
-      else if (attribute == "max")
-        axis.max = std::stod(value);
-      else if (attribute == "minor-ticks")
-        axis.minorTicks = std::stoi(value);
-    }
-  }
-
-  logAxes.emplace_back(axis);
-}
-
 void FileParser::parseXYSeries(const xmlChar *attributes[]) {
   std::string attribute;
   XYSeries series;
@@ -324,6 +279,26 @@ void FileParser::parseXYSeries(const xmlChar *attributes[]) {
         series.blue = std::stol(value);
       else if (attribute == "alpha")
         series.alpha = std::stol(value);
+      else if (attribute == "x-axis")
+        series.xAxis.name = value;
+      else if (attribute == "x-axis-min")
+        series.xAxis.min = std::stod(value);
+      else if (attribute == "x-axis-max")
+        series.xAxis.max = std::stod(value);
+      else if (attribute == "x-axis-scale")
+        series.xAxis.scale = scaleFromString(value);
+      else if (attribute == "x-axis-bound-mode")
+        series.xAxis.boundMode = boundModeFromString(value);
+      else if (attribute == "y-axis")
+        series.yAxis.name = value;
+      else if (attribute == "y-axis-min")
+        series.yAxis.min = std::stod(value);
+      else if (attribute == "y-axis-max")
+        series.yAxis.max = std::stod(value);
+      else if (attribute == "y-axis-scale")
+        series.yAxis.scale = scaleFromString(value);
+      else if (attribute == "y-axis-bound-mode")
+        series.yAxis.boundMode = boundModeFromString(value);
     }
   }
 
@@ -346,8 +321,6 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
       parser->currentSection = FileParser::Section::Decorations;
     else if (tagName == "events")
       parser->currentSection = FileParser::Section::Events;
-    else if (tagName == "axes")
-      parser->currentSection = FileParser::Section::Axes;
     else if (tagName == "series")
       parser->currentSection = FileParser::Section::Series;
     return;
@@ -365,12 +338,7 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
     parser->parseBuilding(attrs);
   else if (section == FileParser::Section::Decorations && tagName == "decoration")
     parser->parseDecoration(attrs);
-  else if (section == Section::Axes) {
-    if (tagName == "value-axis")
-      parser->parseValueAxis(attrs);
-    else if (tagName == "logarithmic-axis")
-      parser->parseLogAxis(attrs);
-  } else if (section == Section::Series) {
+  else if (section == Section::Series) {
     if (tagName == "xy-series")
       parser->parseXYSeries(attrs);
   } else if (section == Section::Events) {
@@ -398,7 +366,7 @@ void FileParser::endElementCallback(void *user_data, const xmlChar *name) {
   std::string tagName(reinterpret_cast<const char *>(name));
 
   if (tagName == "configuration" || tagName == "nodes" || tagName == "buildings" || tagName == "decorations" ||
-      tagName == "events" || tagName == "series" || tagName == "axes") {
+      tagName == "events" || tagName == "series") {
     parser->currentSection = FileParser::Section::None;
   }
 

@@ -75,21 +75,14 @@ struct Decoration {
 };
 
 struct ValueAxis {
-  uint32_t id = 0u;
-  std::string name;
-  double min = 0.0;
-  double max = 10.0;
-  int ticks = 10;
-  int minorTicks = 0;
-};
+  enum class BoundMode { Fixed, HighestValue };
+  enum class Scale { Linear, Logarithmic };
 
-struct LogarithmicAxis {
-  uint32_t id = 0u;
   std::string name;
-  double base = 10.0;
+  BoundMode boundMode = BoundMode::HighestValue;
+  Scale scale = Scale::Linear;
   double min = 0.0;
-  double max = 10.0;
-  int minorTicks = 0;
+  double max = 0.0;
 };
 
 struct XYSeries {
@@ -102,6 +95,8 @@ struct XYSeries {
   uint8_t green = 0u;
   uint8_t blue = 0u;
   uint8_t alpha = 255u;
+  ValueAxis xAxis;
+  ValueAxis yAxis;
 };
 
 } // namespace visualization

@@ -38,14 +38,36 @@
 #include <stdexcept>
 #include <utility>
 
+namespace {
+
+struct AxisRange {
+  qreal min;
+  qreal max;
+};
+
+AxisRange getRange(visualization::ValueAxis::Scale scale, QtCharts::QAbstractAxis *axis) {
+  AxisRange range{};
+
+  if (scale == visualization::ValueAxis::Scale::Linear) {
+    const auto valueAxis = qobject_cast<QtCharts::QValueAxis *>(axis);
+    range.min = valueAxis->min();
+    range.max = valueAxis->max();
+  } else {
+    const QLogValueAxis *logAxis = qobject_cast<QtCharts::QLogValueAxis *>(axis);
+    range.min = logAxis->min();
+    range.max = logAxis->max();
+  }
+  return range;
+}
+
+} // namespace
+
 namespace visualization {
 
 ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
   ui->setupUi(this);
 
   ui->comboBoxSeries->addItem("Select Series", 0u);
-  ui->comboBoxLeftAxis->addItem("Select Axis", 0u);
-  ui->comboBoxBottomAxis->addItem("Select Axis", 0u);
 
   chart.legend()->setVisible(true);
   chart.legend()->setAlignment(Qt::AlignBottom);
@@ -53,10 +75,6 @@ ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
   ui->chartView->setChart(&chart);
   ui->chartView->setRenderHints(QPainter::Antialiasing);
 
-  QObject::connect(ui->comboBoxBottomAxis, qOverload<int>(&QComboBox::currentIndexChanged), this,
-                   &ChartManager::bottomAxisSelected);
-  QObject::connect(ui->comboBoxLeftAxis, qOverload<int>(&QComboBox::currentIndexChanged), this,
-                   &ChartManager::leftAxisSelected);
   QObject::connect(ui->comboBoxSeries, qOverload<int>(&QComboBox::currentIndexChanged), this,
                    &ChartManager::seriesSelected);
 }
@@ -65,79 +83,9 @@ ChartManager::~ChartManager() {
   delete ui;
 }
 
-void ChartManager::bottomAxisSelected(int index) {
-  showAxis(ui->comboBoxBottomAxis->itemData(index).toUInt(), Qt::AlignBottom);
-
-  auto leftModel = qobject_cast<QStandardItemModel *>(ui->comboBoxLeftAxis->model());
-
-  // Re-enable the option for the one we're switching away from
-  if (previousLeftIndex)
-    leftModel->item(previousLeftIndex.value())->setEnabled(true);
-
-  leftModel->item(index)->setEnabled(false);
-  previousLeftIndex = index;
-}
-
-void ChartManager::leftAxisSelected(int index) {
-  showAxis(ui->comboBoxLeftAxis->itemData(index).toUInt(), Qt::AlignLeft);
-
-  auto bottomModel = qobject_cast<QStandardItemModel *>(ui->comboBoxBottomAxis->model());
-
-  // Re-enable the option for the one we're switching away from
-  if (previousBottomIndex)
-    bottomModel->item(previousBottomIndex.value())->setEnabled(true);
-
-  bottomModel->item(index)->setEnabled(false);
-  previousBottomIndex = index;
-}
-
 void ChartManager::seriesSelected(int index) {
   auto seriesId = ui->comboBoxSeries->itemData(index).toUInt();
-
-  // TODO: Allow several series to be shown at once
-  if (activeSeries != nullptr) {
-    for (auto &activeAxis : activeAxes) {
-      activeSeries->detachAxis(activeAxis.second);
-    }
-
-    chart.removeSeries(activeSeries);
-    // Reclaim ownership of the series
-    activeSeries->setParent(this);
-  }
-
-  // ID 0 is for the placeholder element
-  if (seriesId == 0u) {
-    activeSeries = nullptr;
-    return;
-  }
-
   showSeries(seriesId);
-  activeSeries = series[seriesId].qtSeries;
-}
-
-void ChartManager::addAxis(const ValueAxis &model) {
-  auto axis = new QtCharts::QValueAxis(this);
-  axis->setTitleText(QString::fromStdString(model.name));
-  axis->setRange(model.min, model.max);
-  axis->setTickCount(model.ticks);
-  axis->setMinorTickCount(model.minorTicks);
-  // Alignment handled by the chart itself
-
-  axes.insert({model.id, axis});
-  ui->comboBoxBottomAxis->addItem(QString::fromStdString(model.name), model.id);
-  ui->comboBoxLeftAxis->addItem(QString::fromStdString(model.name), model.id);
-}
-
-void ChartManager::addAxis(const LogarithmicAxis &model) {
-  auto axis = new QtCharts::QLogValueAxis(this);
-  axis->setTitleText(QString::fromStdString(model.name));
-  axis->setRange(model.min, model.max);
-  axis->setBase(model.base);
-  axis->setMinorTickCount(model.minorTicks);
-
-  axes.insert({model.id, axis});
-  ui->comboBoxBottomAxis->addItem(QString::fromStdString(model.name), model.id);
-  ui->comboBoxLeftAxis->addItem(QString::fromStdString(model.name), model.id);
 }
 
 void ChartManager::addSeries(const XYSeries &s) {
@@ -159,63 +107,75 @@ void ChartManager::addSeries(const XYSeries &s) {
   tie.qtSeries->setName(QString::fromStdString(s.name));
   tie.qtSeries->setPointLabelsVisible(true);
 
+  // X Axis
+  if (tie.model.xAxis.scale == ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+
+  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
+  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
+
+  // Y Axis
+  if (tie.model.yAxis.scale == ValueAxis::Scale::Linear)
+    tie.yAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.yAxis = new QtCharts::QLogValueAxis(this);
+  tie.yAxis = new QtCharts::QValueAxis(this);
+  tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
+  tie.yAxis->setRange(s.xAxis.min, s.yAxis.max);
+
   series.insert({s.id, tie});
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
 }
 
 void ChartManager::showSeries(uint32_t seriesId) {
+  // Remove old axes
+  auto currentAxes = chart.axes();
+
+  // Remove currently attached series
+  for (const auto &currentSeries : chart.series()) {
+    // Detach the axes from each series,
+    // then they may be removed from the chart
+    for (const auto &axis : currentAxes) {
+      currentSeries->detachAxis(axis);
+    }
+
+    chart.removeSeries(currentSeries);
+    // The chart claims ownership of the series when it's attached
+    currentSeries->setParent(this);
+  }
+
+  for (const auto &axis : currentAxes) {
+    chart.removeAxis(axis);
+
+    // Reclaim ownership of the axis
+    // Since the chart takes it when it is attached
+    axis->setParent(this);
+  }
+
   const auto &seriesIterator = series.find(seriesId);
-  if (seriesIterator == series.end())
+  if (seriesIterator == series.end()) {
+    // Clear the old series title,
+    // since we don't have a new one to overwrite the old one
+    chart.setTitle("");
     return;
+  }
 
   auto &seriesValue = seriesIterator->second;
+
+  chart.setTitle(QString::fromStdString(seriesValue.model.name));
 
   // Qt wants the series on the chart before the axes
   chart.addSeries(seriesValue.qtSeries);
 
-  for (auto &activeAxis : activeAxes)
-    seriesValue.qtSeries->attachAxis(activeAxis.second);
-}
+  chart.addAxis(seriesValue.xAxis, Qt::AlignBottom);
+  chart.addAxis(seriesValue.yAxis, Qt::AlignLeft);
 
-void ChartManager::hideSeries(uint32_t seriesId) {
-  const auto &seriesIterator = series.find(seriesId);
-  if (seriesIterator == series.end())
-    return;
-
-  auto &seriesValue = seriesIterator->second;
-  for (auto &activeAxis : activeAxes)
-    seriesValue.qtSeries->detachAxis(activeAxis.second);
-
-  chart.removeSeries(seriesValue.qtSeries);
-  // Reclaim ownership of the series
-  seriesValue.qtSeries->setParent(this);
-}
-
-void ChartManager::showAxis(uint32_t axisId, Qt::AlignmentFlag align) {
-  auto existingAxis = activeAxes.find(align);
-  if (existingAxis != activeAxes.end()) {
-    if (activeSeries)
-      activeSeries->detachAxis(existingAxis->second);
-    chart.removeAxis(existingAxis->second);
-
-    // addAxis changes the chart to the owner, removeAxis unsets the chart as the owner
-    // so we should retake the axis
-    existingAxis->second->setParent(this);
-
-    // Erase in the event we're removing an axis entirely from an alignment
-    activeAxes.erase(existingAxis);
-  }
-
-  const auto &axisIterator = axes.find(axisId);
-  if (axisIterator == axes.end())
-    return;
-  const auto &axis = axisIterator->second;
-
-  activeAxes.insert_or_assign(align, axis);
-  chart.addAxis(axis, align);
-
-  if (activeSeries)
-    activeSeries->attachAxis(axis);
+  // The series may only be attached to an axis _after_ both have
+  // been added to the chart...
+  seriesValue.qtSeries->attachAxis(seriesValue.xAxis);
+  seriesValue.qtSeries->attachAxis(seriesValue.yAxis);
 }
 
 void ChartManager::timeAdvanced(double time) {
@@ -229,7 +189,23 @@ void ChartManager::timeAdvanced(double time) {
       return false;
 
     if constexpr (std::is_same_v<T, XYSeriesAddValue>) {
-      series[e.seriesId].qtSeries->append(e.x, e.y);
+      const auto &s = series[e.seriesId];
+      if (s.model.xAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
+        auto range = getRange(s.model.xAxis.scale, s.xAxis);
+        if (e.x > range.max)
+          s.xAxis->setMax(e.x);
+        if (e.x < range.min)
+          s.xAxis->setMin(e.x);
+      }
+      if (s.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
+        auto range = getRange(s.model.yAxis.scale, s.yAxis);
+        if (e.x > range.max)
+          s.yAxis->setMax(e.x);
+        if (e.x < range.min)
+          s.yAxis->setMin(e.x);
+      }
+
+      s.qtSeries->append(e.x, e.y);
       ui->chartView->repaint();
       events.pop_front();
       return true;

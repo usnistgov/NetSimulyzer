@@ -31,26 +31,6 @@
     <widget class="QComboBox" name="comboBoxSeries"/>
    </item>
    <item>
-    <widget class="QLabel" name="labelBottomAxis">
-     <property name="text">
-      <string>Bottom Axis</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="comboBoxBottomAxis"/>
-   </item>
-   <item>
-    <widget class="QLabel" name="labelLeftAxis">
-     <property name="text">
-      <string>Left Axis</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="comboBoxLeftAxis"/>
-   </item>
-   <item>
     <widget class="QChartView" name="chartView"/>
    </item>
   </layout>
