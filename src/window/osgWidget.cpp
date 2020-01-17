@@ -28,6 +28,7 @@ OSGWidget::OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group>
   camera->setViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
   camera->setProjectionMatrixAsPerspective(30.f, aspectRatio, 1.0f, 1000.f);
   camera->setGraphicsContext(graphicsWindow);
+  camera->setClearColor({0.2f, 0.2f, 0.4f, 1.0f});
 
   viewer->setCamera(camera);
   viewer->setSceneData(root);
