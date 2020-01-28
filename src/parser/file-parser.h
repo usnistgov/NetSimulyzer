@@ -47,7 +47,7 @@ public:
    * States for any tags that have data actually within the tags
    * (not all in the attributes)
    */
-  enum class Tag { None, MsPerFrame };
+  enum class Tag { None, MsPerFrame, SeriesCollection };
 
   /**
    * States for each collection in the document
@@ -116,6 +116,13 @@ public:
    */
   [[nodiscard]] const std::vector<XYSeries> &getXYSeries() const;
 
+  /**
+   * Gets the collection of series collections from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The series collections specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<SeriesCollection> &getSeriesCollections() const;
 private:
   /**
    * Handle the data in between an opening and closing tag.
@@ -157,6 +164,23 @@ private:
    * The attribute array from the 'linear-series' tag
    */
   void parseXYSeries(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a the attributes of a series collection
+   *
+   * @param attributes
+   * The attribute array from the 'series-collection' tag
+   */
+  void parseSeriesCollection(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a the attributes of a child series
+   * into the last emplace SeriesCollection
+   *
+   * @param attributes
+   * The attribute array from the 'child-series' tag
+   */
+  void parseChildSeries(const xmlChar *attributes[]);
 
   /**
    * Parse and emplace a move event
@@ -242,6 +266,11 @@ private:
    * The XY Series defined within the 'series' XML collection
    */
   std::vector<XYSeries> xySeries;
+
+  /**
+   * The Series Collections defined within the 'series' XML collection
+   */
+  std::vector<SeriesCollection> seriesCollections;
 
   /**
    * The handler from libxml2

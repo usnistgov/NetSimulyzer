@@ -90,6 +90,10 @@ const std::vector<XYSeries> &FileParser::getXYSeries() const {
   return xySeries;
 }
 
+const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
+  return seriesCollections;
+}
+
 void FileParser::interpretCharacters(const std::string &data) {
   switch (currentTag) {
   case Tag::None:
@@ -97,6 +101,10 @@ void FileParser::interpretCharacters(const std::string &data) {
     break;
   case Tag::MsPerFrame:
     globalConfiguration.millisecondsPerFrame = std::stod(data);
+    break;
+  case Tag::SeriesCollection:
+    // Intentionally blank
+    // Parsing occurs in 'child-series' tag
     break;
   }
 }
@@ -304,6 +312,62 @@ void FileParser::parseXYSeries(const xmlChar *attributes[]) {
 
   xySeries.emplace_back(series);
 }
+
+void FileParser::parseSeriesCollection(const xmlChar *attributes[]) {
+  std::string attribute;
+  SeriesCollection collection;
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        collection.id = std::stol(value);
+      else if (attribute == "name")
+          collection.name = value;
+      else if (attribute == "x-axis")
+        collection.xAxis.name = value;
+      else if (attribute == "x-axis-min")
+        collection.xAxis.min = std::stod(value);
+      else if (attribute == "x-axis-max")
+        collection.xAxis.max = std::stod(value);
+      else if (attribute == "x-axis-scale")
+        collection.xAxis.scale = scaleFromString(value);
+      else if (attribute == "x-axis-bound-mode")
+        collection.xAxis.boundMode = boundModeFromString(value);
+      else if (attribute == "y-axis")
+        collection.yAxis.name = value;
+      else if (attribute == "y-axis-min")
+        collection.yAxis.min = std::stod(value);
+      else if (attribute == "y-axis-max")
+        collection.yAxis.max = std::stod(value);
+      else if (attribute == "y-axis-scale")
+        collection.yAxis.scale = scaleFromString(value);
+      else if (attribute == "y-axis-bound-mode")
+        collection.yAxis.boundMode = boundModeFromString(value);
+    }
+  }
+
+  seriesCollections.emplace_back(collection);
+}
+
+void FileParser::parseChildSeries(const xmlChar *attributes[]) {
+  std::string attribute;
+  auto &lastCollection = seriesCollections.back();
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        lastCollection.series.emplace_back(std::stol(value));
+    }
+  }
+}
 void FileParser::startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs) {
   using Section = FileParser::Section;
   auto parser = static_cast<visualization::FileParser *>(user_data);
@@ -330,6 +394,11 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
     if (tagName == "ms-per-frame")
       parser->currentTag = FileParser::Tag::MsPerFrame;
     return;
+  } else if (section == FileParser::Section::Series) {
+    if (tagName == "series-collection") {
+      parser->currentTag = FileParser::Tag::SeriesCollection;
+      parser->parseSeriesCollection(attrs);
+    }
   }
 
   if (section == FileParser::Section::Nodes && tagName == "node")
@@ -341,6 +410,8 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
   else if (section == Section::Series) {
     if (tagName == "xy-series")
       parser->parseXYSeries(attrs);
+    if (tagName == "child-series" && parser->currentTag == FileParser::Tag::SeriesCollection)
+      parser->parseChildSeries(attrs);
   } else if (section == Section::Events) {
     if (tagName == "position")
       parser->parseMoveEvent(attrs);
@@ -370,7 +441,8 @@ void FileParser::endElementCallback(void *user_data, const xmlChar *name) {
     parser->currentSection = FileParser::Section::None;
   }
 
-  parser->currentTag = FileParser::Tag::None;
+  if (tagName == "ms-per-frame" || tagName == "series-collection")
+    parser->currentTag = FileParser::Tag::None;
 }
 
 } // namespace visualization

@@ -48,10 +48,19 @@
 #include <deque>
 #include <optional>
 #include <unordered_map>
+#include <variant>
 
 namespace visualization {
 class ChartManager : public QWidget {
   Q_OBJECT
+
+  enum class SeriesType { XYSeries, SeriesCollection };
+
+  struct SeriesCollectionTie {
+    SeriesCollection model;
+    QAbstractAxis *xAxis;
+    QAbstractAxis *yAxis;
+  };
 
   struct XYSeriesTie {
     XYSeries model;
@@ -62,16 +71,19 @@ class ChartManager : public QWidget {
 
   Ui::ChartManager *ui = new Ui::ChartManager;
   std::deque<ChartEvent> events;
-  std::unordered_map<uint32_t, XYSeriesTie> series;
+  std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie>> series;
   QtCharts::QChart chart;
 
   void seriesSelected(int index);
-
+  void showSeries(const XYSeriesTie &tie);
+  void showSeries(const SeriesCollectionTie &tie);
+  void updateCollectionRanges(uint32_t seriesId, double x, double y);
 public:
   explicit ChartManager(QWidget *parent);
   ~ChartManager() override;
 
   void addSeries(const XYSeries &s);
+  void addSeries(const SeriesCollection &s);
   void showSeries(uint32_t seriesId);
   void timeAdvanced(double time);
   void enqueueEvent(const ChartEvent &e);

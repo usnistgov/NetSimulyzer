@@ -35,29 +35,32 @@
 #include "ChartManager.h"
 #include <QConstOverload>
 #include <QString>
+#include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
 namespace {
 
-struct AxisRange {
+void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
   qreal min;
   qreal max;
-};
 
-AxisRange getRange(visualization::ValueAxis::Scale scale, QtCharts::QAbstractAxis *axis) {
-  AxisRange range{};
-
-  if (scale == visualization::ValueAxis::Scale::Linear) {
-    const auto valueAxis = qobject_cast<QtCharts::QValueAxis *>(axis);
-    range.min = valueAxis->min();
-    range.max = valueAxis->max();
+  if (const auto valueAxis = qobject_cast<QtCharts::QValueAxis *>(axis)) {
+    min = valueAxis->min();
+    max = valueAxis->max();
+  } else if (const auto logAxis = qobject_cast<QtCharts::QLogValueAxis *>(axis)) {
+    min = logAxis->min();
+    max = logAxis->max();
   } else {
-    const QLogValueAxis *logAxis = qobject_cast<QtCharts::QLogValueAxis *>(axis);
-    range.min = logAxis->min();
-    range.max = logAxis->max();
+    std::cerr << "Error: Unhandled axis type in updateRange()\n";
+    return;
   }
-  return range;
+
+  if (value > max)
+    axis->setMax(value);
+  else if (value < min)
+    axis->setMin(value);
 }
 
 } // namespace
@@ -129,6 +132,31 @@ void ChartManager::addSeries(const XYSeries &s) {
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
 }
 
+void ChartManager::addSeries(const SeriesCollection &s) {
+  ChartManager::SeriesCollectionTie tie;
+  tie.model = s;
+
+  // X Axis
+  if (tie.model.xAxis.scale == ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
+  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
+
+  // Y Axis
+  if (tie.model.yAxis.scale == ValueAxis::Scale::Linear)
+    tie.yAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.yAxis = new QtCharts::QLogValueAxis(this);
+  tie.yAxis = new QtCharts::QValueAxis(this);
+  tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
+  tie.yAxis->setRange(s.xAxis.min, s.yAxis.max);
+
+  series.insert({s.id, tie});
+  ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+}
+
 void ChartManager::showSeries(uint32_t seriesId) {
   // Remove old axes
   auto currentAxes = chart.axes();
@@ -162,20 +190,68 @@ void ChartManager::showSeries(uint32_t seriesId) {
     return;
   }
 
-  auto &seriesValue = seriesIterator->second;
+  auto &s = seriesIterator->second;
+  if (std::holds_alternative<ChartManager::XYSeriesTie>(s))
+    showSeries(std::get<ChartManager::XYSeriesTie>(s));
+  else if (std::holds_alternative<ChartManager::SeriesCollectionTie>(s))
+    showSeries(std::get<ChartManager::SeriesCollectionTie>(s));
+}
 
-  chart.setTitle(QString::fromStdString(seriesValue.model.name));
+void ChartManager::showSeries(const XYSeriesTie &tie) {
+  chart.setTitle(QString::fromStdString(tie.model.name));
 
   // Qt wants the series on the chart before the axes
-  chart.addSeries(seriesValue.qtSeries);
+  chart.addSeries(tie.qtSeries);
 
-  chart.addAxis(seriesValue.xAxis, Qt::AlignBottom);
-  chart.addAxis(seriesValue.yAxis, Qt::AlignLeft);
+  chart.addAxis(tie.xAxis, Qt::AlignBottom);
+  chart.addAxis(tie.yAxis, Qt::AlignLeft);
 
   // The series may only be attached to an axis _after_ both have
   // been added to the chart...
-  seriesValue.qtSeries->attachAxis(seriesValue.xAxis);
-  seriesValue.qtSeries->attachAxis(seriesValue.yAxis);
+  tie.qtSeries->attachAxis(tie.xAxis);
+  tie.qtSeries->attachAxis(tie.yAxis);
+}
+
+void ChartManager::showSeries(const ChartManager::SeriesCollectionTie &tie) {
+  chart.setTitle(QString::fromStdString(tie.model.name));
+
+  for (auto seriesId : tie.model.series) {
+    const auto &seriesVariant = series[seriesId];
+
+    if (std::holds_alternative<ChartManager::XYSeriesTie>(seriesVariant)) {
+      const auto &xySeries = std::get<ChartManager::XYSeriesTie>(seriesVariant);
+      chart.addSeries(xySeries.qtSeries);
+    }
+  }
+
+  chart.addAxis(tie.xAxis, Qt::AlignBottom);
+  chart.addAxis(tie.yAxis, Qt::AlignLeft);
+
+  for (auto chartSeries : chart.series()) {
+    chartSeries->attachAxis(tie.xAxis);
+    chartSeries->attachAxis(tie.yAxis);
+  }
+
+}
+
+void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
+  for (auto &iterator : series) {
+    // Only update collections
+    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
+      continue;
+
+    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
+
+    // Only update the collection's ranges if it actually contains the series
+    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
+        collection.model.series.end()) {
+      if (collection.model.xAxis.boundMode == ValueAxis::BoundMode::HighestValue)
+        updateRange(collection.xAxis, x);
+      if (collection.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue)
+        updateRange(collection.yAxis, y);
+    }
+
+  }
 }
 
 void ChartManager::timeAdvanced(double time) {
@@ -189,22 +265,14 @@ void ChartManager::timeAdvanced(double time) {
       return false;
 
     if constexpr (std::is_same_v<T, XYSeriesAddValue>) {
-      const auto &s = series[e.seriesId];
+      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
       if (s.model.xAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
-        auto range = getRange(s.model.xAxis.scale, s.xAxis);
-        if (e.x > range.max)
-          s.xAxis->setMax(e.x);
-        if (e.x < range.min)
-          s.xAxis->setMin(e.x);
+        updateRange(s.xAxis, e.x);
       }
       if (s.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
-        auto range = getRange(s.model.yAxis.scale, s.yAxis);
-        if (e.x > range.max)
-          s.yAxis->setMax(e.x);
-        if (e.x < range.min)
-          s.yAxis->setMin(e.x);
+        updateRange(s.yAxis, e.y);
       }
-
+      updateCollectionRanges(e.seriesId, e.x, e.y);
       s.qtSeries->append(e.x, e.y);
       ui->chartView->repaint();
       events.pop_front();

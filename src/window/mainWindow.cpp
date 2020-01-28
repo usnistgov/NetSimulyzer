@@ -18,6 +18,11 @@ MainWindow::MainWindow(const GlobalConfiguration &config, const std::deque<Chart
     charts.addSeries(series);
   }
 
+  const auto &seriesCollections = parser.getSeriesCollections();
+  for (const auto &series : seriesCollections) {
+    charts.addSeries(series);
+  }
+
   for (const auto &event : chartEvents) {
     charts.enqueueEvent(event);
   }

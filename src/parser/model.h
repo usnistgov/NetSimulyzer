@@ -34,6 +34,7 @@
 #include <cstdint>
 #include <osg/Vec3d>
 #include <string>
+#include <vector>
 
 namespace visualization {
 
@@ -95,6 +96,14 @@ struct XYSeries {
   uint8_t green = 0u;
   uint8_t blue = 0u;
   uint8_t alpha = 255u;
+  ValueAxis xAxis;
+  ValueAxis yAxis;
+};
+
+struct SeriesCollection {
+  uint32_t id = 0u;
+  std::string name;
+  std::vector<uint32_t> series;
   ValueAxis xAxis;
   ValueAxis yAxis;
 };
