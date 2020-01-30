@@ -60,6 +60,9 @@ struct hasNodeId<T, decltype((void)T::nodeId, int()) // Checking if ::nodeId exi
 template <typename T, typename = int> struct hasSeriesId : std::false_type {};
 template <typename T> struct hasSeriesId<T, decltype((void)T::seriesId, int())> : std::true_type {};
 
+template <typename T, typename = int> struct hasDecorationId : std::false_type {};
+template <typename T> struct hasDecorationId<T, decltype((void)T::decorationId, int())> : std::true_type {};
+
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     std::cerr << "Error: file argument required\n"
@@ -91,15 +94,19 @@ int main(int argc, char *argv[]) {
   }
 
   const auto &decorations = parser.getDecorations();
+  std::unordered_map<uint32_t, osg::ref_ptr<visualization::DecorationGroup>> decorationGroups;
+  decorationGroups.reserve(decorations.size());
   for (const auto &decoration : decorations) {
-    root->addChild(new visualization::DecorationGroup(decoration));
+    auto group = new visualization::DecorationGroup(decoration);
+    decorationGroups.insert({decoration.id, group});
+    root->addChild(group);
   }
 
   std::deque<visualization::ChartEvent> chartEvents;
   const auto &events = parser.getEvents();
   for (auto &event : events) {
     std::visit(
-        [&nodeGroups, &chartEvents](auto &&arg) {
+        [&nodeGroups, &decorationGroups, &chartEvents](auto &&arg) {
           // Strip off qualifiers, etc
           // so T holds just the type
           // so we can more easily match it
@@ -110,6 +117,8 @@ int main(int argc, char *argv[]) {
             nodeGroups[arg.nodeId]->enqueueEvent(arg);
           else if constexpr (hasSeriesId<T>::value)
             chartEvents.emplace_back(arg);
+          else if constexpr (hasDecorationId<T>::value)
+            decorationGroups[arg.decorationId]->enqueueEvent(arg);
         },
         event);
   }

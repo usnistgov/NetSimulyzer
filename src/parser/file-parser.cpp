@@ -196,7 +196,9 @@ void FileParser::parseDecoration(const xmlChar *attributes[]) {
       attribute.erase();
       attribute.insert(0, value);
     } else {
-      if (attribute == "model")
+      if (attribute == "id")
+        decoration.id = std::stol(value);
+      else if (attribute == "model")
         decoration.model = value;
       else if (attribute == "x")
         decoration.position[0] = std::stod(value);
@@ -204,6 +206,12 @@ void FileParser::parseDecoration(const xmlChar *attributes[]) {
         decoration.position[1] = std::stod(value);
       else if (attribute == "z")
         decoration.position[2] = std::stod(value);
+      else if (attribute == "x-orientation")
+        decoration.orientation[0] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "y-orientation")
+        decoration.orientation[1] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "z-orientation")
+        decoration.orientation[2] = std::stod(value) * TO_RADIANS;
       else if (attribute == "opacity")
         decoration.opacity = std::stod(value);
       else if (attribute == "scale")
@@ -240,6 +248,32 @@ void FileParser::parseMoveEvent(const xmlChar *attributes[]) {
   events.emplace_back(event);
 }
 
+void FileParser::parseDecorationMoveEvent(const xmlChar *attributes[]) {
+  std::string attribute;
+  DecorationMoveEvent event{};
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        event.decorationId = std::stol(value);
+      else if (attribute == "milliseconds")
+        event.time = std::stod(value);
+      else if (attribute == "x")
+        event.targetPosition[0] = std::stod(value);
+      else if (attribute == "y")
+        event.targetPosition[1] = std::stod(value);
+      else if (attribute == "z")
+        event.targetPosition[2] = std::stod(value);
+    }
+  }
+
+  events.emplace_back(event);
+}
+
 void FileParser::parseNodeOrientationEvent(const xmlChar *attributes[]) {
   std::string attribute;
   NodeOrientationChangeEvent event{};
@@ -252,6 +286,32 @@ void FileParser::parseNodeOrientationEvent(const xmlChar *attributes[]) {
     } else {
       if (attribute == "id")
         event.nodeId = std::stol(value);
+      else if (attribute == "milliseconds")
+        event.time = std::stod(value);
+      else if (attribute == "x")
+        event.targetOrientation[0] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "y")
+        event.targetOrientation[1] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "z")
+        event.targetOrientation[2] = std::stod(value) * TO_RADIANS;
+    }
+  }
+
+  events.emplace_back(event);
+}
+
+void FileParser::parseDecorationOrientationEvent(const xmlChar *attributes[]) {
+  std::string attribute;
+  DecorationOrientationChangeEvent event{};
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        event.decorationId = std::stol(value);
       else if (attribute == "milliseconds")
         event.time = std::stod(value);
       else if (attribute == "x")
@@ -447,10 +507,14 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
   } else if (section == Section::Events) {
     if (tagName == "position")
       parser->parseMoveEvent(attrs);
+    else if (tagName == "decoration-position")
+      parser->parseDecorationMoveEvent(attrs);
     else if (tagName == "xy-series-append")
       parser->parseSeriesAppend(attrs);
     else if (tagName == "node-orientation")
       parser->parseNodeOrientationEvent(attrs);
+    else if (tagName == "decoration-orientation")
+      parser->parseDecorationOrientationEvent(attrs);
   }
 }
 void FileParser::charactersCallback(void *user_data, const xmlChar *characters, int length) {

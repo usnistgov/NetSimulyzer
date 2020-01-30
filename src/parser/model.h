@@ -70,8 +70,10 @@ struct Building {
 };
 
 struct Decoration {
+  uint32_t id;
   std::string model;
   osg::Vec3d position;
+  osg::Vec3d orientation;
   double opacity = 1.0;
   double scale = 1.0;
 };

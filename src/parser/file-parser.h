@@ -46,7 +46,8 @@ class FileParser {
   /**
    * Multiply by this constant to convert degrees to radians
    */
-  const static inline double TO_RADIANS = osg::PI/180;
+  const static inline double TO_RADIANS = osg::PI / 180;
+
 public:
   /**
    * States for any tags that have data actually within the tags
@@ -128,6 +129,7 @@ public:
    * @return The series collections specified by the parsed file
    */
   [[nodiscard]] const std::vector<SeriesCollection> &getSeriesCollections() const;
+
 private:
   /**
    * Handle the data in between an opening and closing tag.
@@ -196,12 +198,28 @@ private:
   void parseMoveEvent(const xmlChar *attributes[]);
 
   /**
+   * Parse and emplace a DecorationMoveEvent
+   *
+   * @param attributes
+   * The attribute array from the 'decoration-position' tag
+   */
+  void parseDecorationMoveEvent(const xmlChar *attributes[]);
+
+  /**
    * Parse and emplace a NodeOrientationEvent
    *
    * @param attributes
    * The attribute array from the 'node-orientation' tag
    */
   void parseNodeOrientationEvent(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a DecorationOrientationEvent
+   *
+   * @param attributes
+   * The attribute array from the 'decoration-orientation' tag
+   */
+  void parseDecorationOrientationEvent(const xmlChar *attributes[]);
 
   /**
    * Parse and emplace a series append event

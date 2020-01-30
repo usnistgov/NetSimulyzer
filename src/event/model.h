@@ -65,6 +65,27 @@ struct MoveEvent {
 };
 
 /**
+ * Event that changes the position of the indicated Decoration
+ */
+struct DecorationMoveEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Decoration to move to `targetPosition`
+   */
+  uint32_t decorationId = 0;
+
+  /**
+   * The position in the scene to move the Decoration to.
+   */
+  osg::Vec3d targetPosition;
+};
+
+/**
  * Event that changes the orientation of the indicated node
  */
 struct NodeOrientationChangeEvent {
@@ -84,6 +105,27 @@ struct NodeOrientationChangeEvent {
    *
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
+   */
+  osg::Vec3d targetOrientation;
+};
+
+/**
+ * Event that changes the orientation of the indicated Decoration
+ */
+struct DecorationOrientationChangeEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Decoration to move to rotate to `targetOrientation`
+   */
+  uint32_t decorationId = 0;
+
+  /**
+   * The new orientation of the Decoration after this event has fired.
    */
   osg::Vec3d targetOrientation;
 };
@@ -117,12 +159,18 @@ struct XYSeriesAddValue {
 /**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent, NodeOrientationChangeEvent, XYSeriesAddValue>;
+using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, DecorationOrientationChangeEvent,
+                           XYSeriesAddValue>;
 
 /**
  * Events specific to Nodes
  */
 using NodeEvent = std::variant<MoveEvent, NodeOrientationChangeEvent>;
+
+/**
+ * Events specific to decorations
+ */
+using DecorationEvent = std::variant<DecorationMoveEvent, DecorationOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model

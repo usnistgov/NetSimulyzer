@@ -33,17 +33,33 @@
 
 #pragma once
 
+#include "../../event/model.h"
 #include "../../parser/model.h"
+#include <deque>
 #include <osg/Group>
 #include <osg/MatrixTransform>
+#include <osg/NodeCallback>
 #include <osg/PositionAttitudeTransform>
 
 namespace visualization {
+
+class DecorationGroupEventCallback : public osg::NodeCallback {
+public:
+  void operator()(osg::Node *node, osg::NodeVisitor *nv) override;
+};
 
 /**
  * Non-operative model, in the scene only for show
  */
 class DecorationGroup : public osg::Group {
+  // Let the callback control position, scale, etc...
+  friend DecorationGroupEventCallback;
+
+  /**
+   * Event queue that controls the Decoration
+   */
+  std::deque<DecorationEvent> events;
+
   /**
    * Relative position of the Decoration
    */
@@ -53,6 +69,11 @@ class DecorationGroup : public osg::Group {
    * Scale of the Decoration
    */
   osg::ref_ptr<osg::MatrixTransform> scale;
+
+  /**
+   * The overall orientation of the Decoration
+   */
+  osg::ref_ptr<osg::MatrixTransform> orientation;
 
   /**
    * Actual geometry of the Decoration
@@ -67,6 +88,22 @@ public:
    * The configuration from the XML source to build the Decoration
    */
   explicit DecorationGroup(const Decoration &config);
+
+  /**
+   * Add an event to the queue.
+   *
+   * Events should be added in order.
+   *
+   * If an event in the past is added it will be executed during the
+   * next update traversal.
+   *
+   * An event happening after the next event in the queue,
+   * then all events will be held until that event is executed
+   *
+   * @param event
+   * The event to add to the queue.
+   */
+  void enqueueEvent(const DecorationEvent &event);
 };
 
 } // namespace visualization
