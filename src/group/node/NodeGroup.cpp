@@ -75,9 +75,16 @@ osg::ref_ptr<NodeGroup> NodeGroup::MakeGroup(const visualization::Node &config) 
   node->scale = new osg::MatrixTransform(osg::Matrix::scale(scale));
   node->scale->addChild(node->geode);
 
+  const auto xOrientation = osg::Matrix::rotate(config.orientation[0], osg::Vec3d{1.0, 0.0, 0.0});
+  const auto yOrientation = osg::Matrix::rotate(config.orientation[1], osg::Vec3d{0.0, 1.0, 0.0});
+  const auto zOrientation = osg::Matrix::rotate(config.orientation[2], osg::Vec3d{0.0, 0.0, 1.0});
+
+  node->orientation = new osg::MatrixTransform(xOrientation * yOrientation * zOrientation);
+  node->orientation->addChild(node->scale);
+
   node->position = new osg::PositionAttitudeTransform();
   node->position->setPosition(config.position);
-  node->position->addChild(node->scale);
+  node->position->addChild(node->orientation);
 
   node->visible = new osg::Switch();
   node->visible->addChild(node->position, config.visible);
@@ -112,6 +119,13 @@ void NodeGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 
     if constexpr (std::is_same_v<T, MoveEvent>) {
       group.position->setPosition(arg.targetPosition);
+      events.pop_front();
+      return true;
+    } else if constexpr (std::is_same_v<T, NodeOrientationChangeEvent>) {
+      auto x = osg::Matrix::rotate(arg.targetOrientation[0], osg::Vec3d{1.0, 0.0, 0.0});
+      auto y = osg::Matrix::rotate(arg.targetOrientation[1], osg::Vec3d{0.0, 1.0, 0.0});
+      auto z = osg::Matrix::rotate(arg.targetOrientation[2], osg::Vec3d{0.0, 0.0, 1.0});
+      group.orientation->setMatrix(x * y * z);
       events.pop_front();
       return true;
     }

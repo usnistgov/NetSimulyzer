@@ -49,6 +49,7 @@ struct Node {
   double opacity = 1.0;
   bool visible = true;
   osg::Vec3d position;
+  osg::Vec3d orientation;
 };
 
 struct Building {

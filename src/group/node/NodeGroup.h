@@ -83,6 +83,11 @@ class NodeGroup : public osg::Group {
   osg::ref_ptr<osg::MatrixTransform> scale;
 
   /**
+   * The overall orientation of the geometry
+   */
+  osg::ref_ptr<osg::MatrixTransform> orientation;
+
+  /**
    * The actual geometry representing the Node
    */
   osg::ref_ptr<osg::Geode> geode;

@@ -136,6 +136,12 @@ void FileParser::parseNode(const xmlChar *attributes[]) {
         node.position[1] = std::stod(value);
       else if (attribute == "z")
         node.position[2] = std::stod(value);
+      else if (attribute == "x-orientation")
+        node.orientation[0] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "y-orientation")
+        node.orientation[1] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "z-orientation")
+        node.orientation[2] = std::stod(value) * TO_RADIANS;
     }
   }
 
@@ -234,6 +240,32 @@ void FileParser::parseMoveEvent(const xmlChar *attributes[]) {
   events.emplace_back(event);
 }
 
+void FileParser::parseNodeOrientationEvent(const xmlChar *attributes[]) {
+  std::string attribute;
+  NodeOrientationChangeEvent event{};
+
+  for (auto i = 0; attributes[i] != nullptr; i++) {
+    auto value = reinterpret_cast<const char *>(attributes[i]);
+    if (i % 2 == 0) {
+      attribute.erase();
+      attribute.insert(0, value);
+    } else {
+      if (attribute == "id")
+        event.nodeId = std::stol(value);
+      else if (attribute == "milliseconds")
+        event.time = std::stod(value);
+      else if (attribute == "x")
+        event.targetOrientation[0] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "y")
+        event.targetOrientation[1] = std::stod(value) * TO_RADIANS;
+      else if (attribute == "z")
+        event.targetOrientation[2] = std::stod(value) * TO_RADIANS;
+    }
+  }
+
+  events.emplace_back(event);
+}
+
 void FileParser::parseSeriesAppend(const xmlChar *attributes[]) {
   std::string attribute;
   XYSeriesAddValue event{};
@@ -326,7 +358,7 @@ void FileParser::parseSeriesCollection(const xmlChar *attributes[]) {
       if (attribute == "id")
         collection.id = std::stol(value);
       else if (attribute == "name")
-          collection.name = value;
+        collection.name = value;
       else if (attribute == "x-axis")
         collection.xAxis.name = value;
       else if (attribute == "x-axis-min")
@@ -417,6 +449,8 @@ void FileParser::startElementCallback(void *user_data, const xmlChar *name, cons
       parser->parseMoveEvent(attrs);
     else if (tagName == "xy-series-append")
       parser->parseSeriesAppend(attrs);
+    else if (tagName == "node-orientation")
+      parser->parseNodeOrientationEvent(attrs);
   }
 }
 void FileParser::charactersCallback(void *user_data, const xmlChar *characters, int length) {

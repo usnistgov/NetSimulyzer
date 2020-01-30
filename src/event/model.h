@@ -65,6 +65,30 @@ struct MoveEvent {
 };
 
 /**
+ * Event that changes the orientation of the indicated node
+ */
+struct NodeOrientationChangeEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Node to move to rotate to `targetOrientation`
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * The new orientation of the Node after this event has fired.
+   *
+   * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
+   * rather than combining all three and then rotating.
+   */
+  osg::Vec3d targetOrientation;
+};
+
+/**
  * Event that appends a value to an existing series
  */
 struct XYSeriesAddValue {
@@ -93,12 +117,12 @@ struct XYSeriesAddValue {
 /**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent, XYSeriesAddValue>;
+using Event = std::variant<MoveEvent, NodeOrientationChangeEvent, XYSeriesAddValue>;
 
 /**
  * Events specific to Nodes
  */
-using NodeEvent = std::variant<MoveEvent>;
+using NodeEvent = std::variant<MoveEvent, NodeOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model

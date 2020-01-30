@@ -36,12 +36,17 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
+#include <osg/Math>
 #include <string>
 #include <vector>
 
 namespace visualization {
 
 class FileParser {
+  /**
+   * Multiply by this constant to convert degrees to radians
+   */
+  const static inline double TO_RADIANS = osg::PI/180;
 public:
   /**
    * States for any tags that have data actually within the tags
@@ -189,6 +194,14 @@ private:
    * The attribute array from the 'position' tag
    */
   void parseMoveEvent(const xmlChar *attributes[]);
+
+  /**
+   * Parse and emplace a NodeOrientationEvent
+   *
+   * @param attributes
+   * The attribute array from the 'node-orientation' tag
+   */
+  void parseNodeOrientationEvent(const xmlChar *attributes[]);
 
   /**
    * Parse and emplace a series append event
