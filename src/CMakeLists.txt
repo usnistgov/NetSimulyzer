@@ -70,7 +70,6 @@ target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-
 target_include_directories(visualization SYSTEM PRIVATE ${OPENSCENEGRAPH_INCLUDE_DIRS})
 target_link_libraries(visualization ${OPENSCENEGRAPH_LIBRARIES})
 
-target_include_directories(visualization SYSTEM PRIVATE LibXml2::LibXml2)
-target_link_libraries(visualization LibXml2::LibXml2)
+target_link_libraries(visualization json)
 
 target_link_libraries(visualization Qt5::Core Qt5::Widgets Qt5::OpenGL Qt5::Charts)

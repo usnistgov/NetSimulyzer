@@ -33,6 +33,9 @@
 #include "file-parser.h"
 #include <cassert>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+#include <json.hpp>
 #include <memory>
 
 visualization::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
@@ -53,17 +56,26 @@ visualization::ValueAxis::Scale scaleFromString(const std::string &mode) {
     assert(!"Unhandled ValueAxis::Scale mode");
 }
 
-namespace visualization {
+visualization::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
+  visualization::ValueAxis axis;
+  axis.boundMode = boundModeFromString(object["bound-mode"].get<std::string>());
+  axis.max = object["max"].get<double>();
+  axis.min = object["min"].get<double>();
+  axis.name = object["name"].get<std::string>();
+  axis.scale = scaleFromString(object["scale"].get<std::string>());
 
-FileParser::FileParser() {
-  saxHandler.startElement = FileParser::startElementCallback;
-  saxHandler.endElement = FileParser::endElementCallback;
-  saxHandler.characters = FileParser::charactersCallback;
+  return axis;
 }
 
+namespace visualization {
+
 void FileParser::parse(const char *path) {
-  LIBXML_TEST_VERSION
-  xmlSAXUserParseFile(&saxHandler, this, path);
+  std::ifstream infile{path};
+
+  if (!infile)
+    std::cerr << "Failed to open " << path << '\n';
+
+  nlohmann::json::sax_parse(infile, this);
 }
 
 const GlobalConfiguration &FileParser::getConfiguration() const {
@@ -94,453 +106,311 @@ const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
   return seriesCollections;
 }
 
-void FileParser::interpretCharacters(const std::string &data) {
-  switch (currentTag) {
-  case Tag::None:
-    // Intentionally blank
+bool FileParser::null() {
+  handle(nullptr);
+  return true;
+}
+
+bool FileParser::boolean(bool value) {
+  handle(value);
+  return true;
+}
+bool FileParser::number_integer(nlohmann::json::number_integer_t value) {
+  handle(value);
+  return true;
+}
+bool FileParser::number_unsigned(nlohmann::json::number_unsigned_t value) {
+  handle(value);
+  return true;
+}
+bool FileParser::number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &) {
+  handle(value);
+  return true;
+}
+bool FileParser::string(nlohmann::json::string_t &value) {
+  handle(value);
+  return true;
+}
+bool FileParser::start_object(std::size_t) {
+  if (currentKey)
+    jsonStack.push({*currentKey, nlohmann::json::object()});
+
+  sectionDepth++;
+  return true;
+}
+bool FileParser::end_object() {
+  // Possibly empty at the end of a message
+  if (!jsonStack.empty()) {
+    sectionDepth--;
+
+    if (sectionDepth == 0) {
+      auto frame = jsonStack.top();
+      jsonStack.pop();
+      do_parse(currentSection, frame.value);
+    } else {
+      auto top = jsonStack.top();
+      jsonStack.pop();
+      jsonStack.top().value[top.key] = top.value;
+    }
+  }
+  return true;
+}
+bool FileParser::start_array(std::size_t) {
+  if (!currentKey) {
+    return true;
+  }
+
+  if (isSection(*currentKey) != Section::None)
+    sectionDepth = 0;
+  else {
+    jsonStack.top().value[*currentKey] = nlohmann::json::array();
+  }
+
+  return true;
+}
+bool FileParser::end_array() {
+  return true;
+}
+bool FileParser::key(nlohmann::json::string_t &value) {
+  std::cout << value << "\n";
+  currentKey = value;
+
+  auto possibleSection = isSection(value);
+  if (possibleSection != Section::None) {
+    currentSection = possibleSection;
+  }
+  return true;
+}
+bool FileParser::parse_error(std::size_t, const std::string &, const nlohmann::detail::exception &ex) {
+  throw ex;
+}
+
+constexpr FileParser::Section FileParser::isSection(std::string_view key) {
+  if (key == "buildings")
+    return Section::Buildings;
+  else if (key == "configuration")
+    return Section::Configuration;
+  else if (key == "decorations")
+    return Section::Decorations;
+  else if (key == "events")
+    return Section::Events;
+  else if (key == "nodes")
+    return Section::Nodes;
+  else if (key == "series")
+    return Section::Series;
+  else
+    return Section::None;
+}
+
+void FileParser::do_parse(FileParser::Section section, const nlohmann::json &object) {
+  std::cout << object << std::endl;
+  switch (section) {
+  case Section::Buildings:
+    parseBuilding(object);
     break;
-  case Tag::MsPerFrame:
-    globalConfiguration.millisecondsPerFrame = std::stod(data);
+  case Section::Configuration:
+    parseConfiguration(object);
     break;
-  case Tag::SeriesCollection:
-    // Intentionally blank
-    // Parsing occurs in 'child-series' tag
+  case Section::Decorations:
+    parseDecoration(object);
+    break;
+  case Section::Events: {
+    auto type = object["type"].get<std::string>();
+    if (type == "node-position")
+      parseMoveEvent(object);
+    else if (type == "node-orientation")
+      parseNodeOrientationEvent(object);
+    else if (type == "decoration-position")
+      parseDecorationMoveEvent(object);
+    else if (type == "decoration-orientation")
+      parseDecorationOrientationEvent(object);
+    else if (type == "xy-series-append")
+      parseSeriesAppend(object);
+    else
+      std::cerr << "Unhandled Event type: " << type << '\n';
+  } break;
+  case Section::Nodes:
+    parseNode(object);
+    break;
+  case Section::Series: {
+    auto type = object["type"].get<std::string>();
+    if (type == "xy-series")
+      parseXYSeries(object);
+    else if (type == "series-collection")
+      parseSeriesCollection(object);
+    else
+      std::cerr << "Unhandled Series type: " << type << '\n';
+  } break;
+  default:
+    std::cerr << "Non-section key passed to do_parse with object:" << object << '\n';
     break;
   }
 }
 
-void FileParser::parseNode(const xmlChar *attributes[]) {
-  std::string attribute;
-  Node node{};
+void FileParser::parseConfiguration(const nlohmann::json &object) {
+  globalConfiguration.millisecondsPerFrame = object["ms-per-frame"].get<double>();
+}
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    // Even indexes mark keys, odd marks values
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        node.id = std::stoul(value);
-      else if (attribute == "model")
-        node.model = value;
-      else if (attribute == "scale")
-        node.scale = std::stod(value);
-      else if (attribute == "opacity")
-        node.opacity = std::stod(value);
-      else if (attribute == "visible")
-        node.visible = std::strcmp(value, "1") == 0;
-      else if (attribute == "x")
-        node.position[0] = std::stod(value);
-      else if (attribute == "y")
-        node.position[1] = std::stod(value);
-      else if (attribute == "z")
-        node.position[2] = std::stod(value);
-      else if (attribute == "x-orientation")
-        node.orientation[0] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "y-orientation")
-        node.orientation[1] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "z-orientation")
-        node.orientation[2] = std::stod(value) * TO_RADIANS;
-    }
-  }
+void FileParser::parseNode(const nlohmann::json &object) {
+  Node node;
 
+  node.id = object["id"].get<uint32_t>();
+  node.model = object["model"].get<std::string>();
+  node.opacity = object["scale"].get<double>();
+  node.opacity = object["opacity"].get<double>();
+
+  node.orientation[0] = object["orientation"]["x"].get<double>() * TO_RADIANS;
+  node.orientation[1] = object["orientation"]["y"].get<double>() * TO_RADIANS;
+  node.orientation[2] = object["orientation"]["z"].get<double>() * TO_RADIANS;
+
+  node.visible = object["visible"].get<bool>();
+
+  node.position[0] = object["position"]["x"].get<double>();
+  node.position[1] = object["position"]["y"].get<double>();
+  node.position[2] = object["position"]["z"].get<double>();
   nodes.emplace_back(node);
 }
 
-void FileParser::parseBuilding(const xmlChar *attributes[]) {
-  std::string attribute;
-  Building building{};
+void FileParser::parseBuilding(const nlohmann::json &object) {
+  Building building;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        building.id = std::stoul(value);
-      else if (attribute == "opacity")
-        building.opacity = std::stod(value);
-      else if (attribute == "visible")
-        building.visible = std::strcmp(value, "1") == 0;
-      else if (attribute == "rooms-x")
-        building.roomsX = std::stoi(value);
-      else if (attribute == "rooms-y")
-        building.roomsY = std::stoi(value);
-      else if (attribute == "x-min")
-        building.xMin = std::stod(value);
-      else if (attribute == "x-max")
-        building.xMax = std::stod(value);
-      else if (attribute == "y-min")
-        building.yMin = std::stod(value);
-      else if (attribute == "y-max")
-        building.yMax = std::stod(value);
-      else if (attribute == "z-min")
-        building.zMin = std::stod(value);
-      else if (attribute == "z-max")
-        building.zMax = std::stod(value);
-    }
-  }
+  building.id = object["id"].get<uint32_t>();
+  building.opacity = object["opacity"].get<double>();
+  building.visible = object["visible"].get<bool>();
+  building.floors = object["floors"].get<uint16_t>();
+
+  building.roomsX = object["rooms"]["x"].get<uint16_t>();
+  building.roomsY = object["rooms"]["y"].get<uint16_t>();
+
+  building.xMin = object["bounds"]["x"]["min"].get<double>();
+  building.xMax = object["bounds"]["x"]["max"].get<double>();
+
+  building.yMin = object["bounds"]["y"]["min"].get<double>();
+  building.yMax = object["bounds"]["y"]["max"].get<double>();
+
+  building.zMin = object["bounds"]["z"]["min"].get<double>();
+  building.zMax = object["bounds"]["z"]["max"].get<double>();
 
   buildings.emplace_back(building);
 }
 
-void FileParser::parseDecoration(const xmlChar *attributes[]) {
-  std::string attribute;
-  Decoration decoration{};
+void FileParser::parseDecoration(const nlohmann::json &object) {
+  Decoration decoration;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        decoration.id = std::stol(value);
-      else if (attribute == "model")
-        decoration.model = value;
-      else if (attribute == "x")
-        decoration.position[0] = std::stod(value);
-      else if (attribute == "y")
-        decoration.position[1] = std::stod(value);
-      else if (attribute == "z")
-        decoration.position[2] = std::stod(value);
-      else if (attribute == "x-orientation")
-        decoration.orientation[0] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "y-orientation")
-        decoration.orientation[1] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "z-orientation")
-        decoration.orientation[2] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "opacity")
-        decoration.opacity = std::stod(value);
-      else if (attribute == "scale")
-        decoration.scale = std::stod(value);
-    }
-  }
+  decoration.id = object["id"].get<uint32_t>();
+  decoration.model = object["model"].get<std::string>();
+
+  decoration.position[0] = object["position"]["x"].get<double>();
+  decoration.position[1] = object["position"]["y"].get<double>();
+  decoration.position[2] = object["position"]["z"].get<double>();
+
+  decoration.orientation[0] = object["orientation"]["x"].get<double>() * TO_RADIANS;
+  decoration.orientation[1] = object["orientation"]["y"].get<double>() * TO_RADIANS;
+  decoration.orientation[2] = object["orientation"]["z"].get<double>() * TO_RADIANS;
+
+  decoration.opacity = object["opacity"].get<double>();
+  decoration.opacity = object["scale"].get<double>();
 
   decorations.emplace_back(decoration);
 }
 
-void FileParser::parseMoveEvent(const xmlChar *attributes[]) {
-  std::string attribute;
-  MoveEvent event{};
+void FileParser::parseMoveEvent(const nlohmann::json &object) {
+  MoveEvent event;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        event.nodeId = std::stol(value);
-      else if (attribute == "milliseconds")
-        event.time = std::stod(value);
-      else if (attribute == "x")
-        event.targetPosition[0] = std::stod(value);
-      else if (attribute == "y")
-        event.targetPosition[1] = std::stod(value);
-      else if (attribute == "z")
-        event.targetPosition[2] = std::stod(value);
-    }
-  }
+  event.nodeId = object["id"].get<uint32_t>();
+  event.time = object["milliseconds"].get<double>();
+  event.targetPosition[0] = object["x"].get<double>();
+  event.targetPosition[1] = object["y"].get<double>();
+  event.targetPosition[2] = object["z"].get<double>();
 
   events.emplace_back(event);
 }
 
-void FileParser::parseDecorationMoveEvent(const xmlChar *attributes[]) {
-  std::string attribute;
-  DecorationMoveEvent event{};
+void FileParser::parseDecorationMoveEvent(const nlohmann::json &object) {
+  DecorationMoveEvent event;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        event.decorationId = std::stol(value);
-      else if (attribute == "milliseconds")
-        event.time = std::stod(value);
-      else if (attribute == "x")
-        event.targetPosition[0] = std::stod(value);
-      else if (attribute == "y")
-        event.targetPosition[1] = std::stod(value);
-      else if (attribute == "z")
-        event.targetPosition[2] = std::stod(value);
-    }
-  }
+  event.decorationId = object["id"].get<uint32_t>();
+  event.time = object["milliseconds"].get<double>();
+  event.targetPosition[0] = object["x"].get<double>();
+  event.targetPosition[1] = object["y"].get<double>();
+  event.targetPosition[2] = object["z"].get<double>();
 
   events.emplace_back(event);
 }
 
-void FileParser::parseNodeOrientationEvent(const xmlChar *attributes[]) {
-  std::string attribute;
-  NodeOrientationChangeEvent event{};
+void FileParser::parseNodeOrientationEvent(const nlohmann::json &object) {
+  NodeOrientationChangeEvent event;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        event.nodeId = std::stol(value);
-      else if (attribute == "milliseconds")
-        event.time = std::stod(value);
-      else if (attribute == "x")
-        event.targetOrientation[0] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "y")
-        event.targetOrientation[1] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "z")
-        event.targetOrientation[2] = std::stod(value) * TO_RADIANS;
-    }
-  }
+  event.nodeId = object["id"].get<uint32_t>();
+  event.time = object["milliseconds"].get<double>();
+  event.targetOrientation[0] = object["x"].get<double>() * TO_RADIANS;
+  event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
+  event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
 
   events.emplace_back(event);
 }
 
-void FileParser::parseDecorationOrientationEvent(const xmlChar *attributes[]) {
-  std::string attribute;
-  DecorationOrientationChangeEvent event{};
+void FileParser::parseDecorationOrientationEvent(const nlohmann::json &object) {
+  DecorationOrientationChangeEvent event;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        event.decorationId = std::stol(value);
-      else if (attribute == "milliseconds")
-        event.time = std::stod(value);
-      else if (attribute == "x")
-        event.targetOrientation[0] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "y")
-        event.targetOrientation[1] = std::stod(value) * TO_RADIANS;
-      else if (attribute == "z")
-        event.targetOrientation[2] = std::stod(value) * TO_RADIANS;
-    }
-  }
+  event.decorationId = object["id"].get<uint32_t>();
+  event.time = object["milliseconds"].get<double>();
+  event.targetOrientation[0] = object["x"].get<double>() * TO_RADIANS;
+  event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
+  event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
 
   events.emplace_back(event);
 }
 
-void FileParser::parseSeriesAppend(const xmlChar *attributes[]) {
-  std::string attribute;
-  XYSeriesAddValue event{};
+void FileParser::parseSeriesAppend(const nlohmann::json &object) {
+  XYSeriesAddValue event;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "series-id")
-        event.seriesId = std::stol(value);
-      else if (attribute == "milliseconds")
-        event.time = std::stod(value);
-      else if (attribute == "x")
-        event.x = std::stod(value);
-      else if (attribute == "y")
-        event.y = std::stod(value);
-    }
-  }
+  event.time = object["milliseconds"].get<double>();
+  event.seriesId = object["series-id"].get<uint32_t>();
+  event.x = object["x"].get<double>();
+  event.y = object["y"].get<double>();
 
   events.emplace_back(event);
 }
 
-void FileParser::parseXYSeries(const xmlChar *attributes[]) {
-  std::string attribute;
+void FileParser::parseXYSeries(const nlohmann::json &object) {
   XYSeries series;
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        series.id = std::stol(value);
-      else if (attribute == "connection") {
-        if (strcmp(value, "none") == 0)
-          series.connection = XYSeries::Connection::None;
-        else if (strcmp(value, "line") == 0)
-          series.connection = XYSeries::Connection::Line;
-        else if (strcmp(value, "spline") == 0)
-          series.connection = XYSeries::Connection::Spline;
-      } else if (attribute == "name")
-        series.name = value;
-      else if (attribute == "red")
-        series.red = std::stol(value);
-      else if (attribute == "green")
-        series.green = std::stol(value);
-      else if (attribute == "blue")
-        series.blue = std::stol(value);
-      else if (attribute == "alpha")
-        series.alpha = std::stol(value);
-      else if (attribute == "x-axis")
-        series.xAxis.name = value;
-      else if (attribute == "x-axis-min")
-        series.xAxis.min = std::stod(value);
-      else if (attribute == "x-axis-max")
-        series.xAxis.max = std::stod(value);
-      else if (attribute == "x-axis-scale")
-        series.xAxis.scale = scaleFromString(value);
-      else if (attribute == "x-axis-bound-mode")
-        series.xAxis.boundMode = boundModeFromString(value);
-      else if (attribute == "y-axis")
-        series.yAxis.name = value;
-      else if (attribute == "y-axis-min")
-        series.yAxis.min = std::stod(value);
-      else if (attribute == "y-axis-max")
-        series.yAxis.max = std::stod(value);
-      else if (attribute == "y-axis-scale")
-        series.yAxis.scale = scaleFromString(value);
-      else if (attribute == "y-axis-bound-mode")
-        series.yAxis.boundMode = boundModeFromString(value);
-    }
-  }
+  series.id = object["id"].get<uint32_t>();
+  series.name = object["name"].get<std::string>();
+  series.alpha = object["color"]["alpha"].get<uint8_t>();
+  series.blue = object["color"]["blue"].get<uint8_t>();
+  series.green = object["color"]["green"].get<uint8_t>();
+  series.red = object["color"]["red"].get<uint8_t>();
+
+  auto connection = object["connection"].get<std::string>();
+  if (connection == "none")
+    series.connection = XYSeries::Connection::None;
+  else if (connection == "line")
+    series.connection = XYSeries::Connection::Line;
+  else if (connection == "spline")
+    series.connection = XYSeries::Connection::Spline;
+  else
+    std::cerr << "Unrecognized connection type: " << connection << '\n';
+
+  series.xAxis = valueAxisFromObject(object["x-axis"]);
+  series.yAxis = valueAxisFromObject(object["y-axis"]);
 
   xySeries.emplace_back(series);
 }
 
-void FileParser::parseSeriesCollection(const xmlChar *attributes[]) {
-  std::string attribute;
+void FileParser::parseSeriesCollection(const nlohmann::json &object) {
   SeriesCollection collection;
+  collection.name = object["name"].get<std::string>();
 
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        collection.id = std::stol(value);
-      else if (attribute == "name")
-        collection.name = value;
-      else if (attribute == "x-axis")
-        collection.xAxis.name = value;
-      else if (attribute == "x-axis-min")
-        collection.xAxis.min = std::stod(value);
-      else if (attribute == "x-axis-max")
-        collection.xAxis.max = std::stod(value);
-      else if (attribute == "x-axis-scale")
-        collection.xAxis.scale = scaleFromString(value);
-      else if (attribute == "x-axis-bound-mode")
-        collection.xAxis.boundMode = boundModeFromString(value);
-      else if (attribute == "y-axis")
-        collection.yAxis.name = value;
-      else if (attribute == "y-axis-min")
-        collection.yAxis.min = std::stod(value);
-      else if (attribute == "y-axis-max")
-        collection.yAxis.max = std::stod(value);
-      else if (attribute == "y-axis-scale")
-        collection.yAxis.scale = scaleFromString(value);
-      else if (attribute == "y-axis-bound-mode")
-        collection.yAxis.boundMode = boundModeFromString(value);
-    }
+  auto childSeries = object["child-series"];
+  for (const auto &child : childSeries) {
+    collection.series.emplace_back(child.get<uint32_t>());
   }
 
+  collection.xAxis = valueAxisFromObject(object["x-axis"]);
+  collection.yAxis = valueAxisFromObject(object["y-axis"]);
   seriesCollections.emplace_back(collection);
-}
-
-void FileParser::parseChildSeries(const xmlChar *attributes[]) {
-  std::string attribute;
-  auto &lastCollection = seriesCollections.back();
-
-  for (auto i = 0; attributes[i] != nullptr; i++) {
-    auto value = reinterpret_cast<const char *>(attributes[i]);
-    if (i % 2 == 0) {
-      attribute.erase();
-      attribute.insert(0, value);
-    } else {
-      if (attribute == "id")
-        lastCollection.series.emplace_back(std::stol(value));
-    }
-  }
-}
-void FileParser::startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs) {
-  using Section = FileParser::Section;
-  auto parser = static_cast<visualization::FileParser *>(user_data);
-  std::string tagName(reinterpret_cast<const char *>(name));
-  auto section = parser->currentSection;
-
-  if (section == FileParser::Section::None) {
-    if (tagName == "configuration")
-      parser->currentSection = FileParser::Section::Configuration;
-    else if (tagName == "nodes")
-      parser->currentSection = FileParser::Section::Nodes;
-    else if (tagName == "buildings")
-      parser->currentSection = FileParser::Section::Buildings;
-    else if (tagName == "decorations")
-      parser->currentSection = FileParser::Section::Decorations;
-    else if (tagName == "events")
-      parser->currentSection = FileParser::Section::Events;
-    else if (tagName == "series")
-      parser->currentSection = FileParser::Section::Series;
-    return;
-  }
-
-  if (section == FileParser::Section::Configuration) {
-    if (tagName == "ms-per-frame")
-      parser->currentTag = FileParser::Tag::MsPerFrame;
-    return;
-  } else if (section == FileParser::Section::Series) {
-    if (tagName == "series-collection") {
-      parser->currentTag = FileParser::Tag::SeriesCollection;
-      parser->parseSeriesCollection(attrs);
-    }
-  }
-
-  if (section == FileParser::Section::Nodes && tagName == "node")
-    parser->parseNode(attrs);
-  else if (section == FileParser::Section::Buildings && tagName == "building")
-    parser->parseBuilding(attrs);
-  else if (section == FileParser::Section::Decorations && tagName == "decoration")
-    parser->parseDecoration(attrs);
-  else if (section == Section::Series) {
-    if (tagName == "xy-series")
-      parser->parseXYSeries(attrs);
-    if (tagName == "child-series" && parser->currentTag == FileParser::Tag::SeriesCollection)
-      parser->parseChildSeries(attrs);
-  } else if (section == Section::Events) {
-    if (tagName == "position")
-      parser->parseMoveEvent(attrs);
-    else if (tagName == "decoration-position")
-      parser->parseDecorationMoveEvent(attrs);
-    else if (tagName == "xy-series-append")
-      parser->parseSeriesAppend(attrs);
-    else if (tagName == "node-orientation")
-      parser->parseNodeOrientationEvent(attrs);
-    else if (tagName == "decoration-orientation")
-      parser->parseDecorationOrientationEvent(attrs);
-  }
-}
-void FileParser::charactersCallback(void *user_data, const xmlChar *characters, int length) {
-  auto parser = static_cast<visualization::FileParser *>(user_data);
-
-  // Skip this callback if we're in a tag that has no meaningful
-  // character content
-  if (parser->currentTag == FileParser::Tag::None)
-    return;
-
-  // Be careful with the length here.
-  // The implementation will likely hand us much more then the content of the tag
-  std::string data(reinterpret_cast<const char *>(characters), length);
-  parser->interpretCharacters(data);
-}
-void FileParser::endElementCallback(void *user_data, const xmlChar *name) {
-  auto parser = static_cast<visualization::FileParser *>(user_data);
-  std::string tagName(reinterpret_cast<const char *>(name));
-
-  if (tagName == "configuration" || tagName == "nodes" || tagName == "buildings" || tagName == "decorations" ||
-      tagName == "events" || tagName == "series") {
-    parser->currentSection = FileParser::Section::None;
-  }
-
-  if (tagName == "ms-per-frame" || tagName == "series-collection")
-    parser->currentTag = FileParser::Tag::None;
 }
 
 } // namespace visualization

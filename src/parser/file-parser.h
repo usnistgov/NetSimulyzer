@@ -33,10 +33,10 @@
 #pragma once
 #include "../event/model.h"
 #include "model.h"
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
+#include <json.hpp>
+#include <optional>
 #include <osg/Math>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -50,27 +50,11 @@ class FileParser {
 
 public:
   /**
-   * States for any tags that have data actually within the tags
-   * (not all in the attributes)
-   */
-  enum class Tag { None, MsPerFrame, SeriesCollection };
-
-  /**
-   * States for each collection in the document
-   */
-  enum class Section { None, Configuration, Nodes, Buildings, Decorations, Series, Events };
-
-  /**
-   * Setup the internal callbacks for the parser
-   */
-  FileParser();
-
-  /**
-   * Read the XML file specified by path,
+   * Read the JSON file specified by path,
    * sets the configuration, nodes, etc.
    *
    * @param path
-   * The path to the XML file
+   * The path to the JSON file
    */
   void parse(const char *path);
 
@@ -130,143 +114,315 @@ public:
    */
   [[nodiscard]] const std::vector<SeriesCollection> &getSeriesCollections() const;
 
+  /**
+   * Called when the event parser encounters a null value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool null();
+
+  /**
+   * Called when the event parser encounters a boolean value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool boolean(bool value);
+
+  /**
+   * Called when the event parser encounters an integer value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool number_integer(nlohmann::json::number_integer_t value);
+
+  /**
+   * Called when the event parser encounters a unsigned integer value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool number_unsigned(nlohmann::json::number_unsigned_t value);
+
+  /**
+   * Called when the event parser encounters a floating point value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @param raw
+   * The raw string consumed by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw);
+
+  /**
+   * Called when the event parser encounters a string value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool string(nlohmann::json::string_t &value);
+
+  /**
+   * Called when the parser encounters the beginning of an object.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param elements
+   * The size of the object. -1 if unknown.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool start_object(std::size_t elements);
+
+  /**
+   * Called when the parser encounters the end of an object.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool end_object();
+
+  /**
+   * Called when the parser encounters the beginning of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param elements
+   * The size of the array. -1 if unknown.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool start_array(std::size_t elements);
+
+  /**
+   * Called when the parser encounters the end of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool end_array();
+
+  /**
+   * Called when the parser reads a key for a value.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value of the encountered key.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool key(nlohmann::json::string_t &value);
+
+  /**
+   * Called when the parser encounters an error.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param position
+   * The position in the document
+   *
+   * @param last_token
+   * The last read token
+   *
+   * @param ex
+   * The exception from the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool parse_error(std::size_t position, const std::string &last_token, const nlohmann::detail::exception &ex);
+
 private:
   /**
-   * Handle the data in between an opening and closing tag.
-   * Based on the `currentTag`.
-   *
-   * @param data
-   * The content of the current tag
+   * The possible section in the document
    */
-  void interpretCharacters(const std::string &data);
+  enum class Section { None, Buildings, Configuration, Decorations, Events, Nodes, Series };
+
+  /**
+   * Parse a section from a string.
+   * Returns Section::None if the string does not match a Section.
+   *
+   * @param key
+   * The key from the parser.
+   *
+   * @return
+   * The parsed Section. Section::None if key does not match a Section.
+   */
+  static constexpr Section isSection(std::string_view key);
+
+  /**
+   * The current section we're in the document.
+   */
+  Section currentSection = Section::None;
+
+  /**
+   * A frame for the JSON stack
+   */
+  struct JsonFrame {
+    std::string key;
+    nlohmann::json value;
+  };
+
+  /**
+   * Stack representing a JSON object
+   */
+  std::stack<JsonFrame> jsonStack;
+
+  /**
+   * The current key we're processing.
+   * Not set if we have not encountered a key
+   */
+  std::optional<std::string> currentKey;
+
+  /**
+   * How many levels into a given section we're in.
+   */
+  int sectionDepth = 0;
+
+  /**
+   * Handle a given single value for a key.
+   *
+   * @tparam T
+   * The type of value to store in the currentKey
+   *
+   * @param value
+   * The value to store in currentKey
+   */
+  template <typename T> void handle(T &&value) {
+    if (jsonStack.empty() || !currentKey)
+      return;
+
+    auto &top = jsonStack.top();
+    if (top.value[*currentKey].type() == nlohmann::json::value_t::array)
+      top.value[*currentKey].emplace_back(value);
+    else
+      top.value[*currentKey] = value;
+  }
+
+  /**
+   * Parse a JSON object into a model and emplace it.
+   *
+   * @param section
+   * The current Section, used to determine the type of object.
+   *
+   * @param object
+   * The JSON object to parse.
+   */
+  void do_parse(Section section, const nlohmann::json &object);
+
+  /**
+   * Parse and set the configuration.
+   *
+   * @param object
+   * The object from the 'configuration' section
+   */
+  void parseConfiguration(const nlohmann::json &object);
 
   /**
    * Parse and emplace a node.
    *
-   * @param attributes
-   * The attribute array from the 'node' tag
+   * @param object
+   * The object from the 'nodes' section
    */
-  void parseNode(const xmlChar *attributes[]);
+  void parseNode(const nlohmann::json &object);
 
   /**
    * Parse and emplace a building
    *
-   * @param attributes
-   * The attribute array from the 'building' tag
+   * @param object
+   * The object from the 'buildings' section
    */
-  void parseBuilding(const xmlChar *attributes[]);
+  void parseBuilding(const nlohmann::json &object);
 
   /**
    * Parse and emplace a decoration
    *
-   * @param attributes
-   * The attribute array from the 'decoration' tag
+   * @param object
+   * The object from the 'decoration' section
    */
-  void parseDecoration(const xmlChar *attributes[]);
+  void parseDecoration(const nlohmann::json &object);
 
   /**
    * Parse and emplace a linear series
    *
-   * @param attributes
-   * The attribute array from the 'linear-series' tag
+   * @param object
+   * The object from the 'series' section with the 'xy-series' type
    */
-  void parseXYSeries(const xmlChar *attributes[]);
+  void parseXYSeries(const nlohmann::json &object);
 
   /**
-   * Parse and emplace a the attributes of a series collection
+   * Parse and emplace a series collection
    *
-   * @param attributes
-   * The attribute array from the 'series-collection' tag
+   * @param object
+   * The object from the 'series' section with the 'xy-series' type
    */
-  void parseSeriesCollection(const xmlChar *attributes[]);
-
-  /**
-   * Parse and emplace a the attributes of a child series
-   * into the last emplace SeriesCollection
-   *
-   * @param attributes
-   * The attribute array from the 'child-series' tag
-   */
-  void parseChildSeries(const xmlChar *attributes[]);
+  void parseSeriesCollection(const nlohmann::json &object);
 
   /**
    * Parse and emplace a move event
    *
-   * @param attributes
-   * The attribute array from the 'position' tag
+   * @param object
+   * The object from the 'events' section with the 'node-position' type
    */
-  void parseMoveEvent(const xmlChar *attributes[]);
+  void parseMoveEvent(const nlohmann::json &object);
 
   /**
    * Parse and emplace a DecorationMoveEvent
    *
-   * @param attributes
-   * The attribute array from the 'decoration-position' tag
+   * @param object
+   * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationMoveEvent(const xmlChar *attributes[]);
+  void parseDecorationMoveEvent(const nlohmann::json &object);
 
   /**
    * Parse and emplace a NodeOrientationEvent
    *
-   * @param attributes
-   * The attribute array from the 'node-orientation' tag
+   * @param object
+   * The object from the 'events' section with the 'node-orientation' type
    */
-  void parseNodeOrientationEvent(const xmlChar *attributes[]);
+  void parseNodeOrientationEvent(const nlohmann::json &object);
 
   /**
    * Parse and emplace a DecorationOrientationEvent
    *
-   * @param attributes
-   * The attribute array from the 'decoration-orientation' tag
+   * @param object
+   * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationOrientationEvent(const xmlChar *attributes[]);
+  void parseDecorationOrientationEvent(const nlohmann::json &object);
 
   /**
    * Parse and emplace a series append event
    *
-   * @param attributes
-   * The attribute array from the 'series-add' tag
+   * @param object
+   * The object from the 'events' section with the 'xy-series-append' type
    */
-  void parseSeriesAppend(const xmlChar *attributes[]);
-
-  /**
-   * SAX Handler for when the parser detects a tag has been opened
-   *
-   * @param user_data
-   * A pointer to the current FileParser
-   *
-   * @param name
-   * The tag name
-   *
-   * @param attrs
-   * The attribute array. May be null
-   */
-  static void startElementCallback(void *user_data, const xmlChar *name, const xmlChar **attrs);
-
-  /**
-   * SAX Handler for when the parser detects tag content
-   *
-   * @param user_data
-   * A pointer to the current FileParser
-   *
-   * @param characters
-   * A C string containing (at least) the content of the tag
-   *
-   * @param length
-   * The length of `characters` containing the content of the tag
-   */
-  static void charactersCallback(void *user_data, const xmlChar *characters, int length);
-
-  /**
-   * SAX Handler for when the parser detects a tag has been closed
-   *
-   * @param user_data
-   * A pointer to the current FileParser
-   *
-   * @param name
-   * The tag name
-   */
-  static void endElementCallback(void *user_data, const xmlChar *name);
+  void parseSeriesAppend(const nlohmann::json &object);
 
   /**
    * The overall configuration of the simulation
@@ -274,51 +430,34 @@ private:
   GlobalConfiguration globalConfiguration;
 
   /**
-   * The Nodes defined by the 'nodes' XML collection
+   * The Nodes defined by the 'nodes' JSON collection
    */
   std::vector<Node> nodes;
 
   /**
-   * The Buildings defined by the 'buildings' XML collection
+   * The Buildings defined by the 'buildings' JSON collection
    */
   std::vector<Building> buildings;
 
   /**
-   * The Decorations defined by the 'decorations' XML collection
+   * The Decorations defined by the 'decorations' JSON collection
    */
   std::vector<Decoration> decorations;
 
   /**
-   * The Events defined by the 'events' XML collection
+   * The Events defined by the 'events' JSON collection
    */
   std::vector<Event> events;
 
   /**
-   * The XY Series defined within the 'series' XML collection
+   * The XY Series defined within the 'series' JSON collection
    */
   std::vector<XYSeries> xySeries;
 
   /**
-   * The Series Collections defined within the 'series' XML collection
+   * The Series Collections defined within the 'series' JSON collection
    */
   std::vector<SeriesCollection> seriesCollections;
-
-  /**
-   * The handler from libxml2
-   * manages the tag callbacks
-   */
-  xmlSAXHandler saxHandler{};
-
-  /**
-   * Indicator of what tag we are in.
-   * Used for parsing character data within a tag
-   */
-  Tag currentTag = Tag::None;
-
-  /**
-   * Indicator of what section/collection we are currently in
-   */
-  Section currentSection = Section::None;
 };
 
 } // namespace visualization
