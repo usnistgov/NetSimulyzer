@@ -172,7 +172,6 @@ bool FileParser::end_array() {
   return true;
 }
 bool FileParser::key(nlohmann::json::string_t &value) {
-  std::cout << value << "\n";
   currentKey = value;
 
   auto possibleSection = isSection(value);
@@ -203,7 +202,6 @@ constexpr FileParser::Section FileParser::isSection(std::string_view key) {
 }
 
 void FileParser::do_parse(FileParser::Section section, const nlohmann::json &object) {
-  std::cout << object << std::endl;
   switch (section) {
   case Section::Buildings:
     parseBuilding(object);
