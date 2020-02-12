@@ -17,9 +17,23 @@ class OSGWidget : public QOpenGLWidget {
   Q_OBJECT
 
 public:
-  explicit OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group> root = nullptr,
-                     QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
+  explicit OSGWidget(QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
   ~OSGWidget() override;
+
+  /**
+   * Clear all elements and reset the time
+   */
+  void reset();
+
+  void setConfiguration(GlobalConfiguration configuration);
+
+  /**
+   * Set the scene data for the viewer
+   *
+   * @param data
+   * The new root node for the viewer
+   */
+  void setData(osg::ref_ptr<osg::Group> data);
 
 signals:
   void timeAdvanced(double simulationTime);

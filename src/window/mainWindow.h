@@ -1,8 +1,5 @@
 #pragma once
 
-#include "../event/model.h"
-#include "../parser/file-parser.h"
-#include "../parser/model.h"
 #include "chart/ChartManager.h"
 #include "osgWidget.h"
 #include "ui_mainWindow.h"
@@ -21,13 +18,11 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(const GlobalConfiguration &config, const std::deque<ChartEvent> &chartEvents,
-                      const FileParser &parser, osg::ref_ptr<osg::Group> root = new osg::Group,
-                      QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
+  explicit MainWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
   ~MainWindow() override;
 
 private:
-  ChartManager charts;
+  ChartManager charts{this};
   Ui::MainWindow *ui;
   /**
    * Label inside the Status Bar. Used for 'Normal' Messages
@@ -35,8 +30,9 @@ private:
    * @see: https://doc.qt.io/qt-5/qstatusbar.html
    */
   QLabel statusLabel{"0ms", this};
-  OSGWidget osg;
+  OSGWidget osg{this};
 
   void timeAdvanced(double time);
+  void load();
 };
 } // namespace visualization

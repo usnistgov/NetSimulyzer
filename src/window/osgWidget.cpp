@@ -14,9 +14,7 @@
 
 namespace visualization {
 
-OSGWidget::OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group> root, QWidget *parent,
-                     Qt::WindowFlags f)
-    : QOpenGLWidget(parent, f), config(config) {
+OSGWidget::OSGWidget(QWidget *parent, Qt::WindowFlags f) : QOpenGLWidget(parent, f) {
   const auto aspectRatio = static_cast<float>(width()) / static_cast<float>(height());
 
   // Cheap hack to get Qt to repaint at a reasonable rate
@@ -30,7 +28,6 @@ OSGWidget::OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group>
   camera->setClearColor({0.2f, 0.2f, 0.4f, 1.0f});
 
   viewer->setCamera(camera);
-  viewer->setSceneData(root);
 
   auto *manipulator = new osgGA::OrbitManipulator;
   // Disable throwing since the scene is only drawn on demand
@@ -48,6 +45,26 @@ OSGWidget::OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group>
 }
 
 OSGWidget::~OSGWidget() = default;
+
+void OSGWidget::reset() {
+  viewer->setSceneData(nullptr);
+
+  // Remove OSG cache
+  auto db = viewer->getDatabasePager();
+  db->cancel();
+  db->clear();
+
+  currentTime = 0.0;
+  emit timeAdvanced(currentTime);
+}
+
+void OSGWidget::setConfiguration(GlobalConfiguration configuration) {
+  config = configuration;
+}
+
+void OSGWidget::setData(osg::ref_ptr<osg::Group> data) {
+  viewer->setSceneData(data);
+}
 
 void OSGWidget::paintEvent(QPaintEvent * /* paintEvent */) {
   makeCurrent();
@@ -175,7 +192,7 @@ bool OSGWidget::event(QEvent *event) {
 }
 
 void OSGWidget::onResize(int width, int height) {
-  auto camera =viewer->getCamera();
+  auto camera = viewer->getCamera();
   camera->setViewport(0, 0, width * devicePixelRatio(), height * devicePixelRatio());
 }
 

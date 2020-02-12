@@ -85,10 +85,57 @@ ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
 ChartManager::~ChartManager() {
   delete ui;
 }
+void ChartManager::clearChart() {
+  // Remove old axes
+  auto currentAxes = chart.axes();
+
+  // Remove currently attached series
+  for (const auto &currentSeries : chart.series()) {
+    // Detach the axes from each series,
+    // then they may be removed from the chart
+    for (const auto &axis : currentAxes) {
+      currentSeries->detachAxis(axis);
+    }
+
+    chart.removeSeries(currentSeries);
+    // The chart claims ownership of the series when it's attached
+    currentSeries->setParent(this);
+  }
+
+  for (const auto &axis : currentAxes) {
+    chart.removeAxis(axis);
+
+    // Reclaim ownership of the axis
+    // Since the chart takes it when it is attached
+    axis->setParent(this);
+  }
+
+  chart.setTitle("");
+}
 
 void ChartManager::seriesSelected(int index) {
   auto seriesId = ui->comboBoxSeries->itemData(index).toUInt();
   showSeries(seriesId);
+}
+
+void ChartManager::reset() {
+  ui->comboBoxSeries->clear();
+  ui->comboBoxSeries->addItem("Select Series", 0u);
+
+  clearChart();
+  events.clear();
+
+  for (auto &iterator : series) {
+    auto &value = iterator.second;
+    if (std::holds_alternative<XYSeriesTie>(value)) {
+      auto qtSeries = std::get<XYSeriesTie>(value).qtSeries;
+      qtSeries->setParent(nullptr);
+      qtSeries->deleteLater();
+    }
+    // No need to handle SeriesCollection since it has no pointers
+  }
+
+  series.clear();
 }
 
 void ChartManager::addSeries(const XYSeries &s) {
@@ -158,29 +205,7 @@ void ChartManager::addSeries(const SeriesCollection &s) {
 }
 
 void ChartManager::showSeries(uint32_t seriesId) {
-  // Remove old axes
-  auto currentAxes = chart.axes();
-
-  // Remove currently attached series
-  for (const auto &currentSeries : chart.series()) {
-    // Detach the axes from each series,
-    // then they may be removed from the chart
-    for (const auto &axis : currentAxes) {
-      currentSeries->detachAxis(axis);
-    }
-
-    chart.removeSeries(currentSeries);
-    // The chart claims ownership of the series when it's attached
-    currentSeries->setParent(this);
-  }
-
-  for (const auto &axis : currentAxes) {
-    chart.removeAxis(axis);
-
-    // Reclaim ownership of the axis
-    // Since the chart takes it when it is attached
-    axis->setParent(this);
-  }
+  clearChart();
 
   const auto &seriesIterator = series.find(seriesId);
   if (seriesIterator == series.end()) {
@@ -231,7 +256,6 @@ void ChartManager::showSeries(const ChartManager::SeriesCollectionTie &tie) {
     chartSeries->attachAxis(tie.xAxis);
     chartSeries->attachAxis(tie.yAxis);
   }
-
 }
 
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
@@ -250,7 +274,6 @@ void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y)
       if (collection.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue)
         updateRange(collection.yAxis, y);
     }
-
   }
 }
 

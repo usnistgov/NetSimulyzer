@@ -74,14 +74,23 @@ class ChartManager : public QWidget {
   std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie>> series;
   QtCharts::QChart chart;
 
+  /**
+   * Remove all axes & series from the chart
+   */
+  void clearChart();
   void seriesSelected(int index);
   void showSeries(const XYSeriesTie &tie);
   void showSeries(const SeriesCollectionTie &tie);
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
+
 public:
   explicit ChartManager(QWidget *parent);
   ~ChartManager() override;
 
+  /**
+   * Clear all series and events
+   */
+  void reset();
   void addSeries(const XYSeries &s);
   void addSeries(const SeriesCollection &s);
   void showSeries(uint32_t seriesId);
