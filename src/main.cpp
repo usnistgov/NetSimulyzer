@@ -35,7 +35,6 @@
 #include "group/building/BuildingGroup.h"
 #include "group/decoration/DecorationGroup.h"
 #include "group/node/NodeGroup.h"
-#include "hud/hud.h"
 #include "parser/file-parser.h"
 #include "util/CoordinateGrid.h"
 #include "window/mainWindow.h"

@@ -1,6 +1,5 @@
 #include "osgWidget.h"
 
-#include "hud/hud.h"
 #include <QDebug>
 #include <QKeyEvent>
 #include <QPainter>
@@ -38,11 +37,6 @@ OSGWidget::OSGWidget(const GlobalConfiguration &config, osg::ref_ptr<osg::Group>
   manipulator->setAllowThrow(false);
 
   viewer->addEventHandler(pauseHandler);
-
-  auto viewport = camera->getViewport();
-  osg::ref_ptr<visualization::HudCamera> hud = new visualization::HudCamera(viewport->width(), viewport->height());
-  root->addChild(hud);
-  viewer->addEventHandler(new visualization::HudResizeHandler(hud));
 
   viewer->setCameraManipulator(manipulator);
   viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);

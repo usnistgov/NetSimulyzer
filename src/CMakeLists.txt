@@ -51,7 +51,6 @@ add_executable(visualization
         group/node/NodeGroup.cpp group/node/NodeGroup.h
         group/building/BuildingGroup.cpp group/building/BuildingGroup.h
         group/decoration/DecorationGroup.cpp group/decoration/DecorationGroup.h
-        hud/hud.cpp hud/hud.h
         parser/file-parser.cpp parser/file-parser.h
         parser/model.h
         util/CoordinateGrid.cpp util/CoordinateGrid.h
