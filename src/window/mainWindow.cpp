@@ -12,6 +12,11 @@ MainWindow::MainWindow(const GlobalConfiguration &config, const std::deque<Chart
   ui->setupUi(this);
   ui->horizontalLayout->addWidget(&osg);
   ui->horizontalLayout->addWidget(&charts);
+  // For somewhat permanent messages (a message with no timeout)
+  // We need to use a widget in the status bar.
+  // Note: This message can still be temporarily overwritten,
+  // should we choose to do so
+  ui->statusbar->insertWidget(0, &statusLabel);
 
   const auto &xySeries = parser.getXYSeries();
   for (const auto &series : xySeries) {
@@ -28,10 +33,14 @@ MainWindow::MainWindow(const GlobalConfiguration &config, const std::deque<Chart
   }
 
   QObject::connect(&osg, &OSGWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&osg, &OSGWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
 }
 
 MainWindow::~MainWindow() {
   delete ui;
+}
+void MainWindow::timeAdvanced(double time) {
+  statusLabel.setText(QString::number(time) + "ms");
 }
 
 } // namespace visualization

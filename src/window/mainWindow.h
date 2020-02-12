@@ -6,6 +6,7 @@
 #include "chart/ChartManager.h"
 #include "osgWidget.h"
 #include "ui_mainWindow.h"
+#include <QLabel>
 #include <QMainWindow>
 #include <QMdiArea>
 #include <QtCharts/QChartView>
@@ -28,6 +29,14 @@ public:
 private:
   ChartManager charts;
   Ui::MainWindow *ui;
+  /**
+   * Label inside the Status Bar. Used for 'Normal' Messages
+   *
+   * @see: https://doc.qt.io/qt-5/qstatusbar.html
+   */
+  QLabel statusLabel{"0ms", this};
   OSGWidget osg;
+
+  void timeAdvanced(double time);
 };
 } // namespace visualization
