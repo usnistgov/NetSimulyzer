@@ -8,7 +8,6 @@ A 3D visualizer for ns-3 scenarios.
     * GCC 7.3.0
     * Clang 6.0.0
 * CMake 3.12 or greater
-* Libxml2
 * A graphics card supporting OpenGL 2
 * The OpenSceneGraph plugin dependencies for [plugins](http://www.openscenegraph.org/index.php/documentation/guides/user-guides/61-osgplugins) you wish to use
   * See [the dependencies section](http://www.openscenegraph.org/index.php/download-section/dependencies) for more information
@@ -164,8 +163,7 @@ OSG_FILE_PATH="/path/to/model/directory"
 ```
 
 #### Execute the Command
-Now with the `LD_LIBRARY_PATH` set to find OpenSceneGraph, the application may me launched.
-Specify an output XML file as the only argument to the visualizer
+Now with the `LD_LIBRARY_PATH` set to find OpenSceneGraph, the application may be launched.
 ```shell
-./src/visualization example.xml
+./src/visualization
 ```
