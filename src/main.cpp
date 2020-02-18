@@ -30,6 +30,10 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
+// clang-format off
+// The first OpenGL include should come safely before any OSG components.
+#include <QOpenGLContext>
+// clang-format on
 
 #include "event/model.h"
 #include "group/building/BuildingGroup.h"
