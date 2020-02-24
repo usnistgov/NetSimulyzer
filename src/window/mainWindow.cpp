@@ -53,7 +53,13 @@ void MainWindow::timeAdvanced(double time) {
 
 void MainWindow::load() {
   auto fileName =
+#ifdef __APPLE__
       QFileDialog::getOpenFileName(this, "Open File", ".", "JSON Files (*.json)");
+#else
+      QFileDialog::getOpenFileName(this, "Open File", ".", "JSON Files (*.json)", nullptr,
+                                   QFileDialog::DontUseNativeDialog);
+#endif
+
   if (fileName.isEmpty())
     return;
 
