@@ -43,9 +43,12 @@
 namespace {
 
 void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
+  // Amount to scale past the min/max
+  // so we don't cut off the actual point
+  const auto additionalScale = 0.05;
+
   qreal min;
   qreal max;
-
   if (const auto valueAxis = qobject_cast<QtCharts::QValueAxis *>(axis)) {
     min = valueAxis->min();
     max = valueAxis->max();
@@ -58,9 +61,9 @@ void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
   }
 
   if (value > max)
-    axis->setMax(value);
+    axis->setMax(value + value * additionalScale);
   else if (value < min)
-    axis->setMin(value);
+    axis->setMin(value - value * additionalScale);
 }
 
 } // namespace
