@@ -91,10 +91,12 @@ struct ValueAxis {
 
 struct XYSeries {
   enum class Connection { None, Line, Spline };
+  enum class LabelMode { Hidden, Shown };
 
   uint32_t id = 0u;
   std::string name;
   Connection connection = Connection::Line;
+  LabelMode labelMode = LabelMode::Shown;
   uint8_t red = 0u;
   uint8_t green = 0u;
   uint8_t blue = 0u;

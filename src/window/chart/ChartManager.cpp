@@ -155,12 +155,21 @@ void ChartManager::addSeries(const XYSeries &s) {
     tie.qtSeries = new QtCharts::QSplineSeries(this);
     break;
   }
+
+  switch (s.labelMode) {
+  case XYSeries::LabelMode::Hidden:
+    tie.qtSeries->setPointLabelsVisible(false);
+    break;
+  case XYSeries::LabelMode::Shown:
+    tie.qtSeries->setPointLabelsVisible(true);
+    break;
+  }
+
   // Qt Charts OpenGL Does not play nice with OSG
   tie.qtSeries->setUseOpenGL(false);
 
   tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
   tie.qtSeries->setName(QString::fromStdString(s.name));
-  tie.qtSeries->setPointLabelsVisible(true);
 
   // X Axis
   if (tie.model.xAxis.scale == ValueAxis::Scale::Linear)

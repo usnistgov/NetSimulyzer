@@ -391,6 +391,14 @@ void FileParser::parseXYSeries(const nlohmann::json &object) {
   else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
+  auto labelMode = object["labels"].get<std::string>();
+  if (labelMode == "hidden")
+    series.labelMode = XYSeries::LabelMode::Hidden;
+  else if (labelMode == "shown")
+    series.labelMode = XYSeries::LabelMode::Shown;
+  else
+    std::cerr << "Unrecognized labels type: " << labelMode << '\n';
+
   series.xAxis = valueAxisFromObject(object["x-axis"]);
   series.yAxis = valueAxisFromObject(object["y-axis"]);
 
