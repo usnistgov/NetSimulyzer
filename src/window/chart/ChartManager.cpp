@@ -152,6 +152,8 @@ void ChartManager::addSeries(const XYSeries &s) {
     tie.qtSeries = new QtCharts::QSplineSeries(this);
     break;
   }
+  // Qt Charts OpenGL Does not play nice with OSG
+  tie.qtSeries->setUseOpenGL(false);
 
   tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
   tie.qtSeries->setName(QString::fromStdString(s.name));
@@ -297,7 +299,6 @@ void ChartManager::timeAdvanced(double time) {
       }
       updateCollectionRanges(e.seriesId, e.x, e.y);
       s.qtSeries->append(e.x, e.y);
-      ui->chartView->repaint();
       events.pop_front();
       return true;
     }
