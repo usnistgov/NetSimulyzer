@@ -178,7 +178,7 @@ void ChartManager::addSeries(const XYSeries &s) {
     tie.yAxis = new QtCharts::QLogValueAxis(this);
   tie.yAxis = new QtCharts::QValueAxis(this);
   tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
-  tie.yAxis->setRange(s.xAxis.min, s.yAxis.max);
+  tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
 
   series.insert({s.id, tie});
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
