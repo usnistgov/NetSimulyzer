@@ -31,7 +31,14 @@
     </property>
     <addaction name="actionLoad"/>
    </widget>
+   <widget class="QMenu" name="menuWidget">
+    <property name="title">
+     <string>Widget</string>
+    </property>
+    <addaction name="actionCharts"/>
+   </widget>
    <addaction name="menuFIle"/>
+   <addaction name="menuWidget"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="chartDock">
@@ -54,6 +61,20 @@
   <action name="actionLoad">
    <property name="text">
     <string>Load</string>
+   </property>
+  </action>
+  <action name="actionCharts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Charts</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle the Chart widget</string>
    </property>
   </action>
  </widget>

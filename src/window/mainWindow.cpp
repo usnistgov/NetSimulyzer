@@ -34,6 +34,10 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   charts = new ChartManager{ui->chartDock};
   ui->chartDock->setWidget(charts);
 
+  QObject::connect(ui->chartDock, &QDockWidget::visibilityChanged, [this] (bool visible) {
+    ui->actionCharts->setChecked(visible);
+  });
+
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
   // Note: This message can still be temporarily overwritten,
@@ -44,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   QObject::connect(&osg, &OSGWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
+  QObject::connect(ui->actionCharts, &QAction::triggered, this, &MainWindow::toggleCharts);
 }
 
 MainWindow::~MainWindow() {
@@ -136,6 +141,10 @@ void MainWindow::load() {
   for (const auto &event : chartEvents) {
     charts->enqueueEvent(event);
   }
+}
+
+void MainWindow::toggleCharts() {
+  ui->chartDock->toggleViewAction()->trigger();
 }
 
 } // namespace visualization

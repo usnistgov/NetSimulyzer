@@ -34,5 +34,6 @@ private:
 
   void timeAdvanced(double time);
   void load();
+  void toggleCharts();
 };
 } // namespace visualization
