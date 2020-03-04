@@ -7,7 +7,6 @@
 #include <QAction>
 #include <QDebug>
 #include <QFileDialog>
-#include <QMdiSubWindow>
 #include <deque>
 #include <unordered_map>
 #include <variant>
@@ -30,15 +29,18 @@ namespace visualization {
 
 MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(parent, flags), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-  ui->horizontalLayout->addWidget(&osg);
-  ui->horizontalLayout->addWidget(&charts);
+  setCentralWidget(&osg);
+
+  charts = new ChartManager{ui->chartDock};
+  ui->chartDock->setWidget(charts);
+
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
   // Note: This message can still be temporarily overwritten,
   // should we choose to do so
   ui->statusbar->insertWidget(0, &statusLabel);
 
-  QObject::connect(&osg, &OSGWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&osg, &OSGWidget::timeAdvanced, charts, &ChartManager::timeAdvanced);
   QObject::connect(&osg, &OSGWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
@@ -120,19 +122,19 @@ void MainWindow::load() {
   osg.setData(root);
 
   // Charts
-  charts.reset();
+  charts->reset();
   const auto &xySeries = parser.getXYSeries();
   for (const auto &series : xySeries) {
-    charts.addSeries(series);
+    charts->addSeries(series);
   }
 
   const auto &seriesCollections = parser.getSeriesCollections();
   for (const auto &series : seriesCollections) {
-    charts.addSeries(series);
+    charts->addSeries(series);
   }
 
   for (const auto &event : chartEvents) {
-    charts.enqueueEvent(event);
+    charts->enqueueEvent(event);
   }
 }
 

@@ -3,9 +3,9 @@
 #include "chart/ChartManager.h"
 #include "osgWidget.h"
 #include "ui_mainWindow.h"
+#include <QDockWidget>
 #include <QLabel>
 #include <QMainWindow>
-#include <QMdiArea>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
@@ -22,7 +22,7 @@ public:
   ~MainWindow() override;
 
 private:
-  ChartManager charts{this};
+  ChartManager *charts;
   Ui::MainWindow *ui;
   /**
    * Label inside the Status Bar. Used for 'Normal' Messages
