@@ -25,7 +25,7 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFIle">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
@@ -37,7 +37,7 @@
     </property>
     <addaction name="actionCharts"/>
    </widget>
-   <addaction name="menuFIle"/>
+   <addaction name="menuFile"/>
    <addaction name="menuWidget"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
