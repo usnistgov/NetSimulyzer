@@ -10,6 +10,7 @@
 #include <osgViewer/View>
 #include <osgViewer/ViewerEventHandlers>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace visualization {
@@ -62,8 +63,21 @@ void OSGWidget::setConfiguration(GlobalConfiguration configuration) {
   config = configuration;
 }
 
-void OSGWidget::setData(osg::ref_ptr<osg::Group> data) {
+void OSGWidget::setData(osg::ref_ptr<osg::Group> data, std::unordered_map<uint32_t, osg::ref_ptr<NodeGroup>> nodes) {
   viewer->setSceneData(data);
+  nodeGroups = std::move(nodes);
+}
+
+void OSGWidget::focusNode(uint32_t nodeId) {
+  auto node = nodeGroups.find(nodeId);
+
+  // The Node wasn't found
+  if (node == nodeGroups.end())
+    return;
+
+  auto position = node->second->getLocation();
+  auto camera = dynamic_cast<osgGA::OrbitManipulator *>(viewer->getCameraManipulator());
+  camera->setCenter(position);
 }
 
 void OSGWidget::paintEvent(QPaintEvent * /* paintEvent */) {

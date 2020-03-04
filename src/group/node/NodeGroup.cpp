@@ -145,4 +145,8 @@ void NodeGroup::enqueueEvent(const NodeEvent &event) {
   events.push_back(event);
 }
 
+osg::Vec3d NodeGroup::getLocation() const {
+  return position->getPosition();
+}
+
 } // namespace visualization

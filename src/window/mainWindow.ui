@@ -35,6 +35,7 @@
     <property name="title">
      <string>Widget</string>
     </property>
+    <addaction name="actionNodes"/>
     <addaction name="actionCharts"/>
    </widget>
    <addaction name="menuFile"/>
@@ -58,6 +59,26 @@
     <number>2</number>
    </attribute>
   </widget>
+  <widget class="QDockWidget" name="nodesDock">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>35</height>
+    </size>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+  </widget>
   <action name="actionLoad">
    <property name="text">
     <string>Load</string>
@@ -75,6 +96,20 @@
    </property>
    <property name="toolTip">
     <string>Toggle the Chart widget</string>
+   </property>
+  </action>
+  <action name="actionNodes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Nodes</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle the Nodes widget</string>
    </property>
   </action>
  </widget>

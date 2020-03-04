@@ -41,6 +41,7 @@
 #include <osg/NodeCallback>
 #include <osg/PositionAttitudeTransform>
 #include <osg/Switch>
+#include <osg/Vec3d>
 #include <osg/ref_ptr>
 
 namespace visualization {
@@ -120,6 +121,12 @@ public:
    * The event to add to the queue.
    */
   void enqueueEvent(const NodeEvent &event);
+
+  /**
+   * @return
+   * The current location of the Node
+   */
+  osg::Vec3d getLocation() const;
 };
 
 } // namespace visualization

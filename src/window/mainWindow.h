@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chart/ChartManager.h"
+#include "node/NodeWidget.h"
 #include "osgWidget.h"
 #include "ui_mainWindow.h"
 #include <QDockWidget>
@@ -23,6 +24,7 @@ public:
 
 private:
   ChartManager *charts;
+  NodeWidget *nodeWidget;
   Ui::MainWindow *ui;
   /**
    * Label inside the Status Bar. Used for 'Normal' Messages

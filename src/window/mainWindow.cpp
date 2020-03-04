@@ -38,6 +38,17 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
     ui->actionCharts->setChecked(visible);
   });
 
+  nodeWidget = new NodeWidget{ui->nodesDock};
+  ui->nodesDock->setWidget(nodeWidget);
+
+  QObject::connect(ui->nodesDock, &QDockWidget::visibilityChanged, [this] (bool visible) {
+    ui->actionNodes->setChecked(visible);
+  });
+
+  QObject::connect(ui->actionNodes, &QAction::triggered, [this] (bool checked) {
+    ui->nodesDock->setVisible(checked);
+  });
+
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
   // Note: This message can still be temporarily overwritten,
@@ -46,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
   QObject::connect(&osg, &OSGWidget::timeAdvanced, charts, &ChartManager::timeAdvanced);
   QObject::connect(&osg, &OSGWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
+
+  QObject::connect(nodeWidget, &NodeWidget::nodeSelected, &osg, &OSGWidget::focusNode);
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
   QObject::connect(ui->actionCharts, &QAction::triggered, this, &MainWindow::toggleCharts);
@@ -71,6 +84,7 @@ void MainWindow::load() {
     return;
 
   osg.reset();
+  nodeWidget->reset();
 
   FileParser parser;
   parser.parse(fileName.toStdString().c_str());
@@ -87,6 +101,7 @@ void MainWindow::load() {
     auto nodeGroup = visualization::NodeGroup::MakeGroup(node);
     nodeGroups.insert({node.id, nodeGroup});
     root->addChild(nodeGroup);
+    nodeWidget->addNode(node);
   }
 
   const auto &buildings = parser.getBuildings();
@@ -124,7 +139,7 @@ void MainWindow::load() {
         event);
   }
 
-  osg.setData(root);
+  osg.setData(root, nodeGroups);
 
   // Charts
   charts->reset();

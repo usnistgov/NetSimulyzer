@@ -58,7 +58,9 @@ add_executable(visualization
         util/GroundPlane.cpp util/GroundPlane.h
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/osgWidget.cpp window/osgWidget.h
-        window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui)
+        window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
+        window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
+        )
 
 target_compile_features(visualization PRIVATE cxx_std_17)
 

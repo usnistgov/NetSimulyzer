@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../group/node/NodeGroup.h"
 #include "../parser/model.h"
 #include "util/PauseHandler.h"
 #include <QOpenGLWidget>
@@ -32,8 +33,21 @@ public:
    *
    * @param data
    * The new root node for the viewer
+   *
+   * @param nodes
+   * Map tying NodesIds to their OSG Group
    */
-  void setData(osg::ref_ptr<osg::Group> data);
+  void setData(osg::ref_ptr<osg::Group> data, std::unordered_map<uint32_t, osg::ref_ptr<NodeGroup>> nodes);
+
+  /**
+   * Center the specified Node in the view.
+   * If the Node with ID nodeId is not found,
+   * then the camera is not changed
+   *
+   * @param nodeId
+   * The ID of the Node to focus on
+   */
+  void focusNode(uint32_t nodeId);
 
 signals:
   void timeAdvanced(double simulationTime);
@@ -59,6 +73,7 @@ private:
   [[nodiscard]] osgGA::EventQueue *getEventQueue() const;
 
   GlobalConfiguration config;
+  std::unordered_map<uint32_t, osg::ref_ptr<NodeGroup>> nodeGroups;
   double currentTime = 0.0;
   QTimer *timer = new QTimer;
 
