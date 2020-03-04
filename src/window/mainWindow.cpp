@@ -141,6 +141,8 @@ void MainWindow::load() {
   for (const auto &event : chartEvents) {
     charts->enqueueEvent(event);
   }
+
+  ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 5000);
 }
 
 void MainWindow::toggleCharts() {
