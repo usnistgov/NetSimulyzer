@@ -60,7 +60,7 @@ void DecorationGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor 
       return false;
 
     if constexpr (std::is_same_v<T, DecorationMoveEvent>) {
-      group.position->setPosition(arg.targetPosition);
+      group.position->setPosition({arg.targetPosition[0], arg.targetPosition[1], arg.targetPosition[2]});
       events.pop_front();
       return true;
     } else if constexpr (std::is_same_v<T, DecorationOrientationChangeEvent>) {
@@ -121,7 +121,7 @@ DecorationGroup::DecorationGroup(const Decoration &config) {
   orientation->addChild(scale);
 
   position = new osg::PositionAttitudeTransform();
-  position->setPosition(config.position);
+  position->setPosition({config.position[0], config.position[1], config.position[2]});
   position->addChild(orientation);
 
   addChild(position);

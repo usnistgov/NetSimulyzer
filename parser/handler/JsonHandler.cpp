@@ -32,12 +32,20 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
+//clang-format off
+// Make sure we have M_PI
+// since it's technically non-standard
+#define _USE_MATH_DEFINES
+#include <cmath>
+#undef _USE_MATH_DEFINES
+//clang-format on
+
 #include "JsonHandler.h"
 
 /**
  * Multiply by this constant to convert degrees to radians
  */
-const inline double TO_RADIANS = osg::PI / 180;
+const inline double TO_RADIANS = M_PI / 180;
 
 visualization::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
   if (mode == "fixed")

@@ -83,7 +83,7 @@ osg::ref_ptr<NodeGroup> NodeGroup::MakeGroup(const visualization::Node &config) 
   node->orientation->addChild(node->scale);
 
   node->position = new osg::PositionAttitudeTransform();
-  node->position->setPosition(config.position);
+  node->position->setPosition({config.position[0], config.position[1], config.position[2]});
   node->position->addChild(node->orientation);
 
   node->visible = new osg::Switch();
@@ -118,7 +118,7 @@ void NodeGroupEventCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
       return false;
 
     if constexpr (std::is_same_v<T, MoveEvent>) {
-      group.position->setPosition(arg.targetPosition);
+      group.position->setPosition({arg.targetPosition[0], arg.targetPosition[1], arg.targetPosition[2]});
       events.pop_front();
       return true;
     } else if constexpr (std::is_same_v<T, NodeOrientationChangeEvent>) {

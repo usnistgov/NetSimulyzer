@@ -31,8 +31,8 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 #pragma once
+#include <array>
 #include <cstdint>
-#include <osg/Vec3d>
 #include <string>
 #include <variant>
 #include <vector>
@@ -49,8 +49,8 @@ struct Node {
   double scale = 1.0;
   double opacity = 1.0;
   bool visible = true;
-  osg::Vec3d position;
-  osg::Vec3d orientation;
+  std::array<double, 3> position{0.0};
+  std::array<double, 3> orientation{0.0};
 };
 
 struct Building {
@@ -73,8 +73,8 @@ struct Building {
 struct Decoration {
   uint32_t id;
   std::string model;
-  osg::Vec3d position;
-  osg::Vec3d orientation;
+  std::array<double, 3> position{0.0};
+  std::array<double, 3> orientation{0.0};
   double opacity = 1.0;
   double scale = 1.0;
 };
@@ -137,7 +137,7 @@ struct MoveEvent {
    * If the node is affected by another
    * transform, this will be relative to that transform
    */
-  osg::Vec3d targetPosition;
+  std::array<double, 3> targetPosition{0.0};
 };
 
 /**
@@ -158,7 +158,7 @@ struct DecorationMoveEvent {
   /**
    * The position in the scene to move the Decoration to.
    */
-  osg::Vec3d targetPosition;
+  std::array<double, 3> targetPosition{0.0};
 };
 
 /**
@@ -182,7 +182,7 @@ struct NodeOrientationChangeEvent {
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
    */
-  osg::Vec3d targetOrientation;
+  std::array<double, 3> targetOrientation{0.0};
 };
 
 /**
@@ -203,7 +203,7 @@ struct DecorationOrientationChangeEvent {
   /**
    * The new orientation of the Decoration after this event has fired.
    */
-  osg::Vec3d targetOrientation;
+  std::array<double, 3> targetOrientation{0.0};
 };
 
 /**

@@ -29,8 +29,6 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-find_package(OpenSceneGraph REQUIRED COMPONENTS osgViewer osgDB osgGA osgText osgUtil)
-
 add_library(parser
         handler/JsonHandler.cpp handler/JsonHandler.h
         file-parser.cpp file-parser.h
@@ -40,4 +38,3 @@ add_library(parser
 target_include_directories(parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(parser PRIVATE json)
-target_include_directories(parser SYSTEM PRIVATE ${OPENSCENEGRAPH_INCLUDE_DIRS})

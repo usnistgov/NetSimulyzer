@@ -41,7 +41,6 @@
 #include <json.hpp>
 #include <memory>
 #include <optional>
-#include <osg/Math>
 #include <stack>
 #include <string>
 #include <vector>
