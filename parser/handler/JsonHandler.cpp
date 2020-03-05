@@ -1,3 +1,4 @@
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -30,13 +31,13 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
-#include "file-parser.h"
-#include <cassert>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <json.hpp>
-#include <memory>
+
+#include "JsonHandler.h"
+
+/**
+ * Multiply by this constant to convert degrees to radians
+ */
+const inline double TO_RADIANS = osg::PI / 180;
 
 visualization::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
   if (mode == "fixed")
@@ -67,141 +68,26 @@ visualization::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
   return axis;
 }
 
-namespace visualization {
-
-void FileParser::parse(const char *path) {
-  std::ifstream infile{path};
-
-  if (!infile)
-    std::cerr << "Failed to open " << path << '\n';
-
-  nlohmann::json::sax_parse(infile, this);
-}
-
-const GlobalConfiguration &FileParser::getConfiguration() const {
-  return globalConfiguration;
-}
-
-const std::vector<Node> &FileParser::getNodes() const {
-  return nodes;
-}
-
-const std::vector<Building> &FileParser::getBuildings() const {
-  return buildings;
-}
-
-const std::vector<Decoration> &FileParser::getDecorations() const {
-  return decorations;
-}
-
-const std::vector<Event> &FileParser::getEvents() const {
-  return events;
-}
-
-const std::vector<XYSeries> &FileParser::getXYSeries() const {
-  return xySeries;
-}
-
-const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
-  return seriesCollections;
-}
-
-bool FileParser::null() {
-  handle(nullptr);
-  return true;
-}
-
-bool FileParser::boolean(bool value) {
-  handle(value);
-  return true;
-}
-bool FileParser::number_integer(nlohmann::json::number_integer_t value) {
-  handle(value);
-  return true;
-}
-bool FileParser::number_unsigned(nlohmann::json::number_unsigned_t value) {
-  handle(value);
-  return true;
-}
-bool FileParser::number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &) {
-  handle(value);
-  return true;
-}
-bool FileParser::string(nlohmann::json::string_t &value) {
-  handle(value);
-  return true;
-}
-bool FileParser::start_object(std::size_t) {
-  if (currentKey)
-    jsonStack.push({*currentKey, nlohmann::json::object()});
-
-  sectionDepth++;
-  return true;
-}
-bool FileParser::end_object() {
-  // Possibly empty at the end of a message
-  if (!jsonStack.empty()) {
-    sectionDepth--;
-
-    if (sectionDepth == 0) {
-      auto frame = jsonStack.top();
-      jsonStack.pop();
-      do_parse(currentSection, frame.value);
-    } else {
-      auto top = jsonStack.top();
-      jsonStack.pop();
-      jsonStack.top().value[top.key] = top.value;
-    }
+constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
+  {
+    if (key == "buildings")
+      return Section::Buildings;
+    else if (key == "configuration")
+      return Section::Configuration;
+    else if (key == "decorations")
+      return Section::Decorations;
+    else if (key == "events")
+      return Section::Events;
+    else if (key == "nodes")
+      return Section::Nodes;
+    else if (key == "series")
+      return Section::Series;
+    else
+      return Section::None;
   }
-  return true;
-}
-bool FileParser::start_array(std::size_t) {
-  if (!currentKey) {
-    return true;
-  }
-
-  if (isSection(*currentKey) != Section::None)
-    sectionDepth = 0;
-  else {
-    jsonStack.top().value[*currentKey] = nlohmann::json::array();
-  }
-
-  return true;
-}
-bool FileParser::end_array() {
-  return true;
-}
-bool FileParser::key(nlohmann::json::string_t &value) {
-  currentKey = value;
-
-  auto possibleSection = isSection(value);
-  if (possibleSection != Section::None) {
-    currentSection = possibleSection;
-  }
-  return true;
-}
-bool FileParser::parse_error(std::size_t, const std::string &, const nlohmann::detail::exception &ex) {
-  throw ex;
 }
 
-constexpr FileParser::Section FileParser::isSection(std::string_view key) {
-  if (key == "buildings")
-    return Section::Buildings;
-  else if (key == "configuration")
-    return Section::Configuration;
-  else if (key == "decorations")
-    return Section::Decorations;
-  else if (key == "events")
-    return Section::Events;
-  else if (key == "nodes")
-    return Section::Nodes;
-  else if (key == "series")
-    return Section::Series;
-  else
-    return Section::None;
-}
-
-void FileParser::do_parse(FileParser::Section section, const nlohmann::json &object) {
+void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &object) {
   switch (section) {
   case Section::Buildings:
     parseBuilding(object);
@@ -245,12 +131,12 @@ void FileParser::do_parse(FileParser::Section section, const nlohmann::json &obj
   }
 }
 
-void FileParser::parseConfiguration(const nlohmann::json &object) {
-  globalConfiguration.millisecondsPerFrame = object["ms-per-frame"].get<double>();
+void JsonHandler::parseConfiguration(const nlohmann::json &object) {
+  fileParser.globalConfiguration.millisecondsPerFrame = object["ms-per-frame"].get<double>();
 }
 
-void FileParser::parseNode(const nlohmann::json &object) {
-  Node node;
+void JsonHandler::parseNode(const nlohmann::json &object) {
+  visualization::Node node;
 
   node.id = object["id"].get<uint32_t>();
   node.model = object["model"].get<std::string>();
@@ -266,11 +152,11 @@ void FileParser::parseNode(const nlohmann::json &object) {
   node.position[0] = object["position"]["x"].get<double>();
   node.position[1] = object["position"]["y"].get<double>();
   node.position[2] = object["position"]["z"].get<double>();
-  nodes.emplace_back(node);
+  fileParser.nodes.emplace_back(node);
 }
 
-void FileParser::parseBuilding(const nlohmann::json &object) {
-  Building building;
+void JsonHandler::parseBuilding(const nlohmann::json &object) {
+  visualization::Building building;
 
   building.id = object["id"].get<uint32_t>();
   building.opacity = object["opacity"].get<double>();
@@ -289,11 +175,11 @@ void FileParser::parseBuilding(const nlohmann::json &object) {
   building.zMin = object["bounds"]["z"]["min"].get<double>();
   building.zMax = object["bounds"]["z"]["max"].get<double>();
 
-  buildings.emplace_back(building);
+  fileParser.buildings.emplace_back(building);
 }
 
-void FileParser::parseDecoration(const nlohmann::json &object) {
-  Decoration decoration;
+void JsonHandler::parseDecoration(const nlohmann::json &object) {
+  visualization::Decoration decoration;
 
   decoration.id = object["id"].get<uint32_t>();
   decoration.model = object["model"].get<std::string>();
@@ -309,11 +195,11 @@ void FileParser::parseDecoration(const nlohmann::json &object) {
   decoration.opacity = object["opacity"].get<double>();
   decoration.opacity = object["scale"].get<double>();
 
-  decorations.emplace_back(decoration);
+  fileParser.decorations.emplace_back(decoration);
 }
 
-void FileParser::parseMoveEvent(const nlohmann::json &object) {
-  MoveEvent event;
+void JsonHandler::parseMoveEvent(const nlohmann::json &object) {
+  visualization::MoveEvent event;
 
   event.nodeId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
@@ -321,11 +207,11 @@ void FileParser::parseMoveEvent(const nlohmann::json &object) {
   event.targetPosition[1] = object["y"].get<double>();
   event.targetPosition[2] = object["z"].get<double>();
 
-  events.emplace_back(event);
+  fileParser.events.emplace_back(event);
 }
 
-void FileParser::parseDecorationMoveEvent(const nlohmann::json &object) {
-  DecorationMoveEvent event;
+void JsonHandler::parseDecorationMoveEvent(const nlohmann::json &object) {
+  visualization::DecorationMoveEvent event;
 
   event.decorationId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
@@ -333,11 +219,11 @@ void FileParser::parseDecorationMoveEvent(const nlohmann::json &object) {
   event.targetPosition[1] = object["y"].get<double>();
   event.targetPosition[2] = object["z"].get<double>();
 
-  events.emplace_back(event);
+  fileParser.events.emplace_back(event);
 }
 
-void FileParser::parseNodeOrientationEvent(const nlohmann::json &object) {
-  NodeOrientationChangeEvent event;
+void JsonHandler::parseNodeOrientationEvent(const nlohmann::json &object) {
+  visualization::NodeOrientationChangeEvent event;
 
   event.nodeId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
@@ -345,11 +231,11 @@ void FileParser::parseNodeOrientationEvent(const nlohmann::json &object) {
   event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
   event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
 
-  events.emplace_back(event);
+  fileParser.events.emplace_back(event);
 }
 
-void FileParser::parseDecorationOrientationEvent(const nlohmann::json &object) {
-  DecorationOrientationChangeEvent event;
+void JsonHandler::parseDecorationOrientationEvent(const nlohmann::json &object) {
+  visualization::DecorationOrientationChangeEvent event;
 
   event.decorationId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
@@ -357,22 +243,22 @@ void FileParser::parseDecorationOrientationEvent(const nlohmann::json &object) {
   event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
   event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
 
-  events.emplace_back(event);
+  fileParser.events.emplace_back(event);
 }
 
-void FileParser::parseSeriesAppend(const nlohmann::json &object) {
-  XYSeriesAddValue event;
+void JsonHandler::parseSeriesAppend(const nlohmann::json &object) {
+  visualization::XYSeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
   event.seriesId = object["series-id"].get<uint32_t>();
   event.x = object["x"].get<double>();
   event.y = object["y"].get<double>();
 
-  events.emplace_back(event);
+  fileParser.events.emplace_back(event);
 }
 
-void FileParser::parseXYSeries(const nlohmann::json &object) {
-  XYSeries series;
+void JsonHandler::parseXYSeries(const nlohmann::json &object) {
+  visualization::XYSeries series;
 
   series.id = object["id"].get<uint32_t>();
   series.name = object["name"].get<std::string>();
@@ -383,30 +269,30 @@ void FileParser::parseXYSeries(const nlohmann::json &object) {
 
   auto connection = object["connection"].get<std::string>();
   if (connection == "none")
-    series.connection = XYSeries::Connection::None;
+    series.connection = visualization::XYSeries::Connection::None;
   else if (connection == "line")
-    series.connection = XYSeries::Connection::Line;
+    series.connection = visualization::XYSeries::Connection::Line;
   else if (connection == "spline")
-    series.connection = XYSeries::Connection::Spline;
+    series.connection = visualization::XYSeries::Connection::Spline;
   else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
   auto labelMode = object["labels"].get<std::string>();
   if (labelMode == "hidden")
-    series.labelMode = XYSeries::LabelMode::Hidden;
+    series.labelMode = visualization::XYSeries::LabelMode::Hidden;
   else if (labelMode == "shown")
-    series.labelMode = XYSeries::LabelMode::Shown;
+    series.labelMode = visualization::XYSeries::LabelMode::Shown;
   else
     std::cerr << "Unrecognized labels type: " << labelMode << '\n';
 
   series.xAxis = valueAxisFromObject(object["x-axis"]);
   series.yAxis = valueAxisFromObject(object["y-axis"]);
 
-  xySeries.emplace_back(series);
+  fileParser.xySeries.emplace_back(series);
 }
 
-void FileParser::parseSeriesCollection(const nlohmann::json &object) {
-  SeriesCollection collection;
+void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
+  visualization::SeriesCollection collection;
   collection.name = object["name"].get<std::string>();
 
   auto childSeries = object["child-series"];
@@ -416,7 +302,97 @@ void FileParser::parseSeriesCollection(const nlohmann::json &object) {
 
   collection.xAxis = valueAxisFromObject(object["x-axis"]);
   collection.yAxis = valueAxisFromObject(object["y-axis"]);
-  seriesCollections.emplace_back(collection);
+  fileParser.seriesCollections.emplace_back(collection);
 }
 
-} // namespace visualization
+JsonHandler::JsonHandler(visualization::FileParser &parser) : fileParser(parser) {
+}
+
+bool JsonHandler::null() {
+  handle(nullptr);
+  return true;
+}
+
+bool JsonHandler::boolean(bool value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::number_integer(nlohmann::json::number_integer_t value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::number_unsigned(nlohmann::json::number_unsigned_t value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::string(nlohmann::json::string_t &value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::start_object(std::size_t elements) {
+  if (currentKey)
+    jsonStack.push({*currentKey, nlohmann::json::object()});
+
+  sectionDepth++;
+  return true;
+}
+
+bool JsonHandler::end_object() {
+  // Possibly empty at the end of a message
+  if (!jsonStack.empty()) {
+    sectionDepth--;
+
+    if (sectionDepth == 0) {
+      auto frame = jsonStack.top();
+      jsonStack.pop();
+      do_parse(currentSection, frame.value);
+    } else {
+      auto top = jsonStack.top();
+      jsonStack.pop();
+      jsonStack.top().value[top.key] = top.value;
+    }
+  }
+  return true;
+}
+
+bool JsonHandler::start_array(std::size_t elements) {
+  if (!currentKey) {
+    return true;
+  }
+
+  if (isSection(*currentKey) != Section::None)
+    sectionDepth = 0;
+  else {
+    jsonStack.top().value[*currentKey] = nlohmann::json::array();
+  }
+
+  return true;
+}
+
+bool JsonHandler::end_array() {
+  return true;
+}
+
+bool JsonHandler::key(nlohmann::json::string_t &value) {
+  currentKey = value;
+
+  auto possibleSection = isSection(value);
+  if (possibleSection != Section::None) {
+    currentSection = possibleSection;
+  }
+  return true;
+}
+
+bool JsonHandler::parse_error(std::size_t position, const std::string &last_token,
+                              const nlohmann::detail::exception &ex) {
+  throw ex;
+}

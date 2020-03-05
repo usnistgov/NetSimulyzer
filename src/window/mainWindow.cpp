@@ -2,12 +2,12 @@
 #include "../group/building/BuildingGroup.h"
 #include "../group/decoration/DecorationGroup.h"
 #include "../group/node/NodeGroup.h"
-#include "../parser/file-parser.h"
 #include "osgWidget.h"
 #include <QAction>
 #include <QDebug>
 #include <QFileDialog>
 #include <deque>
+#include <file-parser.h>
 #include <unordered_map>
 #include <variant>
 
@@ -34,20 +34,16 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   charts = new ChartManager{ui->chartDock};
   ui->chartDock->setWidget(charts);
 
-  QObject::connect(ui->chartDock, &QDockWidget::visibilityChanged, [this] (bool visible) {
-    ui->actionCharts->setChecked(visible);
-  });
+  QObject::connect(ui->chartDock, &QDockWidget::visibilityChanged,
+                   [this](bool visible) { ui->actionCharts->setChecked(visible); });
 
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
 
-  QObject::connect(ui->nodesDock, &QDockWidget::visibilityChanged, [this] (bool visible) {
-    ui->actionNodes->setChecked(visible);
-  });
+  QObject::connect(ui->nodesDock, &QDockWidget::visibilityChanged,
+                   [this](bool visible) { ui->actionNodes->setChecked(visible); });
 
-  QObject::connect(ui->actionNodes, &QAction::triggered, [this] (bool checked) {
-    ui->nodesDock->setVisible(checked);
-  });
+  QObject::connect(ui->actionNodes, &QAction::triggered, [this](bool checked) { ui->nodesDock->setVisible(checked); });
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.

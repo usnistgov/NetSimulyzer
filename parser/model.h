@@ -30,13 +30,89 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
-
 #pragma once
 #include <cstdint>
 #include <osg/Vec3d>
+#include <string>
 #include <variant>
+#include <vector>
 
 namespace visualization {
+
+struct GlobalConfiguration {
+  double millisecondsPerFrame = 1.0;
+};
+
+struct Node {
+  uint32_t id = 0;
+  std::string model;
+  double scale = 1.0;
+  double opacity = 1.0;
+  bool visible = true;
+  osg::Vec3d position;
+  osg::Vec3d orientation;
+};
+
+struct Building {
+  uint32_t id = 0;
+  double opacity = 1.0;
+  bool visible = true;
+  uint16_t floors = 0;
+  uint16_t roomsX = 0;
+  uint16_t roomsY = 0;
+  double xMin = 0.0;
+  double xMax = 0.0;
+
+  double yMin = 0.0;
+  double yMax = 0.0;
+
+  double zMin = 0.0;
+  double zMax = 0.0;
+};
+
+struct Decoration {
+  uint32_t id;
+  std::string model;
+  osg::Vec3d position;
+  osg::Vec3d orientation;
+  double opacity = 1.0;
+  double scale = 1.0;
+};
+
+struct ValueAxis {
+  enum class BoundMode { Fixed, HighestValue };
+  enum class Scale { Linear, Logarithmic };
+
+  std::string name;
+  BoundMode boundMode = BoundMode::HighestValue;
+  Scale scale = Scale::Linear;
+  double min = 0.0;
+  double max = 0.0;
+};
+
+struct XYSeries {
+  enum class Connection { None, Line, Spline };
+  enum class LabelMode { Hidden, Shown };
+
+  uint32_t id = 0u;
+  std::string name;
+  Connection connection = Connection::Line;
+  LabelMode labelMode = LabelMode::Shown;
+  uint8_t red = 0u;
+  uint8_t green = 0u;
+  uint8_t blue = 0u;
+  uint8_t alpha = 255u;
+  ValueAxis xAxis;
+  ValueAxis yAxis;
+};
+
+struct SeriesCollection {
+  uint32_t id = 0u;
+  std::string name;
+  std::vector<uint32_t> series;
+  ValueAxis xAxis;
+  ValueAxis yAxis;
+};
 
 /**
  * Event that changes the position of the indicated node

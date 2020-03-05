@@ -33,8 +33,6 @@
  */
 
 #pragma once
-#include "../../event/model.h"
-#include "../../parser/model.h"
 #include "ui_chartManager.h"
 #include <QComboBox>
 #include <QFrame>
@@ -46,6 +44,7 @@
 #include <QtCharts/QValueAxis>
 #include <cstdint>
 #include <deque>
+#include <model.h>
 #include <optional>
 #include <unordered_map>
 #include <variant>

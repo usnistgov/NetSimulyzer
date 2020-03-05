@@ -1,8 +1,8 @@
 #pragma once
-#include "../../parser/model.h"
 #include "ui_NodeWidget.h"
 #include <QWidget>
 #include <cstdint>
+#include <model.h>
 #include <vector>
 
 namespace visualization {

@@ -32,7 +32,7 @@
  */
 
 #pragma once
-#include "../../parser/model.h"
+#include <model.h>
 #include <osg/Geode>
 #include <osg/Group>
 #include <osg/Switch>

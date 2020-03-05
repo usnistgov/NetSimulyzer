@@ -33,9 +33,8 @@
 
 #pragma once
 
-#include "../../event/model.h"
-#include "../../parser/model.h"
 #include <deque>
+#include <model.h>
 #include <osg/Group>
 #include <osg/MatrixTransform>
 #include <osg/NodeCallback>

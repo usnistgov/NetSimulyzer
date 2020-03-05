@@ -35,9 +35,6 @@
 #include <QOpenGLContext>
 // clang-format on
 
-#include "event/model.h"
-#include "group/building/BuildingGroup.h"
-#include "group/decoration/DecorationGroup.h"
 #include "window/mainWindow.h"
 #include <QApplication>
 #include <QSurfaceFormat>

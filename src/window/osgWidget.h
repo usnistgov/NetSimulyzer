@@ -1,11 +1,11 @@
 #pragma once
 
 #include "../group/node/NodeGroup.h"
-#include "../parser/model.h"
 #include "util/PauseHandler.h"
 #include <QOpenGLWidget>
 #include <QPoint>
 #include <QTimer>
+#include <model.h>
 #include <osg/ref_ptr>
 #include <osgGA/GUIEventHandler>
 #include <osgViewer/CompositeViewer>
