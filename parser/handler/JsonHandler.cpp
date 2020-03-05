@@ -301,6 +301,7 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
 
 void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
   visualization::SeriesCollection collection;
+  collection.id = object["id"].get<uint32_t>();
   collection.name = object["name"].get<std::string>();
 
   auto childSeries = object["child-series"];
