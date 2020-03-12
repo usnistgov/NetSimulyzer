@@ -11,6 +11,7 @@
 #include <osgViewer/CompositeViewer>
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/Viewer>
+#include <unordered_map>
 
 namespace visualization {
 
