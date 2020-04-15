@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/application">
+        <file>resources/application.png</file>
+    </qresource>
+    <qresource prefix="/texture">
+        <file>resources/textures/plain.png</file>
+    </qresource>
+    <qresource prefix="/shader">
+        <file>resources/shaders/model.vert</file>
+        <file>resources/shaders/model.frag</file>
+        <file>resources/shaders/building.frag</file>
+        <file>resources/shaders/building.vert</file>
+    </qresource>
+</RCC>

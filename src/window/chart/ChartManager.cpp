@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -141,26 +140,26 @@ void ChartManager::reset() {
   series.clear();
 }
 
-void ChartManager::addSeries(const XYSeries &s) {
+void ChartManager::addSeries(const parser::XYSeries &s) {
   ChartManager::XYSeriesTie tie;
   tie.model = s;
   switch (s.connection) {
-  case XYSeries::Connection::None:
+  case parser::XYSeries::Connection::None:
     tie.qtSeries = new QtCharts::QScatterSeries(this);
     break;
-  case XYSeries::Connection::Line:
+  case parser::XYSeries::Connection::Line:
     tie.qtSeries = new QtCharts::QLineSeries(this);
     break;
-  case XYSeries::Connection::Spline:
+  case parser::XYSeries::Connection::Spline:
     tie.qtSeries = new QtCharts::QSplineSeries(this);
     break;
   }
 
   switch (s.labelMode) {
-  case XYSeries::LabelMode::Hidden:
+  case parser::XYSeries::LabelMode::Hidden:
     tie.qtSeries->setPointLabelsVisible(false);
     break;
-  case XYSeries::LabelMode::Shown:
+  case parser::XYSeries::LabelMode::Shown:
     tie.qtSeries->setPointLabelsVisible(true);
     break;
   }
@@ -172,7 +171,7 @@ void ChartManager::addSeries(const XYSeries &s) {
   tie.qtSeries->setName(QString::fromStdString(s.name));
 
   // X Axis
-  if (tie.model.xAxis.scale == ValueAxis::Scale::Linear)
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
     tie.xAxis = new QtCharts::QValueAxis(this);
   else
     tie.xAxis = new QtCharts::QLogValueAxis(this);
@@ -181,7 +180,7 @@ void ChartManager::addSeries(const XYSeries &s) {
   tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
 
   // Y Axis
-  if (tie.model.yAxis.scale == ValueAxis::Scale::Linear)
+  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
     tie.yAxis = new QtCharts::QValueAxis(this);
   else
     tie.yAxis = new QtCharts::QLogValueAxis(this);
@@ -193,12 +192,12 @@ void ChartManager::addSeries(const XYSeries &s) {
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
 }
 
-void ChartManager::addSeries(const SeriesCollection &s) {
+void ChartManager::addSeries(const parser::SeriesCollection &s) {
   ChartManager::SeriesCollectionTie tie;
   tie.model = s;
 
   // X Axis
-  if (tie.model.xAxis.scale == ValueAxis::Scale::Linear)
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
     tie.xAxis = new QtCharts::QValueAxis(this);
   else
     tie.xAxis = new QtCharts::QLogValueAxis(this);
@@ -206,7 +205,7 @@ void ChartManager::addSeries(const SeriesCollection &s) {
   tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
 
   // Y Axis
-  if (tie.model.yAxis.scale == ValueAxis::Scale::Linear)
+  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
     tie.yAxis = new QtCharts::QValueAxis(this);
   else
     tie.yAxis = new QtCharts::QLogValueAxis(this);
@@ -283,9 +282,9 @@ void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y)
     // Only update the collection's ranges if it actually contains the series
     if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
         collection.model.series.end()) {
-      if (collection.model.xAxis.boundMode == ValueAxis::BoundMode::HighestValue)
+      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
         updateRange(collection.xAxis, x);
-      if (collection.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue)
+      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
         updateRange(collection.yAxis, y);
     }
   }
@@ -301,12 +300,12 @@ void ChartManager::timeAdvanced(double time) {
     if (e.time > time)
       return false;
 
-    if constexpr (std::is_same_v<T, XYSeriesAddValue>) {
+    if constexpr (std::is_same_v<T, parser::XYSeriesAddValue>) {
       const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
-      if (s.model.xAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
+      if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
         updateRange(s.xAxis, e.x);
       }
-      if (s.model.yAxis.boundMode == ValueAxis::BoundMode::HighestValue) {
+      if (s.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
         updateRange(s.yAxis, e.y);
       }
       updateCollectionRanges(e.seriesId, e.x, e.y);
@@ -323,8 +322,8 @@ void ChartManager::timeAdvanced(double time) {
     // Intentionally Blank
   }
 }
-void ChartManager::enqueueEvent(const visualization::ChartEvent &e) {
-  events.emplace_back(e);
+void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
+  events.insert(events.end(), e.begin(), e.end());
 }
 
 } // namespace visualization

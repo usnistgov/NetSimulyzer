@@ -36,7 +36,7 @@
 #include <json.hpp>
 #include <memory>
 
-namespace visualization {
+namespace parser {
 
 void FileParser::parse(const char *path) {
   std::ifstream infile{path};
@@ -64,8 +64,12 @@ const std::vector<Decoration> &FileParser::getDecorations() const {
   return decorations;
 }
 
-const std::vector<Event> &FileParser::getEvents() const {
-  return events;
+const std::vector<SceneEvent> &FileParser::getSceneEvents() const {
+  return sceneEvents;
+}
+
+const std::vector<ChartEvent> &FileParser::getChartsEvents() const {
+  return chartEvents;
 }
 
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
@@ -75,4 +79,5 @@ const std::vector<XYSeries> &FileParser::getXYSeries() const {
 const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
   return seriesCollections;
 }
-} // namespace visualization
+
+} // namespace parser

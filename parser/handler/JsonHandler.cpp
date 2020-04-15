@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -32,41 +31,29 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-//clang-format off
-// Make sure we have M_PI
-// since it's technically non-standard
-#define _USE_MATH_DEFINES
-#include <cmath>
-#undef _USE_MATH_DEFINES
-//clang-format on
-
 #include "JsonHandler.h"
+#include <cmath>
 
-/**
- * Multiply by this constant to convert degrees to radians
- */
-const inline double TO_RADIANS = M_PI / 180;
-
-visualization::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
+parser::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
   if (mode == "fixed")
-    return visualization::ValueAxis::BoundMode::Fixed;
+    return parser::ValueAxis::BoundMode::Fixed;
   else if (mode == "highest value")
-    return visualization::ValueAxis::BoundMode::HighestValue;
+    return parser::ValueAxis::BoundMode::HighestValue;
   else
     assert(!"Unhandled ValueAxis::BoundMode mode");
 }
 
-visualization::ValueAxis::Scale scaleFromString(const std::string &mode) {
+parser::ValueAxis::Scale scaleFromString(const std::string &mode) {
   if (mode == "linear")
-    return visualization::ValueAxis::Scale::Linear;
+    return parser::ValueAxis::Scale::Linear;
   else if (mode == "logarithmic")
-    return visualization::ValueAxis::Scale::Logarithmic;
+    return parser::ValueAxis::Scale::Logarithmic;
   else
     assert(!"Unhandled ValueAxis::Scale mode");
 }
 
-visualization::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
-  visualization::ValueAxis axis;
+parser::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
+  parser::ValueAxis axis;
   axis.boundMode = boundModeFromString(object["bound-mode"].get<std::string>());
   axis.max = object["max"].get<double>();
   axis.min = object["min"].get<double>();
@@ -144,27 +131,27 @@ void JsonHandler::parseConfiguration(const nlohmann::json &object) {
 }
 
 void JsonHandler::parseNode(const nlohmann::json &object) {
-  visualization::Node node;
+  parser::Node node;
 
   node.id = object["id"].get<uint32_t>();
   node.model = object["model"].get<std::string>();
-  node.opacity = object["scale"].get<double>();
+  node.scale = object["scale"].get<float>();
   node.opacity = object["opacity"].get<double>();
 
-  node.orientation[0] = object["orientation"]["x"].get<double>() * TO_RADIANS;
-  node.orientation[1] = object["orientation"]["y"].get<double>() * TO_RADIANS;
-  node.orientation[2] = object["orientation"]["z"].get<double>() * TO_RADIANS;
+  node.orientation[0] = object["orientation"]["x"].get<double>();
+  node.orientation[1] = object["orientation"]["y"].get<double>();
+  node.orientation[2] = object["orientation"]["z"].get<double>();
 
   node.visible = object["visible"].get<bool>();
 
-  node.position[0] = object["position"]["x"].get<double>();
-  node.position[1] = object["position"]["y"].get<double>();
-  node.position[2] = object["position"]["z"].get<double>();
+  node.position.x = object["position"]["x"].get<float>();
+  node.position.y = object["position"]["y"].get<float>();
+  node.position.z = object["position"]["z"].get<float>();
   fileParser.nodes.emplace_back(node);
 }
 
 void JsonHandler::parseBuilding(const nlohmann::json &object) {
-  visualization::Building building;
+  parser::Building building;
 
   building.id = object["id"].get<uint32_t>();
   building.opacity = object["opacity"].get<double>();
@@ -174,99 +161,98 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
   building.roomsX = object["rooms"]["x"].get<uint16_t>();
   building.roomsY = object["rooms"]["y"].get<uint16_t>();
 
-  building.xMin = object["bounds"]["x"]["min"].get<double>();
-  building.xMax = object["bounds"]["x"]["max"].get<double>();
+  building.min.x = object["bounds"]["x"]["min"].get<float>();
+  building.min.y = object["bounds"]["y"]["min"].get<float>();
+  building.min.z = object["bounds"]["z"]["min"].get<float>();
 
-  building.yMin = object["bounds"]["y"]["min"].get<double>();
-  building.yMax = object["bounds"]["y"]["max"].get<double>();
-
-  building.zMin = object["bounds"]["z"]["min"].get<double>();
-  building.zMax = object["bounds"]["z"]["max"].get<double>();
+  building.max.x = object["bounds"]["x"]["max"].get<float>();
+  building.max.y = object["bounds"]["y"]["max"].get<float>();
+  building.max.z = object["bounds"]["z"]["max"].get<float>();
 
   fileParser.buildings.emplace_back(building);
 }
 
 void JsonHandler::parseDecoration(const nlohmann::json &object) {
-  visualization::Decoration decoration;
+  parser::Decoration decoration;
 
   decoration.id = object["id"].get<uint32_t>();
   decoration.model = object["model"].get<std::string>();
 
-  decoration.position[0] = object["position"]["x"].get<double>();
-  decoration.position[1] = object["position"]["y"].get<double>();
-  decoration.position[2] = object["position"]["z"].get<double>();
+  decoration.position.x = object["position"]["x"].get<float>();
+  decoration.position.y = object["position"]["y"].get<float>();
+  decoration.position.z = object["position"]["z"].get<float>();
 
-  decoration.orientation[0] = object["orientation"]["x"].get<double>() * TO_RADIANS;
-  decoration.orientation[1] = object["orientation"]["y"].get<double>() * TO_RADIANS;
-  decoration.orientation[2] = object["orientation"]["z"].get<double>() * TO_RADIANS;
+  decoration.orientation[0] = object["orientation"]["x"].get<double>();
+  decoration.orientation[1] = object["orientation"]["y"].get<double>();
+  decoration.orientation[2] = object["orientation"]["z"].get<double>();
 
   decoration.opacity = object["opacity"].get<double>();
-  decoration.opacity = object["scale"].get<double>();
+  decoration.scale = object["scale"].get<float>();
 
   fileParser.decorations.emplace_back(decoration);
 }
 
 void JsonHandler::parseMoveEvent(const nlohmann::json &object) {
-  visualization::MoveEvent event;
+  parser::MoveEvent event;
 
   event.nodeId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
-  event.targetPosition[0] = object["x"].get<double>();
-  event.targetPosition[1] = object["y"].get<double>();
-  event.targetPosition[2] = object["z"].get<double>();
+  event.targetPosition.x = object["x"].get<float>();
+  event.targetPosition.y = object["y"].get<float>();
+  event.targetPosition.z = object["z"].get<float>();
 
-  fileParser.events.emplace_back(event);
+  fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::parseDecorationMoveEvent(const nlohmann::json &object) {
-  visualization::DecorationMoveEvent event;
+  parser::DecorationMoveEvent event;
 
   event.decorationId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
-  event.targetPosition[0] = object["x"].get<double>();
-  event.targetPosition[1] = object["y"].get<double>();
-  event.targetPosition[2] = object["z"].get<double>();
+  event.targetPosition.x = object["x"].get<float>();
+  event.targetPosition.y = object["y"].get<float>();
+  event.targetPosition.z = object["z"].get<float>();
 
-  fileParser.events.emplace_back(event);
+  fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::parseNodeOrientationEvent(const nlohmann::json &object) {
-  visualization::NodeOrientationChangeEvent event;
+  parser::NodeOrientationChangeEvent event;
 
   event.nodeId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
-  event.targetOrientation[0] = object["x"].get<double>() * TO_RADIANS;
-  event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
-  event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
+  event.targetOrientation[0] = object["x"].get<double>();
+  event.targetOrientation[1] = object["y"].get<double>();
+  event.targetOrientation[2] = object["z"].get<double>();
 
-  fileParser.events.emplace_back(event);
+  fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::parseDecorationOrientationEvent(const nlohmann::json &object) {
-  visualization::DecorationOrientationChangeEvent event;
+  parser::DecorationOrientationChangeEvent event;
 
   event.decorationId = object["id"].get<uint32_t>();
   event.time = object["milliseconds"].get<double>();
-  event.targetOrientation[0] = object["x"].get<double>() * TO_RADIANS;
-  event.targetOrientation[1] = object["y"].get<double>() * TO_RADIANS;
-  event.targetOrientation[2] = object["z"].get<double>() * TO_RADIANS;
+  event.targetOrientation[0] = object["x"].get<double>();
+  event.targetOrientation[1] = object["y"].get<double>();
+  event.targetOrientation[2] = object["z"].get<double>();
 
-  fileParser.events.emplace_back(event);
+  fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::parseSeriesAppend(const nlohmann::json &object) {
-  visualization::XYSeriesAddValue event;
+  parser::XYSeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
   event.seriesId = object["series-id"].get<uint32_t>();
   event.x = object["x"].get<double>();
   event.y = object["y"].get<double>();
 
-  fileParser.events.emplace_back(event);
+  fileParser.chartEvents.emplace_back(event);
 }
 
 void JsonHandler::parseXYSeries(const nlohmann::json &object) {
-  visualization::XYSeries series;
+  parser::XYSeries series;
 
   series.id = object["id"].get<uint32_t>();
   series.name = object["name"].get<std::string>();
@@ -277,19 +263,19 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
 
   auto connection = object["connection"].get<std::string>();
   if (connection == "none")
-    series.connection = visualization::XYSeries::Connection::None;
+    series.connection = parser::XYSeries::Connection::None;
   else if (connection == "line")
-    series.connection = visualization::XYSeries::Connection::Line;
+    series.connection = parser::XYSeries::Connection::Line;
   else if (connection == "spline")
-    series.connection = visualization::XYSeries::Connection::Spline;
+    series.connection = parser::XYSeries::Connection::Spline;
   else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
   auto labelMode = object["labels"].get<std::string>();
   if (labelMode == "hidden")
-    series.labelMode = visualization::XYSeries::LabelMode::Hidden;
+    series.labelMode = parser::XYSeries::LabelMode::Hidden;
   else if (labelMode == "shown")
-    series.labelMode = visualization::XYSeries::LabelMode::Shown;
+    series.labelMode = parser::XYSeries::LabelMode::Shown;
   else
     std::cerr << "Unrecognized labels type: " << labelMode << '\n';
 
@@ -300,7 +286,7 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
 }
 
 void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
-  visualization::SeriesCollection collection;
+  parser::SeriesCollection collection;
   collection.id = object["id"].get<uint32_t>();
   collection.name = object["name"].get<std::string>();
 
@@ -314,7 +300,7 @@ void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
   fileParser.seriesCollections.emplace_back(collection);
 }
 
-JsonHandler::JsonHandler(visualization::FileParser &parser) : fileParser(parser) {
+JsonHandler::JsonHandler(parser::FileParser &parser) : fileParser(parser) {
 }
 
 bool JsonHandler::null() {

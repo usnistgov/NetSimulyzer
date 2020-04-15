@@ -30,10 +30,16 @@
 # Author: Evan Black <evan.black@nist.gov>
 
 cmake_minimum_required(VERSION 3.12)
-project(visualization LANGUAGES CXX)
+project(visualization LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+SET(ASSIMP_BUILD_TESTS CACHE BOOL OFF)
+SET(ASSIMP_NO_EXPORT CACHE BOOL ON)
+SET(BUILD_SHARED_LIBS CACHE BOOL OFF)
+add_subdirectory(lib/assimp)
+
 add_subdirectory(lib/json)
+add_subdirectory(lib/stb)
 add_subdirectory(parser)
 add_subdirectory(src)
