@@ -1,18 +1,6 @@
 # Visualization
 A 3D visualizer for ns-3 scenarios.
 
-* [Initial Setup](#Initial Setup)
-  * [Cloning](#Cloning)
-  * [Building](#Building)
-  * [Running](#Running)
-* [Resources](#Resources)
-  * [Supported Model Formats](#Supported Model Formats)
-  * [Supported Texture Formats](#Supported Texture Formats)
-  * [Resource Paths](#Resource Paths)
-* [Controls](#Controls)
-  * [Camera](#Camera)
-  * [Play/Pause](#Play/Pause)
-
 ## Requirements
 
 * A C++ 17 compliant compiler
