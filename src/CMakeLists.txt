@@ -30,8 +30,6 @@
 # Author: Evan Black <evan.black@nist.gov>
 
 
-find_package(LibXml2 REQUIRED)
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5 COMPONENTS Core Widgets Gui Charts REQUIRED)
 set(CMAKE_AUTOMOC ON)
