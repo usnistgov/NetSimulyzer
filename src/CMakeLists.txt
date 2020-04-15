@@ -37,8 +37,6 @@
 # OSG_DIR = ${PROJECT_SOURCE_DIR}/lib/OpenSceneGraph/build/
 find_package(OpenSceneGraph REQUIRED COMPONENTS osgViewer osgDB osgGA osgText osgUtil)
 
-find_package(LibXml2 REQUIRED)
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL Charts REQUIRED)
 set(CMAKE_AUTOMOC ON)
