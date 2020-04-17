@@ -32,9 +32,9 @@
  */
 #include "file-parser.h"
 #include "handler/JsonHandler.h"
+#include <algorithm>
 #include <iostream>
 #include <json.hpp>
-#include <memory>
 
 namespace parser {
 
@@ -46,6 +46,13 @@ void FileParser::parse(const char *path) {
 
   JsonHandler handler{*this};
   nlohmann::json::sax_parse(infile, &handler);
+  std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) { return left.id < right.id; });
+
+  std::sort(buildings.begin(), buildings.end(),
+            [](const Building &left, const Building &right) { return left.id < right.id; });
+
+  std::sort(decorations.begin(), decorations.end(),
+            [](const Decoration &left, const Decoration &right) { return left.id < right.id; });
 }
 
 const GlobalConfiguration &FileParser::getConfiguration() const {
