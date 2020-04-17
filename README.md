@@ -41,9 +41,10 @@ cmake --build . --parallel
 ```
 
 ### Running
-After building the application may launched from the build directory with the following command:
+After building the application may launched from the project root directory with the following command:
 ```shell
-./src/visualization
+cd ../
+./build/src/visualization
 ```
 
 ## Resources
