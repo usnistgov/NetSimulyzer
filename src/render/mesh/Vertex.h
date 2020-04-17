@@ -38,8 +38,8 @@ namespace visualization {
 
 struct Vertex {
   std::array<float, 3> position;
-  std::array<float, 3> normal;
-  std::array<float, 2> textureCoordinate;
+  std::array<float, 3> normal{0.0f, 0.0f, 0.0f};
+  std::array<float, 2> textureCoordinate{0.0f, 0.0f};
 };
 
 } // namespace visualization

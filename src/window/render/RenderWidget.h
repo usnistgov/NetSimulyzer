@@ -45,6 +45,7 @@
 #include "../../render/renderer/Renderer.h"
 #include "../../render/shader/Shader.h"
 #include "../../render/texture/TextureCache.h"
+#include "../../render/texture/SkyBox.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -73,13 +74,13 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool isInitialMove = true;
   TextureCache textures;
   ModelCache models{textures};
-  Renderer renderer{models};
+  Renderer renderer{models, textures};
   QTimer timer{this};
   QElapsedTimer frameTimer;
   Qt::Key pauseKey = Qt::Key::Key_P;
 
   directional_light mainLight;
-
+  std::unique_ptr<SkyBox> skyBox;
   std::unique_ptr<Floor> floor;
 
   parser::GlobalConfiguration config;

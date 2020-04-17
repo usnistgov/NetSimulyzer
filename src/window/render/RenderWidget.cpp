@@ -103,15 +103,18 @@ void RenderWidget::initializeGL() {
     std::cerr << "Failed Initializing Texture Cache\n";
     std::abort();
   }
-
   QImage fallback{":/texture/resources/textures/plain.png"};
   textures.loadFallback(fallback);
-
   models.init("resources/models/fallback.obj");
   renderer.init();
 
-  floor =
-      std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("resources/textures/grass.png"), textures));
+  std::array<QImage, 6> skyBoxTextures{
+      QImage{":/texture/resources/textures/skybox/right.jpg"}, QImage{":/texture/resources/textures/skybox/left.jpg"},
+      QImage{":/texture/resources/textures/skybox/top.jpg"},   QImage{":/texture/resources/textures/skybox/bottom.jpg"},
+      QImage{":/texture/resources/textures/skybox/back.jpg"},  QImage{":/texture/resources/textures/skybox/front.jpg"}};
+  skyBox = std::make_unique<SkyBox>(textures.loadSkyBox(skyBoxTextures));
+
+  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("resources/textures/grass.png")));
   floor->setPosition({0.0f, -0.5f, 0.0f});
 
   auto s = size();
@@ -143,6 +146,7 @@ void RenderWidget::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
+  renderer.render(*skyBox);
 
   for (auto &[key, node] : nodes) {
     renderer.render(node.getModel());

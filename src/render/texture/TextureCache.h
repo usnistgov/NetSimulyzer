@@ -36,6 +36,7 @@
 #include "texture.h"
 #include <QImage>
 #include <QOpenGLFunctions_3_3_Core>
+#include <array>
 #include <cstddef>
 #include <optional>
 #include <unordered_map>
@@ -57,6 +58,7 @@ public:
 
   unsigned int loadFallback(QImage &texture);
   std::size_t load(const std::string &path);
+  unsigned long loadSkyBox(const std::array<QImage, 6> &images);
   [[nodiscard]] const Texture &get(std::size_t index);
 
   [[nodiscard]] const std::optional<unsigned long> &getFallbackTexture() const;
@@ -68,6 +70,7 @@ public:
   void clear();
 
   void use(std::size_t index);
+  void useSkyBox(unsigned int id);
 };
 
 } // namespace visualization

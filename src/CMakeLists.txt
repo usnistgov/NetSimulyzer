@@ -54,13 +54,15 @@ add_executable(visualization
         render/model/ModelCache.h render/model/ModelCache.cpp
         render/renderer/Renderer.h render/renderer/Renderer.cpp
         render/shader/Shader.h render/shader/Shader.cpp
+        render/texture/SkyBox.h render/texture/SkyBox.cpp
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
-        ../visualization.rc ../resources.qrc coordinate.h coordinate.cpp)
+        coordinate.h coordinate.cpp
+        ../visualization.rc ../resources.qrc)
 
 target_compile_features(visualization PRIVATE cxx_std_17)
 

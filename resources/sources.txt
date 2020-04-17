@@ -1,2 +1,3 @@
 grass.png https://opengameart.org/content/seamless-grass-textures-20-pack: CC0
 fallback.obj: Evan
+https://doc.babylonjs.com/resources/playground_textures#cubetextures: Apache 2.0? https://github.com/BabylonJS/Babylon.js/blob/master/license.md

@@ -41,6 +41,7 @@
 #include "../model/Model.h"
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
+#include "../texture/SkyBox.h"
 #include "../texture/TextureCache.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
@@ -51,15 +52,17 @@ namespace visualization {
 
 class Renderer : protected QOpenGLFunctions_3_3_Core {
   ModelCache &modelCache;
+  TextureCache &textureCache;
 
   Shader buildingShader;
   Shader modelShader;
+  Shader skyBoxShader;
 
 public:
   const unsigned int maxPointLights = 5u;
   const unsigned int maxSpotLights = 5u;
 
-  explicit Renderer(ModelCache &modelCache);
+  Renderer(ModelCache &modelCache, TextureCache &textureCache);
   void init();
   void setPerspective(const glm::mat4 &perspective);
 
@@ -67,7 +70,7 @@ public:
   void setSpotLightCount(unsigned int count);
 
   Building::RenderInfo allocate(const parser::Building &building);
-  ModelRenderInfo allocateFloor(float size, unsigned int textureId, TextureCache &textureCache);
+  ModelRenderInfo allocateFloor(float size, unsigned int textureId);
 
   void use(const Camera &cam);
   void render(const directional_light &light);
@@ -76,6 +79,7 @@ public:
   void render(std::vector<Building> &buildings);
   void render(const Model &m);
   void render(Floor &f);
+  void render(SkyBox &skyBox);
 };
 
 } // namespace visualization

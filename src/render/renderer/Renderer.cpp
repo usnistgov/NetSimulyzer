@@ -45,13 +45,13 @@ static std::string qFileToString(QFile &f) {
   if (!f.open(QFile::ReadOnly | QFile::Text))
     abort();
   QTextStream stream{&f};
-  auto qstr = stream.readAll();
-  return qstr.toStdString();
+  return stream.readAll().toStdString();
 }
 
 namespace visualization {
 
-Renderer::Renderer(ModelCache &modelCache) : modelCache(modelCache) {
+Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
+    : modelCache(modelCache), textureCache(textureCache) {
 }
 
 void Renderer::init() {
@@ -72,11 +72,20 @@ void Renderer::init() {
   auto buildingFragmentSrc = qFileToString(buildingFragment);
 
   buildingShader.init(buildingVertexSrc, buildingFragmentSrc);
+
+  QFile skyBoxVertex{":/shader/resources/shaders/skybox.vert"};
+  auto skyBoxVertexSrc = qFileToString(skyBoxVertex);
+
+  QFile skyBoxFragment{":/shader/resources/shaders/skybox.frag"};
+  auto skyBoxFragmentSrc = qFileToString(skyBoxFragment);
+
+  skyBoxShader.init(skyBoxVertexSrc, skyBoxFragmentSrc);
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
   modelShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
   buildingShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
+  skyBoxShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
 }
 
 void Renderer::setPointLightCount(unsigned int count) {
@@ -201,7 +210,7 @@ Building::RenderInfo Renderer::allocate(const parser::Building &building) {
   return info;
 }
 
-ModelRenderInfo Renderer::allocateFloor(float size, unsigned int textureId, TextureCache &textureCache) {
+ModelRenderInfo Renderer::allocateFloor(float size, unsigned int textureId) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
 
@@ -228,6 +237,11 @@ void Renderer::use(const Camera &cam) {
   modelShader.set_uniform_vector_3f("eye_position", cam.get_position());
 
   buildingShader.set_uniform_matrix_4fv("view", glm::value_ptr(cam.view_matrix()));
+
+  // Drop the translation so we cannot move out of the sky box
+  auto noTranslationView = cam.view_matrix();
+  noTranslationView[3] = {0.0f, 0.0f, 0.0f, 1.0f};
+  skyBoxShader.set_uniform_matrix_4fv("view", glm::value_ptr(noTranslationView));
 }
 
 void Renderer::render(const directional_light &light) {
@@ -272,6 +286,15 @@ void Renderer::render(const Model &m) {
 void Renderer::render(Floor &f) {
   modelShader.bind();
   f.render(modelShader);
+}
+
+void Renderer::render(SkyBox &skyBox) {
+  glDepthMask(GL_FALSE);
+  skyBoxShader.bind();
+
+  textureCache.useSkyBox(skyBox.getTextureId());
+  skyBox.getMesh().render();
+  glDepthMask(GL_TRUE);
 }
 
 } // namespace visualization
