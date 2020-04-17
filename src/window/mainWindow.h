@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "LoadWorker.h"
 #include "chart/ChartManager.h"
 #include "node/NodeWidget.h"
 #include "render/RenderWidget.h"
@@ -40,10 +41,12 @@
 #include <QDockWidget>
 #include <QLabel>
 #include <QMainWindow>
+#include <QThread>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <deque>
+#include <file-parser.h>
 
 namespace visualization {
 class MainWindow : public QMainWindow {
@@ -52,6 +55,12 @@ class MainWindow : public QMainWindow {
 public:
   explicit MainWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
   ~MainWindow() override;
+
+public slots:
+  void finishLoading(const QString &fileName);
+
+signals:
+  void startLoading(const QString &fileName);
 
 private:
   ChartManager *charts;
@@ -64,6 +73,9 @@ private:
    */
   QLabel statusLabel{"0ms", this};
   RenderWidget render{this};
+  bool loading = false;
+  LoadWorker loadWorker;
+  QThread loadThread;
 
   void timeAdvanced(double time);
   void load();

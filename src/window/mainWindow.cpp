@@ -35,9 +35,11 @@
 #include "../group/building/Building.h"
 #include "../group/decoration/Decoration.h"
 #include "../group/node/Node.h"
+#include "LoadWorker.h"
 #include <QAction>
 #include <QDebug>
 #include <QFileDialog>
+#include <QObject>
 #include <deque>
 #include <file-parser.h>
 #include <unordered_map>
@@ -57,6 +59,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
+
+  loadWorker.moveToThread(&loadThread);
+  QObject::connect(this, &MainWindow::startLoading, &loadWorker, &LoadWorker::load);
+  QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
+  loadThread.start();
 
   QObject::connect(ui->nodesDock, &QDockWidget::visibilityChanged,
                    [this](bool visible) { ui->actionNodes->setChecked(visible); });
@@ -80,6 +87,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
 MainWindow::~MainWindow() {
   delete ui;
+  loadThread.quit();
+  // Make sure the tread has time to close before trying to destroy it
+  loadThread.wait();
 }
 void MainWindow::timeAdvanced(double time) {
   statusLabel.setText(QString::number(time) + "ms");
@@ -96,13 +106,19 @@ void MainWindow::load() {
 
   if (fileName.isEmpty())
     return;
-
+  if (loading) {
+    ui->statusbar->showMessage("Already loading scenario!", 10000);
+  }
+  loading = true;
+  ui->actionLoad->setEnabled(false);
+  statusLabel.setText("Loading scenario: " + fileName);
   render.reset();
   nodeWidget->reset();
+  emit startLoading(fileName);
+}
 
-  parser::FileParser parser;
-  parser.parse(fileName.toStdString().c_str());
-
+void MainWindow::finishLoading(const QString &fileName) {
+  auto parser = loadWorker.getParser();
   render.setConfiguration(parser.getConfiguration());
 
   // Nodes, Buildings, Decorations
@@ -129,8 +145,12 @@ void MainWindow::load() {
   render.enqueueEvents(parser.getSceneEvents());
   charts->enqueueEvents(parser.getChartsEvents());
 
-  ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 5000);
+  ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
+  statusLabel.setText("0ms");
+  loading = false;
+  ui->actionLoad->setEnabled(true);
 }
+
 void MainWindow::toggleCharts() {
   ui->chartDock->toggleViewAction()->trigger();
 }

@@ -55,6 +55,16 @@ void FileParser::parse(const char *path) {
             [](const Decoration &left, const Decoration &right) { return left.id < right.id; });
 }
 
+void FileParser::reset() {
+  nodes.clear();
+  buildings.clear();
+  decorations.clear();
+  sceneEvents.clear();
+  chartEvents.clear();
+  xySeries.clear();
+  seriesCollections.clear();
+}
+
 const GlobalConfiguration &FileParser::getConfiguration() const {
   return globalConfiguration;
 }

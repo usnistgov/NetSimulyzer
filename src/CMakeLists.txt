@@ -36,6 +36,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Necessary for QThreads & standard threads
+find_package(Threads REQUIRED)
+
 add_executable(visualization
         main.cpp
         group/building/Building.h group/building/Building.cpp
@@ -57,6 +60,7 @@ add_executable(visualization
         render/texture/SkyBox.h render/texture/SkyBox.cpp
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
+        window/LoadWorker.h window/LoadWorker.cpp
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
@@ -73,3 +77,4 @@ target_link_libraries(visualization PRIVATE assimp)
 target_link_libraries(visualization PRIVATE stb)
 target_include_directories(visualization PRIVATE ../lib/glm)
 target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
+target_link_libraries(visualization PRIVATE Threads::Threads)

@@ -56,6 +56,11 @@ public:
   void parse(const char *path);
 
   /**
+   * Clear stored information from a previous `parse()` call
+   */
+  void reset();
+
+  /**
    * Gets the configuration from the parsed file
    * `parse()` should be called first
    *
