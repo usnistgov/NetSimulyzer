@@ -125,4 +125,10 @@ void Camera::setPosition(const glm::vec3 &value) {
   update();
 }
 
+void Camera::resetRotation() {
+  yaw = -90.0f;
+  pitch = 0.0f;
+  update();
+}
+
 } // namespace visualization

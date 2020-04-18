@@ -89,6 +89,8 @@ public:
 
   [[nodiscard]] glm::vec3 get_position() const;
   void setPosition(const glm::vec3 &value);
+
+  void resetRotation();
 };
 
 } // namespace visualization

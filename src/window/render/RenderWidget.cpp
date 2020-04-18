@@ -283,8 +283,9 @@ void RenderWidget::focusNode(uint32_t nodeId) {
   }
 
   auto position = iter->second.getModel().getPosition();
-  position.z += 1.0f;
+  position.z += 5.0f;
   camera.setPosition(position);
+  camera.resetRotation();
 }
 
 void RenderWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
