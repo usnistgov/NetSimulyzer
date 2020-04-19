@@ -210,7 +210,7 @@ Building::RenderInfo Renderer::allocate(const parser::Building &building) {
   return info;
 }
 
-ModelRenderInfo Renderer::allocateFloor(float size, unsigned int textureId) {
+Mesh Renderer::allocateFloor(float size, unsigned int textureId) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
 
@@ -226,10 +226,24 @@ ModelRenderInfo Renderer::allocateFloor(float size, unsigned int textureId) {
   floorMaterial.specularIntensity = 0.03f;
   floorMaterial.textureId = textureId;
 
-  std::vector<Mesh> floorMeshes;
-  floorMeshes.emplace_back(floorVertices, floorIndices, 4u, 6).setMaterial(floorMaterial);
+  Mesh m{floorVertices, floorIndices, 4u, 6};
+  m.setMaterial(floorMaterial);
+  return m;
+}
 
-  return {std::move(floorMeshes), textureCache};
+void Renderer::resize(Floor &f, float size) {
+  // Make sure this isn't negative
+  size = std::abs(size);
+
+  std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
+  Vertex floorVertices[]{
+      Vertex{{-size, 0.0f, -size}, normal, {0.0f, 0.0f}}, Vertex{{size, 0.0f, -size}, normal, {size, 0.0f}},
+      Vertex{{-size, 0.0f, size}, normal, {0.0f, size}}, Vertex{{size, 0.0f, size}, normal, {size, size}}};
+
+  const auto &renderInfo = f.getMesh().getRenderInfo();
+
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floorVertices), reinterpret_cast<const void *>(floorVertices));
 }
 
 void Renderer::use(const Camera &cam) {
@@ -285,7 +299,9 @@ void Renderer::render(const Model &m) {
 
 void Renderer::render(Floor &f) {
   modelShader.bind();
-  f.render(modelShader);
+  modelShader.set_uniform_matrix_4fv("model", glm::value_ptr(f.getModelMatrix()));
+  textureCache.use(f.getTextureId());
+  f.render();
 }
 
 void Renderer::render(SkyBox &skyBox) {

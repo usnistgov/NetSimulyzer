@@ -38,6 +38,7 @@
 #include "../light/DirectionalLight.h"
 #include "../light/PointLight.h"
 #include "../light/SpotLight.h"
+#include "../mesh/Mesh.h"
 #include "../model/Model.h"
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
@@ -70,7 +71,8 @@ public:
   void setSpotLightCount(unsigned int count);
 
   Building::RenderInfo allocate(const parser::Building &building);
-  ModelRenderInfo allocateFloor(float size, unsigned int textureId);
+  Mesh allocateFloor(float size, unsigned int textureId);
+  void resize(Floor &f, float size);
 
   void use(const Camera &cam);
   void render(const directional_light &light);

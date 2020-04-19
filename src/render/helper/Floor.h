@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "../mesh/Mesh.h"
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
@@ -42,12 +43,12 @@
 namespace visualization {
 
 class Floor {
-  ModelRenderInfo renderInfo;
+  Mesh mesh;
   glm::vec3 position{0.0f};
   glm::mat4 model{1.0f};
 
 public:
-  explicit Floor(ModelRenderInfo renderInfo);
+  explicit Floor(Mesh mesh);
 
   // No Moves or copies
   Floor(Floor &&other) = delete;
@@ -58,7 +59,12 @@ public:
   void setPosition(const glm::vec3 &value);
   [[nodiscard]] const glm::vec3 &getPosition() const;
 
-  void render(Shader &s);
+  [[nodiscard]] const glm::mat4 &getModelMatrix() const;
+
+  [[nodiscard]] const Mesh &getMesh() const;
+  [[nodiscard]] unsigned int getTextureId() const;
+
+  void render();
 };
 
 } // namespace visualization

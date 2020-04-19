@@ -43,6 +43,8 @@
 #include <QTextStream>
 #include <Qt>
 #include <QtGui/QOpenGLFunctions>
+#include <algorithm>
+#include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -242,6 +244,14 @@ RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLW
 
 void RenderWidget::setConfiguration(parser::GlobalConfiguration configuration) {
   config = configuration;
+
+  // Resize ground plane to the farthest away item/event
+  auto newSize = std::max({std::abs(config.minLocation.x), std::abs(config.maxLocation.x),
+                           std::abs(config.minLocation.y), std::abs(config.maxLocation.y)});
+
+  // Don't resize beneath the default
+  if (newSize > 100.0f)
+    renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
 }
 
 void RenderWidget::reset() {

@@ -38,18 +38,15 @@ namespace visualization {
 
 void Mesh::move(Mesh &&other) noexcept {
   initializeOpenGLFunctions();
-  vao = other.vao;
-  vbo = other.vbo;
-  ibo = other.ibo;
-  index_count = other.index_count;
+  renderInfo = other.renderInfo;
   material = other.material;
 
   // Clear the other one
   // so it doesn't delete the mesh
-  other.vao = 0u;
-  other.vbo = 0u;
-  other.ibo = 0u;
-  other.index_count = 0u;
+  other.renderInfo.vao = 0u;
+  other.renderInfo.vbo = 0u;
+  other.renderInfo.ibo = 0u;
+  other.renderInfo.indexCount = 0u;
 }
 
 const Material &Mesh::getMaterial() const {
@@ -60,21 +57,20 @@ void Mesh::setMaterial(const Material &value) {
   material = value;
 }
 
-Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertex_count, int index_count)
-    : index_count(index_count) {
-
+Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertexCount, int indexCount) {
   initializeOpenGLFunctions();
+  renderInfo.indexCount = indexCount;
 
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  glGenVertexArrays(1, &renderInfo.vao);
+  glBindVertexArray(renderInfo.vao);
 
-  glGenBuffers(1, &ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * index_count, indices, GL_STATIC_DRAW);
+  glGenBuffers(1, &renderInfo.ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * renderInfo.indexCount, indices, GL_STATIC_DRAW);
 
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_count, vertices, GL_STATIC_DRAW);
+  glGenBuffers(1, &renderInfo.vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertexCount, vertices, GL_STATIC_DRAW);
 
   // Location
   glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -93,25 +89,29 @@ Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertex_
   glBindVertexArray(0u);
 }
 
+const Mesh::MeshRenderInfo &Mesh::getRenderInfo() const {
+  return renderInfo;
+}
+
 void Mesh::render() {
-  glBindVertexArray(vao);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, nullptr);
+  glBindVertexArray(renderInfo.vao);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+  glDrawElements(GL_TRIANGLES, renderInfo.indexCount, GL_UNSIGNED_INT, nullptr);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
 
 Mesh::~Mesh() {
-  glDeleteBuffers(1, &ibo);
-  ibo = 0;
+  glDeleteBuffers(1, &renderInfo.ibo);
+  renderInfo.ibo = 0;
 
-  glDeleteBuffers(1, &vbo);
-  vbo = 0;
+  glDeleteBuffers(1, &renderInfo.vbo);
+  renderInfo.vbo = 0;
 
-  glDeleteVertexArrays(1, &vao);
-  vao = 0;
+  glDeleteVertexArrays(1, &renderInfo.vao);
+  renderInfo.vao = 0;
 
-  index_count = 0;
+  renderInfo.indexCount = 0;
 }
 
 } // namespace visualization

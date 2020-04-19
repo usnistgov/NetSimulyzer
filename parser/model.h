@@ -47,6 +47,8 @@ struct Ns3Coordinate {
 
 struct GlobalConfiguration {
   double millisecondsPerFrame = 1.0;
+  Ns3Coordinate minLocation;
+  Ns3Coordinate maxLocation;
 };
 
 struct Node {

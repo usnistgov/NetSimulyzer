@@ -41,16 +41,22 @@
 namespace visualization {
 
 class Mesh : protected QOpenGLFunctions_3_3_Core {
-  unsigned int vao = 0u;
-  unsigned int vbo = 0u;
-  unsigned int ibo = 0u;
-  int index_count = 0;
+public:
+  struct MeshRenderInfo {
+    unsigned int vao = 0u;
+    unsigned int vbo = 0u;
+    unsigned int ibo = 0u;
+    int indexCount = 0;
+  };
+
+private:
+  MeshRenderInfo renderInfo;
   Material material;
 
   void move(Mesh &&other) noexcept;
 
 public:
-  Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertex_count, int index_count);
+  Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertexCount, int indexCount);
 
   // Allow Moves
   Mesh(Mesh &&other) noexcept {
@@ -68,6 +74,8 @@ public:
 
   [[nodiscard]] const Material &getMaterial() const;
   void setMaterial(const Material &value);
+
+  [[nodiscard]] const MeshRenderInfo &getRenderInfo() const;
 
   void render();
 

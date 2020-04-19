@@ -212,6 +212,14 @@ class JsonHandler {
    */
   void parseSeriesCollection(const nlohmann::json &object);
 
+  /**
+   * Check the min/max bounds against `coordinate` and update accordingly
+   *
+   * @param coordinate
+   * The coordinate to check against the scenario min/max locations
+   */
+  void updateLocationBounds(const parser::Ns3Coordinate &coordinate);
+
 public:
   explicit JsonHandler(parser::FileParser &parser);
 

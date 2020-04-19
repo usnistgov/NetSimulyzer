@@ -147,6 +147,9 @@ void JsonHandler::parseNode(const nlohmann::json &object) {
   node.position.x = object["position"]["x"].get<float>();
   node.position.y = object["position"]["y"].get<float>();
   node.position.z = object["position"]["z"].get<float>();
+
+  updateLocationBounds(node.position);
+
   fileParser.nodes.emplace_back(node);
 }
 
@@ -169,6 +172,9 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
   building.max.y = object["bounds"]["y"]["max"].get<float>();
   building.max.z = object["bounds"]["z"]["max"].get<float>();
 
+  updateLocationBounds(building.min);
+  updateLocationBounds(building.max);
+
   fileParser.buildings.emplace_back(building);
 }
 
@@ -181,6 +187,8 @@ void JsonHandler::parseDecoration(const nlohmann::json &object) {
   decoration.position.x = object["position"]["x"].get<float>();
   decoration.position.y = object["position"]["y"].get<float>();
   decoration.position.z = object["position"]["z"].get<float>();
+
+  updateLocationBounds(decoration.position);
 
   decoration.orientation[0] = object["orientation"]["x"].get<double>();
   decoration.orientation[1] = object["orientation"]["y"].get<double>();
@@ -201,6 +209,8 @@ void JsonHandler::parseMoveEvent(const nlohmann::json &object) {
   event.targetPosition.y = object["y"].get<float>();
   event.targetPosition.z = object["z"].get<float>();
 
+  updateLocationBounds(event.targetPosition);
+
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -212,6 +222,8 @@ void JsonHandler::parseDecorationMoveEvent(const nlohmann::json &object) {
   event.targetPosition.x = object["x"].get<float>();
   event.targetPosition.y = object["y"].get<float>();
   event.targetPosition.z = object["z"].get<float>();
+
+  updateLocationBounds(event.targetPosition);
 
   fileParser.sceneEvents.emplace_back(event);
 }
@@ -298,6 +310,25 @@ void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
   collection.xAxis = valueAxisFromObject(object["x-axis"]);
   collection.yAxis = valueAxisFromObject(object["y-axis"]);
   fileParser.seriesCollections.emplace_back(collection);
+}
+
+void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) {
+  auto &config = fileParser.globalConfiguration;
+
+  if (coordinate.x < config.minLocation.x)
+    config.minLocation.x = coordinate.x;
+  else if (coordinate.x > config.maxLocation.x)
+    config.maxLocation.x = coordinate.x;
+
+  if (coordinate.y < config.minLocation.y)
+    config.minLocation.y = coordinate.y;
+  else if (coordinate.y > config.maxLocation.y)
+    config.maxLocation.y = coordinate.y;
+
+  if (coordinate.z < config.minLocation.z)
+    config.minLocation.z = coordinate.z;
+  else if (coordinate.z > config.maxLocation.z)
+    config.maxLocation.z = coordinate.z;
 }
 
 JsonHandler::JsonHandler(parser::FileParser &parser) : fileParser(parser) {

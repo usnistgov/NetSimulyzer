@@ -44,7 +44,7 @@
 
 namespace visualization {
 
-Floor::Floor(ModelRenderInfo renderInfo) : renderInfo(std::move(renderInfo)) {
+Floor::Floor(Mesh mesh) : mesh(std::move(mesh)) {
 }
 
 void Floor::setPosition(const glm::vec3 &value) {
@@ -56,10 +56,20 @@ const glm::vec3 &Floor::getPosition() const {
   return position;
 }
 
-void Floor::render(Shader &s) {
-  s.bind();
-  s.set_uniform_matrix_4fv("model", glm::value_ptr(model));
-  renderInfo.render(s);
+const Mesh &Floor::getMesh() const {
+  return mesh;
+}
+
+const glm::mat4 &Floor::getModelMatrix() const {
+  return model;
+}
+
+void Floor::render() {
+  mesh.render();
+}
+
+unsigned int Floor::getTextureId() const {
+  return *mesh.getMaterial().textureId;
 }
 
 } // namespace visualization
