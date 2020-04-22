@@ -44,22 +44,21 @@ namespace visualization {
 
 class Shader : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, int> uniform_cache;
-  unsigned int gl_id = 0u;
-  unsigned int point_lights = 0u;
+  unsigned int glId = 0u;
 
-  unsigned int compile_shader(unsigned int type, const char *src);
-  unsigned int create_program(const std::string &vertex, const std::string &fragment);
+  unsigned int compile(unsigned int type, const char *src);
+  unsigned int createProgram(const std::string &vertex, const std::string &fragment);
 
 public:
   ~Shader() override;
   void init(const std::string &vertex, const std::string &fragment);
 
-  void set_uniform_vector_3f(const std::string &name, const glm::vec3 &value);
-  void set_uniform_vector_1f(const std::string &name, float value);
+  void uniform(const std::string &name, const glm::vec3 &value);
+  void uniform(const std::string &name, float value);
 
-  void set_uniform_matrix_4fv(const std::string &name, const float *value);
-  void set_uniform_1i(const std::string &name, int value);
-  void set_uniform_1ui(const std::string &name, unsigned int value);
+  void uniform(const std::string &name, const glm::mat4 &value);
+  void uniform(const std::string &name, int value);
+  void uniform(const std::string &name, unsigned int value);
 
   void bind();
   void unbind();

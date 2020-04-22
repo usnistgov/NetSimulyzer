@@ -50,7 +50,7 @@ glm::vec3 directional_light::get_direction() const {
 
 void directional_light::use(Shader &s) const {
   light::use(s);
-  s.set_uniform_vector_3f("directional_light.direction", direction);
+  s.uniform("directional_light.direction", direction);
 }
 
 } // namespace visualization

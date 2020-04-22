@@ -32,6 +32,7 @@
  */
 
 #include "Shader.h"
+#include <glm/gtc/type_ptr.hpp>
 
 void log_uniform(int location, std::string_view name) {
 #ifndef NDEBUG
@@ -43,7 +44,7 @@ void log_uniform(int location, std::string_view name) {
 }
 namespace visualization {
 
-unsigned int Shader::compile_shader(unsigned int type, const char *src) {
+unsigned int Shader::compile(unsigned int type, const char *src) {
   const auto id = glCreateShader(type);
   glShaderSource(id, 1, &src, nullptr);
   glCompileShader(id);
@@ -70,10 +71,10 @@ unsigned int Shader::compile_shader(unsigned int type, const char *src) {
   return id;
 }
 
-unsigned int Shader::create_program(const std::string &vertex, const std::string &fragment) {
+unsigned int Shader::createProgram(const std::string &vertex, const std::string &fragment) {
   const auto program_id = glCreateProgram();
-  const auto vertex_shader = compile_shader(GL_VERTEX_SHADER, vertex.c_str());
-  const auto fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment.c_str());
+  const auto vertex_shader = compile(GL_VERTEX_SHADER, vertex.c_str());
+  const auto fragment_shader = compile(GL_FRAGMENT_SHADER, fragment.c_str());
 
   glAttachShader(program_id, vertex_shader);
   glAttachShader(program_id, fragment_shader);
@@ -100,15 +101,15 @@ unsigned int Shader::create_program(const std::string &vertex, const std::string
 }
 
 Shader::~Shader() {
-  glDeleteProgram(gl_id);
+  glDeleteProgram(glId);
 }
 
 void Shader::init(const std::string &vertex, const std::string &fragment) {
   initializeOpenGLFunctions();
-  gl_id = create_program(vertex, fragment);
+  glId = createProgram(vertex, fragment);
 }
 
-void Shader::set_uniform_vector_3f(const std::string &name, const glm::vec3 &value) {
+void Shader::uniform(const std::string &name, const glm::vec3 &value) {
   bind();
   auto cached_location = uniform_cache.find(name);
   if (cached_location != uniform_cache.end()) {
@@ -117,13 +118,13 @@ void Shader::set_uniform_vector_3f(const std::string &name, const glm::vec3 &val
     return;
   }
 
-  auto location = glGetUniformLocation(gl_id, name.c_str());
+  auto location = glGetUniformLocation(glId, name.c_str());
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
   glUniform3f(location, value.x, value.y, value.z);
 }
 
-void Shader::set_uniform_vector_1f(const std::string &name, float value) {
+void Shader::uniform(const std::string &name, float value) {
   bind();
   auto cached_location = uniform_cache.find(name);
   if (cached_location != uniform_cache.end()) {
@@ -132,28 +133,29 @@ void Shader::set_uniform_vector_1f(const std::string &name, float value) {
     return;
   }
 
-  auto location = glGetUniformLocation(gl_id, name.c_str());
+  auto location = glGetUniformLocation(glId, name.c_str());
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
   glUniform1f(location, value);
 }
 
-void Shader::set_uniform_matrix_4fv(const std::string &name, const float *value) {
+void Shader::uniform(const std::string &name, const glm::mat4 &value) {
   bind();
+  const auto valuePtr = glm::value_ptr(value);
   auto cached_location = uniform_cache.find(name);
   if (cached_location != uniform_cache.end()) {
     log_uniform(cached_location->second, name);
-    glUniformMatrix4fv(cached_location->second, 1, GL_FALSE, value);
+    glUniformMatrix4fv(cached_location->second, 1, GL_FALSE, valuePtr);
     return;
   }
 
-  auto location = glGetUniformLocation(gl_id, name.c_str());
+  auto location = glGetUniformLocation(glId, name.c_str());
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
-  glUniformMatrix4fv(location, 1, GL_FALSE, value);
+  glUniformMatrix4fv(location, 1, GL_FALSE, valuePtr);
 }
 
-void Shader::set_uniform_1i(const std::string &name, int value) {
+void Shader::uniform(const std::string &name, int value) {
   bind();
   auto cached_location = uniform_cache.find(name);
   if (cached_location != uniform_cache.end()) {
@@ -162,13 +164,13 @@ void Shader::set_uniform_1i(const std::string &name, int value) {
     return;
   }
 
-  auto location = glGetUniformLocation(gl_id, name.c_str());
+  auto location = glGetUniformLocation(glId, name.c_str());
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
   glUniform1i(location, value);
 }
 
-void Shader::set_uniform_1ui(const std::string &name, unsigned int value) {
+void Shader::uniform(const std::string &name, unsigned int value) {
   bind();
   auto cached_location = uniform_cache.find(name);
   if (cached_location != uniform_cache.end()) {
@@ -177,14 +179,14 @@ void Shader::set_uniform_1ui(const std::string &name, unsigned int value) {
     return;
   }
 
-  auto location = glGetUniformLocation(gl_id, name.c_str());
+  auto location = glGetUniformLocation(glId, name.c_str());
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
   glUniform1ui(location, value);
 }
 
 void Shader::bind() {
-  glUseProgram(gl_id);
+  glUseProgram(glId);
 }
 
 void Shader::unbind() {

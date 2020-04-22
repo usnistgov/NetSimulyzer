@@ -40,9 +40,9 @@ light::light(glm::vec3 color, float ambient_intensity, float diffuse_intensity)
 }
 
 void light::use(Shader &s) const {
-  s.set_uniform_vector_3f("directional_light.base.color", color);
-  s.set_uniform_vector_1f("directional_light.base.ambient_intensity", ambient_intensity);
-  s.set_uniform_vector_1f("directional_light.base.diffuse_intensity", diffuse_intensity);
+  s.uniform("directional_light.base.color", color);
+  s.uniform("directional_light.base.ambient_intensity", ambient_intensity);
+  s.uniform("directional_light.base.diffuse_intensity", diffuse_intensity);
 }
 const glm::vec3 &light::get_color() const {
   return color;

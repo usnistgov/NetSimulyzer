@@ -55,13 +55,13 @@ point_light::point_light(glm::vec3 color, float ambient_intensity, float diffuse
 }
 
 void point_light::use(Shader &s) const {
-  s.set_uniform_vector_3f(prefix + "base.color", color);
-  s.set_uniform_vector_1f(prefix + "base.ambient_intensity", ambient_intensity);
-  s.set_uniform_vector_1f(prefix + "base.diffuse_intensity", diffuse_intensity);
-  s.set_uniform_vector_3f(prefix + "position", position);
-  s.set_uniform_vector_1f(prefix + "constant", constant);
-  s.set_uniform_vector_1f(prefix + "linear", linear);
-  s.set_uniform_vector_1f(prefix + "exponent", exponent);
+  s.uniform(prefix + "base.color", color);
+  s.uniform(prefix + "base.ambient_intensity", ambient_intensity);
+  s.uniform(prefix + "base.diffuse_intensity", diffuse_intensity);
+  s.uniform(prefix + "position", position);
+  s.uniform(prefix + "constant", constant);
+  s.uniform(prefix + "linear", linear);
+  s.uniform(prefix + "exponent", exponent);
 }
 
 std::size_t point_light::getCount() {

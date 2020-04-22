@@ -45,17 +45,17 @@ SpotLight::SpotLight(float edge) : edge(edge), processedEdge(std::cos(glm::radia
 }
 
 void SpotLight::use(Shader &s) const {
-  s.set_uniform_vector_3f(prefix + "pointLight.base.color", color);
-  s.set_uniform_vector_1f(prefix + "pointLight.base.ambient_intensity", ambient_intensity);
-  s.set_uniform_vector_1f(prefix + "pointLight.base.diffuse_intensity", diffuse_intensity);
+  s.uniform(prefix + "pointLight.base.color", color);
+  s.uniform(prefix + "pointLight.base.ambient_intensity", ambient_intensity);
+  s.uniform(prefix + "pointLight.base.diffuse_intensity", diffuse_intensity);
 
-  s.set_uniform_vector_3f(prefix + "pointLight.position", position);
-  s.set_uniform_vector_1f(prefix + "pointLight.constant", constant);
-  s.set_uniform_vector_1f(prefix + "pointLight.linear", linear);
-  s.set_uniform_vector_1f(prefix + "pointLight.exponent", exponent);
+  s.uniform(prefix + "pointLight.position", position);
+  s.uniform(prefix + "pointLight.constant", constant);
+  s.uniform(prefix + "pointLight.linear", linear);
+  s.uniform(prefix + "pointLight.exponent", exponent);
 
-  s.set_uniform_vector_1f(prefix + "edge", processedEdge);
-  s.set_uniform_vector_3f(prefix + "direction", direction);
+  s.uniform(prefix + "edge", processedEdge);
+  s.uniform(prefix + "direction", direction);
 }
 
 void SpotLight::set_edge(float value) {

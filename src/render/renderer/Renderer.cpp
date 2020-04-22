@@ -83,21 +83,21 @@ void Renderer::init() {
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
-  modelShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
-  buildingShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
-  skyBoxShader.set_uniform_matrix_4fv("projection", glm::value_ptr(perspective));
+  modelShader.uniform("projection", perspective);
+  buildingShader.uniform("projection", perspective);
+  skyBoxShader.uniform("projection", perspective);
 }
 
 void Renderer::setPointLightCount(unsigned int count) {
   if (count > maxPointLights)
     assert(!"Point light count set higher than defined max");
-  modelShader.set_uniform_1ui("pointLightCount", count);
+  modelShader.uniform("pointLightCount", count);
 }
 
 void Renderer::setSpotLightCount(unsigned int count) {
   if (count > maxSpotLights)
     assert(!"Spot light count set higher than defined max");
-  modelShader.set_uniform_1ui("spotLightCount", count);
+  modelShader.uniform("spotLightCount", count);
 }
 
 Building::RenderInfo Renderer::allocate(const parser::Building &building) {
@@ -247,15 +247,15 @@ void Renderer::resize(Floor &f, float size) {
 }
 
 void Renderer::use(const Camera &cam) {
-  modelShader.set_uniform_matrix_4fv("view", glm::value_ptr(cam.view_matrix()));
-  modelShader.set_uniform_vector_3f("eye_position", cam.get_position());
+  modelShader.uniform("view", cam.view_matrix());
+  modelShader.uniform("eye_position", cam.get_position());
 
-  buildingShader.set_uniform_matrix_4fv("view", glm::value_ptr(cam.view_matrix()));
+  buildingShader.uniform("view", cam.view_matrix());
 
   // Drop the translation so we cannot move out of the sky box
   auto noTranslationView = cam.view_matrix();
   noTranslationView[3] = {0.0f, 0.0f, 0.0f, 1.0f};
-  skyBoxShader.set_uniform_matrix_4fv("view", glm::value_ptr(noTranslationView));
+  skyBoxShader.uniform("view", noTranslationView);
 }
 
 void Renderer::render(const directional_light &light) {
@@ -280,7 +280,7 @@ void Renderer::render(std::vector<Building> &buildings) {
 
   for (const auto &building : buildings) {
     const auto &renderInfo = building.getRenderInfo();
-    buildingShader.set_uniform_vector_3f("color", building.getColor());
+    buildingShader.uniform("color", building.getColor());
 
     glBindVertexArray(renderInfo.vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
@@ -293,13 +293,13 @@ void Renderer::render(std::vector<Building> &buildings) {
 
 void Renderer::render(const Model &m) {
   modelShader.bind();
-  modelShader.set_uniform_matrix_4fv("model", glm::value_ptr(m.getModelMatrix()));
+  modelShader.uniform("model", m.getModelMatrix());
   modelCache.get(m.getModelId()).render(modelShader);
 }
 
 void Renderer::render(Floor &f) {
   modelShader.bind();
-  modelShader.set_uniform_matrix_4fv("model", glm::value_ptr(f.getModelMatrix()));
+  modelShader.uniform("model", f.getModelMatrix());
   textureCache.use(f.getTextureId());
   f.render();
 }
