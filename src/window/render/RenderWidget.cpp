@@ -111,9 +111,9 @@ void RenderWidget::initializeGL() {
   renderer.init();
 
   std::array<QImage, 6> skyBoxTextures{
-      QImage{":/texture/resources/textures/skybox/right.jpg"}, QImage{":/texture/resources/textures/skybox/left.jpg"},
-      QImage{":/texture/resources/textures/skybox/top.jpg"},   QImage{":/texture/resources/textures/skybox/bottom.jpg"},
-      QImage{":/texture/resources/textures/skybox/back.jpg"},  QImage{":/texture/resources/textures/skybox/front.jpg"}};
+      QImage{":/texture/resources/textures/skybox/right.png"}, QImage{":/texture/resources/textures/skybox/left.png"},
+      QImage{":/texture/resources/textures/skybox/top.png"},   QImage{":/texture/resources/textures/skybox/bottom.png"},
+      QImage{":/texture/resources/textures/skybox/back.png"},  QImage{":/texture/resources/textures/skybox/front.png"}};
   skyBox = std::make_unique<SkyBox>(textures.loadSkyBox(skyBoxTextures));
 
   floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("resources/textures/grass.png")));

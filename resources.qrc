@@ -4,12 +4,12 @@
     </qresource>
     <qresource prefix="/texture">
         <file>resources/textures/plain.png</file>
-        <file>resources/textures/skybox/back.jpg</file>
-        <file>resources/textures/skybox/bottom.jpg</file>
-        <file>resources/textures/skybox/front.jpg</file>
-        <file>resources/textures/skybox/left.jpg</file>
-        <file>resources/textures/skybox/right.jpg</file>
-        <file>resources/textures/skybox/top.jpg</file>
+        <file>resources/textures/skybox/back.png</file>
+        <file>resources/textures/skybox/bottom.png</file>
+        <file>resources/textures/skybox/front.png</file>
+        <file>resources/textures/skybox/left.png</file>
+        <file>resources/textures/skybox/right.png</file>
+        <file>resources/textures/skybox/top.png</file>
     </qresource>
     <qresource prefix="/shader">
         <file>resources/shaders/model.vert</file>
