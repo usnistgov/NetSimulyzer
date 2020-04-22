@@ -50,6 +50,15 @@ class TextureCache : protected QOpenGLFunctions_3_3_Core {
   std::optional<unsigned long> fallbackTexture;
 
 public:
+  struct CubeMap {
+    QImage right;
+    QImage left;
+    QImage top;
+    QImage bottom;
+    QImage back;
+    QImage front;
+  };
+
   ~TextureCache() override;
 
   bool init() {
@@ -58,7 +67,7 @@ public:
 
   unsigned int loadFallback(QImage &texture);
   std::size_t load(const std::string &path);
-  unsigned long loadSkyBox(const std::array<QImage, 6> &images);
+  unsigned long load(const CubeMap &cubeMap);
   [[nodiscard]] const Texture &get(std::size_t index);
 
   [[nodiscard]] const std::optional<unsigned long> &getFallbackTexture() const;
@@ -70,7 +79,7 @@ public:
   void clear();
 
   void use(std::size_t index);
-  void useSkyBox(unsigned int id);
+  void useCubeMap(unsigned int id);
 };
 
 } // namespace visualization

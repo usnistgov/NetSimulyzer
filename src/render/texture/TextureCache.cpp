@@ -125,16 +125,25 @@ std::size_t TextureCache::load(const std::string &path) {
   return newIndex;
 }
 
-unsigned long TextureCache::loadSkyBox(const std::array<QImage, 6> &images) {
+unsigned long TextureCache::load(const CubeMap &cubeMap) {
   unsigned int id;
   glGenTextures(1, &id);
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 
-  for (auto i = 0u; i < images.size(); i++) {
-    const auto &image = images[i];
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, image.width(), image.height(), 0, GL_BGRA,
-                 GL_UNSIGNED_BYTE, image.constBits());
-  }
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, cubeMap.right.width(), cubeMap.right.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.right.constBits());
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, cubeMap.left.width(), cubeMap.left.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.left.constBits());
+
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, cubeMap.top.width(), cubeMap.top.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.top.constBits());
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, cubeMap.bottom.width(), cubeMap.bottom.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.bottom.constBits());
+
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, cubeMap.back.width(), cubeMap.back.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.back.constBits());
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, cubeMap.front.width(), cubeMap.front.height(), 0, GL_BGRA,
+               GL_UNSIGNED_BYTE, cubeMap.front.constBits());
 
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -165,7 +174,7 @@ void TextureCache::use(std::size_t index) {
   glBindTexture(GL_TEXTURE_2D, t.id);
 }
 
-void TextureCache::useSkyBox(unsigned int id) {
+void TextureCache::useCubeMap(unsigned int id) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 }

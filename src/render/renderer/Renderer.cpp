@@ -308,7 +308,7 @@ void Renderer::render(SkyBox &skyBox) {
   glDepthMask(GL_FALSE);
   skyBoxShader.bind();
 
-  textureCache.useSkyBox(skyBox.getTextureId());
+  textureCache.useCubeMap(skyBox.getTextureId());
   skyBox.getMesh().render();
   glDepthMask(GL_TRUE);
 }

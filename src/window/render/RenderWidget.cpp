@@ -110,11 +110,14 @@ void RenderWidget::initializeGL() {
   models.init("resources/models/fallback.obj");
   renderer.init();
 
-  std::array<QImage, 6> skyBoxTextures{
-      QImage{":/texture/resources/textures/skybox/right.png"}, QImage{":/texture/resources/textures/skybox/left.png"},
-      QImage{":/texture/resources/textures/skybox/top.png"},   QImage{":/texture/resources/textures/skybox/bottom.png"},
-      QImage{":/texture/resources/textures/skybox/back.png"},  QImage{":/texture/resources/textures/skybox/front.png"}};
-  skyBox = std::make_unique<SkyBox>(textures.loadSkyBox(skyBoxTextures));
+  TextureCache::CubeMap cubeMap;
+  cubeMap.right = QImage{":/texture/resources/textures/skybox/right.png"};
+  cubeMap.left = QImage{":/texture/resources/textures/skybox/left.png"};
+  cubeMap.top = QImage{":/texture/resources/textures/skybox/top.png"};
+  cubeMap.bottom = QImage{":/texture/resources/textures/skybox/bottom.png"};
+  cubeMap.back = QImage{":/texture/resources/textures/skybox/back.png"};
+  cubeMap.front = QImage{":/texture/resources/textures/skybox/front.png"};
+  skyBox = std::make_unique<SkyBox>(textures.load(cubeMap));
 
   floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("resources/textures/grass.png")));
   floor->setPosition({0.0f, -0.5f, 0.0f});
