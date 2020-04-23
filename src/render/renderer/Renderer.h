@@ -35,15 +35,13 @@
 #include "../../group/building/Building.h"
 #include "../camera/Camera.h"
 #include "../helper/Floor.h"
-#include "../light/DirectionalLight.h"
-#include "../light/PointLight.h"
-#include "../light/SpotLight.h"
 #include "../mesh/Mesh.h"
 #include "../model/Model.h"
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
 #include "../texture/SkyBox.h"
 #include "../texture/TextureCache.h"
+#include "render/Light.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <sstream>
@@ -75,8 +73,8 @@ public:
   void resize(Floor &f, float size);
 
   void use(const Camera &cam);
-  void render(const directional_light &light);
-  void render(const point_light &light);
+  void render(const DirectionalLight &light);
+  void render(const PointLight &light);
   void render(const SpotLight &light);
   void render(std::vector<Building> &buildings);
   void render(const Model &m);

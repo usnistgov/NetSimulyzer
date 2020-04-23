@@ -125,10 +125,10 @@ void RenderWidget::initializeGL() {
   auto s = size();
   glViewport(0, 0, s.width(), s.height());
 
-  mainLight.set_ambient_intensity(0.5f);
-  mainLight.set_color({1.0f, 1.0f, 1.0f});
-  mainLight.set_direction({2.0f, -1.0f, -2.0f});
-  mainLight.set_diffuse_intensity(0.5f);
+  mainLight.ambientIntensity = 0.5f;
+  mainLight.color = {1.0f, 1.0f, 1.0f};
+  mainLight.direction ={2.0f, -1.0f, -2.0f};
+  mainLight.diffuseIntensity = 0.5f;
   renderer.render(mainLight);
 
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

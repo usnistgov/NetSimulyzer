@@ -258,16 +258,39 @@ void Renderer::use(const Camera &cam) {
   skyBoxShader.uniform("view", noTranslationView);
 }
 
-void Renderer::render(const directional_light &light) {
-  light.use(modelShader);
+void Renderer::render(const DirectionalLight &light) {
+  modelShader.uniform("directional_light.base.color", light.color);
+  modelShader.uniform("directional_light.base.ambient_intensity", light.ambientIntensity);
+  modelShader.uniform("directional_light.base.diffuse_intensity", light.diffuseIntensity);
+
+  modelShader.uniform("directional_light.direction", light.direction);
 }
 
-void Renderer::render(const point_light &light) {
-  light.use(modelShader);
+void Renderer::render(const PointLight &light) {
+  modelShader.uniform(light.prefix + "base.color", light.color);
+  modelShader.uniform(light.prefix + "base.ambient_intensity", light.ambientIntensity);
+  modelShader.uniform(light.prefix + "base.diffuse_intensity", light.diffuseIntensity);
+
+  modelShader.uniform(light.prefix + "position", light.position);
+
+  modelShader.uniform(light.prefix + "constant", light.constant);
+  modelShader.uniform(light.prefix + "linear", light.linear);
+  modelShader.uniform(light.prefix + "exponent", light.exponent);
 }
 
 void Renderer::render(const SpotLight &light) {
-  light.use(modelShader);
+  modelShader.uniform(light.prefix + "pointLight.base.color", light.color);
+  modelShader.uniform(light.prefix + "pointLight.base.ambient_intensity", light.ambientIntensity);
+  modelShader.uniform(light.prefix + "pointLight.base.diffuse_intensity", light.diffuseIntensity);
+
+  modelShader.uniform(light.prefix + "pointLight.position", light.position);
+  modelShader.uniform(light.prefix + "direction", light.direction);
+
+  modelShader.uniform(light.prefix + "pointLight.constant", light.constant);
+  modelShader.uniform(light.prefix + "pointLight.linear", light.linear);
+  modelShader.uniform(light.prefix + "pointLight.exponent", light.exponent);
+
+  modelShader.uniform(light.prefix + "edge", light.processedEdge);
 }
 
 void Renderer::render(std::vector<Building> &buildings) {

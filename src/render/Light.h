@@ -32,23 +32,52 @@
  */
 
 #pragma once
-
-#include "../shader/Shader.h"
-#include "light.h"
 #include <glm/glm.hpp>
+#include <string>
 
 namespace visualization {
 
-class directional_light : public light {
+struct DirectionalLight {
+  glm::vec3 color{1.0f};
+  float ambientIntensity = 1.0f;
+  float diffuseIntensity = 0.0f;
   glm::vec3 direction{0.0f, -1.0f, 0.0f};
+};
 
-public:
-  directional_light() = default;
-  directional_light(glm::vec3 color, float ambient_intensity, const glm::vec3 &direction, float diffuse_intensity);
+struct SpotLight {
+  glm::vec3 color{1.0f};
+  float ambientIntensity = 1.0f;
+  float diffuseIntensity = 0.0f;
 
-  void use(Shader &s) const override;
-  void set_direction(const glm::vec3 &d);
-  [[nodiscard]] glm::vec3 get_direction() const;
+  glm::vec3 position{0.0f};
+  glm::vec3 direction{0.0f};
+
+  float constant = 1.0f;
+  float linear = 0.0f;
+  float exponent = 0.0f;
+
+  float edge = 0.0f;
+  float processedEdge{std::cos(glm::radians(edge))};
+
+  std::size_t index = SpotLight::count++;
+  std::string prefix = "spotLights[" + std::to_string(index) + "].";
+  static std::size_t count;
+};
+
+struct PointLight {
+  glm::vec3 color{1.0f};
+  float ambientIntensity = 1.0f;
+  float diffuseIntensity = 0.0f;
+
+  glm::vec3 position{0.0f};
+
+  float constant = 1.0f;
+  float linear = 0.0f;
+  float exponent = 0.0f;
+
+  std::size_t index = PointLight::count++;
+  std::string prefix = "pointLights[" + std::to_string(index) + "].";
+  static std::size_t count;
 };
 
 } // namespace visualization

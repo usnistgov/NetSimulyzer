@@ -46,10 +46,7 @@ add_executable(visualization
         group/node/Node.h group/node/Node.cpp
         render/camera/Camera.h render/camera/Camera.cpp
         render/helper/Floor.h render/helper/Floor.cpp
-        render/light/DirectionalLight.h render/light/DirectionalLight.cpp
-        render/light/light.h render/light/light.cpp
-        render/light/PointLight.h render/light/PointLight.cpp
-        render/light/SpotLight.h render/light/SpotLight.cpp
+        render/Light.h
         render/material/material.h
         render/mesh/Mesh.h render/mesh/Mesh.cpp
         render/mesh/Vertex.h

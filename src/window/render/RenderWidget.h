@@ -38,7 +38,6 @@
 #include "../../group/node/Node.h"
 #include "../../render/camera/Camera.h"
 #include "../../render/helper/Floor.h"
-#include "../../render/light/DirectionalLight.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/model/Model.h"
 #include "../../render/model/ModelCache.h"
@@ -46,6 +45,7 @@
 #include "../../render/shader/Shader.h"
 #include "../../render/texture/TextureCache.h"
 #include "../../render/texture/SkyBox.h"
+#include "../../render/Light.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -79,7 +79,7 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   QElapsedTimer frameTimer;
   Qt::Key pauseKey = Qt::Key::Key_P;
 
-  directional_light mainLight;
+  DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
   std::unique_ptr<Floor> floor;
 
