@@ -38,8 +38,15 @@
     <addaction name="actionNodes"/>
     <addaction name="actionCharts"/>
    </widget>
+   <widget class="QMenu" name="menuCamera">
+    <property name="title">
+     <string>&amp;Camera</string>
+    </property>
+    <addaction name="actionCameraSettings"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWidget"/>
+   <addaction name="menuCamera"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="chartDock">
@@ -113,6 +120,11 @@
    </property>
    <property name="toolTip">
     <string>Toggle the Nodes widget</string>
+   </property>
+  </action>
+  <action name="actionCameraSettings">
+   <property name="text">
+    <string>&amp;Settings</string>
    </property>
   </action>
  </widget>

@@ -36,6 +36,7 @@
 #include "../../group/building/Building.h"
 #include "../../group/decoration/Decoration.h"
 #include "../../group/node/Node.h"
+#include "../../render/Light.h"
 #include "../../render/camera/Camera.h"
 #include "../../render/helper/Floor.h"
 #include "../../render/mesh/Mesh.h"
@@ -43,9 +44,9 @@
 #include "../../render/model/ModelCache.h"
 #include "../../render/renderer/Renderer.h"
 #include "../../render/shader/Shader.h"
-#include "../../render/texture/TextureCache.h"
 #include "../../render/texture/SkyBox.h"
-#include "../../render/Light.h"
+#include "../../render/texture/TextureCache.h"
+#include "../camera/CameraConfigurationDialogue.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -68,8 +69,11 @@ namespace visualization {
 
 class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
-  Camera camera{{Qt::Key::Key_W, Qt::Key::Key_A, Qt::Key::Key_S, Qt::Key::Key_D}};
+  Camera camera;
   QPoint initialCursorPosition{width() / 2, height() / 2};
+  CameraConfigurationDialogue cameraConfigurationDialogue{camera, this};
+  glm::mat4 perspective = glm::perspective(glm::radians(camera.getFieldOfView()),
+                                           static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f);
   QPoint lastCursorPosition{width() / 2, height() / 2};
   bool isInitialMove = true;
   TextureCache textures;
@@ -94,7 +98,6 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::deque<parser::SceneEvent> events;
 
   void handleEvents();
-  glm::mat4 makePerspective() const;
 
 protected:
   void initializeGL() override;
@@ -123,6 +126,8 @@ public:
   void focusNode(uint32_t nodeId);
 
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
+
+  void showCameraConfigurationDialogue();
 
 signals:
   void timeAdvanced(double simulationTime);

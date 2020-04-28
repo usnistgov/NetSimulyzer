@@ -37,7 +37,7 @@
 
 namespace visualization {
 
-Camera::Camera(Camera::KeyMap keyMap) : keyMap(keyMap) {
+Camera::Camera() {
   update();
 }
 
@@ -55,21 +55,45 @@ void Camera::update() {
 }
 
 void Camera::handle_keypress(int key) {
-  if (key == keyMap.W)
+  if (key == keyForward)
     active.front_back = active_directions::direction::forward;
-  else if (key == keyMap.S)
+  else if (key == keyBackward)
     active.front_back = active_directions::direction::backwards;
-  else if (key == keyMap.A)
+  else if (key == keyLeft)
     active.left_right = active_directions::direction::backwards;
-  else if (key == keyMap.D)
+  else if (key == keyRight)
     active.left_right = active_directions::direction::forward;
 }
 
 void Camera::handle_keyrelease(int key) {
-  if (key == keyMap.W || key == keyMap.S)
+  if (key == keyForward || key == keyBackward)
     active.front_back = active_directions::direction::none;
-  else if (key == keyMap.A || key == keyMap.D)
+  else if (key == keyLeft || key == keyRight)
     active.left_right = active_directions::direction::none;
+}
+
+float Camera::getFieldOfView() const {
+  return fieldOfView;
+}
+
+void Camera::setFieldOfView(float value) {
+  fieldOfView = value;
+}
+
+float Camera::getMoveSpeed() const {
+  return move_speed;
+}
+
+void Camera::setMoveSpeed(float value) {
+  move_speed = value;
+}
+
+float Camera::getTurnSpeed() const {
+  return turn_speed;
+}
+
+void Camera::setTurnSpeed(float value) {
+  turn_speed = value;
 }
 
 glm::mat4 Camera::view_matrix() const {
@@ -129,6 +153,38 @@ void Camera::resetRotation() {
   yaw = -90.0f;
   pitch = 0.0f;
   update();
+}
+
+int Camera::getKeyForward() const {
+  return keyForward;
+}
+
+void Camera::setKeyForward(int value) {
+  keyForward = value;
+}
+
+int Camera::getKeyBackward() const {
+  return keyBackward;
+}
+
+void Camera::setKeyBackward(int value) {
+  keyBackward = value;
+}
+
+int Camera::getKeyLeft() const {
+  return keyLeft;
+}
+
+void Camera::setKeyLeft(int value) {
+  keyLeft = value;
+}
+
+int Camera::getKeyRight() const {
+  return keyRight;
+}
+
+void Camera::setKeyRight(int value) {
+  keyRight = value;
 }
 
 } // namespace visualization

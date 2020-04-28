@@ -61,6 +61,7 @@ add_executable(visualization
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
+        window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
         coordinate.h coordinate.cpp
         ../visualization.rc ../resources.qrc)

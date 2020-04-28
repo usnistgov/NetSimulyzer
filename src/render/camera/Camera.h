@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include <Qt>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -42,13 +43,6 @@ class Camera {
 public:
   enum class move_state { mobile, frozen };
 
-  struct KeyMap {
-    int W = 0;
-    int A = 0;
-    int S = 0;
-    int D = 0;
-  };
-
 private:
   struct active_directions {
     enum class direction { none, forward, backwards };
@@ -56,12 +50,18 @@ private:
     direction left_right = direction::none;
   };
 
-  KeyMap keyMap;
+  int keyForward = Qt::Key_W;
+  int keyBackward = Qt::Key_S;
+  int keyLeft = Qt::Key_A;
+  int keyRight = Qt::Key_D;
+
   glm::vec3 position{0.0f};
   glm::vec3 front{0.0f, 0.0f, -1.0f};
   glm::vec3 up{0.0f};
   glm::vec3 right{0.0f};
   glm::vec3 world_up{0.0f, 1.0f, 0.0f};
+
+  float fieldOfView = 45.0f;
 
   float yaw{-90.0f};
   float pitch{0.0f};
@@ -74,12 +74,33 @@ private:
   move_state mobility = move_state::frozen;
 
 public:
-  explicit Camera(KeyMap keyMap);
+  Camera();
 
   void update();
   [[nodiscard]] glm::mat4 view_matrix() const;
   void handle_keypress(int key);
   void handle_keyrelease(int key);
+
+  [[nodiscard]] float getFieldOfView() const;
+  void setFieldOfView(float value);
+
+  [[nodiscard]] float getMoveSpeed() const;
+  void setMoveSpeed(float value);
+
+  [[nodiscard]] float getTurnSpeed() const;
+  void setTurnSpeed(float value);
+
+  [[nodiscard]] int getKeyForward() const;
+  void setKeyForward(int value);
+
+  [[nodiscard]] int getKeyBackward() const;
+  void setKeyBackward(int value);
+
+  [[nodiscard]] int getKeyLeft() const;
+  void setKeyLeft(int value);
+
+  [[nodiscard]] int getKeyRight() const;
+  void setKeyRight(int value);
 
   [[nodiscard]] move_state getMobility() const;
   void setMobility(move_state state);

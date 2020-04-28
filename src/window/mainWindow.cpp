@@ -83,6 +83,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
   QObject::connect(ui->actionCharts, &QAction::triggered, this, &MainWindow::toggleCharts);
+
+  QObject::connect(ui->actionCameraSettings, &QAction::triggered,
+                   [this]() { render.showCameraConfigurationDialogue(); });
 }
 
 MainWindow::~MainWindow() {
