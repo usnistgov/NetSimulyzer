@@ -38,6 +38,8 @@ SET(ASSIMP_BUILD_TESTS CACHE BOOL OFF)
 SET(ASSIMP_NO_EXPORT CACHE BOOL ON)
 SET(BUILD_SHARED_LIBS CACHE BOOL OFF)
 add_subdirectory(lib/assimp)
+# Suppress assimp warnings
+target_compile_options(assimp PRIVATE -w)
 
 add_subdirectory(lib/json)
 add_subdirectory(lib/stb)
