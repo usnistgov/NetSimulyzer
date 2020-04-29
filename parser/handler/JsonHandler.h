@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -51,7 +50,7 @@ class JsonHandler {
    */
   enum class Section { None, Buildings, Configuration, Decorations, Events, Nodes, Series };
 
-  visualization::FileParser &fileParser;
+  parser::FileParser &fileParser;
 
   /**
    * Parse a section from a string.
@@ -213,8 +212,16 @@ class JsonHandler {
    */
   void parseSeriesCollection(const nlohmann::json &object);
 
+  /**
+   * Check the min/max bounds against `coordinate` and update accordingly
+   *
+   * @param coordinate
+   * The coordinate to check against the scenario min/max locations
+   */
+  void updateLocationBounds(const parser::Ns3Coordinate &coordinate);
+
 public:
-  explicit JsonHandler(visualization::FileParser &parser);
+  explicit JsonHandler(parser::FileParser &parser);
 
   /**
    * Called when the event parser encounters a null value.

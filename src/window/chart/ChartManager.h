@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * NIST-developed software is provided by NIST as a public service. You may use,
  * copy and distribute copies of the software in any medium, provided that you
@@ -56,20 +55,20 @@ class ChartManager : public QWidget {
   enum class SeriesType { XYSeries, SeriesCollection };
 
   struct SeriesCollectionTie {
-    SeriesCollection model;
+    parser::SeriesCollection model;
     QAbstractAxis *xAxis;
     QAbstractAxis *yAxis;
   };
 
   struct XYSeriesTie {
-    XYSeries model;
+    parser::XYSeries model;
     QtCharts::QXYSeries *qtSeries;
     QAbstractAxis *xAxis;
     QAbstractAxis *yAxis;
   };
 
   Ui::ChartManager *ui = new Ui::ChartManager;
-  std::deque<ChartEvent> events;
+  std::deque<parser::ChartEvent> events;
   std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie>> series;
   QtCharts::QChart chart;
 
@@ -90,11 +89,11 @@ public:
    * Clear all series and events
    */
   void reset();
-  void addSeries(const XYSeries &s);
-  void addSeries(const SeriesCollection &s);
+  void addSeries(const parser::XYSeries &s);
+  void addSeries(const parser::SeriesCollection &s);
   void showSeries(uint32_t seriesId);
   void timeAdvanced(double time);
-  void enqueueEvent(const ChartEvent &e);
+  void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 };
 
 } // namespace visualization

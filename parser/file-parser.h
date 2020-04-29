@@ -40,7 +40,7 @@
 // Avoid including this from it's header, since that depends on json.hpp
 class JsonHandler;
 
-namespace visualization {
+namespace parser {
 
 class FileParser {
   friend JsonHandler;
@@ -54,6 +54,11 @@ public:
    * The path to the JSON file
    */
   void parse(const char *path);
+
+  /**
+   * Clear stored information from a previous `parse()` call
+   */
+  void reset();
 
   /**
    * Gets the configuration from the parsed file
@@ -88,12 +93,24 @@ public:
   [[nodiscard]] const std::vector<Decoration> &getDecorations() const;
 
   /**
-   * Gets the collection of events from the parsed file
-   * `parse()` should be called first
+   * Gets the collection of events for the Scene from the parsed file
+   * `parse()` should be called first.
+   *
+   * This returns a partial collection of the events from the parsed file
    *
    * @return The events specified by the parsed file
    */
-  [[nodiscard]] const std::vector<Event> &getEvents() const;
+  [[nodiscard]] const std::vector<SceneEvent> &getSceneEvents() const;
+
+  /**
+   * Gets the collection of events for the Charts controller from the parsed file
+   * `parse()` should be called first.
+   *
+   * This returns a partial collection of the events from the parsed file
+   *
+   * @return The events specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<ChartEvent> &getChartsEvents() const;
 
   /**
    * Gets the collection of XY series from the parsed file
@@ -133,9 +150,14 @@ private:
   std::vector<Decoration> decorations;
 
   /**
-   * The Events defined by the 'events' JSON collection
+   * The events for the rendered scene defined by the 'events' JSON collection
    */
-  std::vector<Event> events;
+  std::vector<SceneEvent> sceneEvents;
+
+  /**
+   * The Events for the charts module defined by the 'events' JSON collection
+   */
+  std::vector<ChartEvent> chartEvents;
 
   /**
    * The XY Series defined within the 'series' JSON collection
@@ -148,4 +170,4 @@ private:
   std::vector<SeriesCollection> seriesCollections;
 };
 
-} // namespace visualization
+} // namespace parser

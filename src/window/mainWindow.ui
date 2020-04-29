@@ -22,24 +22,32 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionLoad"/>
    </widget>
    <widget class="QMenu" name="menuWidget">
     <property name="title">
-     <string>Widget</string>
+     <string>&amp;Widget</string>
     </property>
     <addaction name="actionNodes"/>
     <addaction name="actionCharts"/>
    </widget>
+   <widget class="QMenu" name="menuCamera">
+    <property name="title">
+     <string>&amp;Camera</string>
+    </property>
+    <addaction name="actionCameraSettings"/>
+    <addaction name="actionResetCameraPosition"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWidget"/>
+   <addaction name="menuCamera"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="chartDock">
@@ -81,7 +89,10 @@
   </widget>
   <action name="actionLoad">
    <property name="text">
-    <string>Load</string>
+    <string>&amp;Load</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionCharts">
@@ -92,7 +103,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Charts</string>
+    <string>&amp;Charts</string>
    </property>
    <property name="toolTip">
     <string>Toggle the Chart widget</string>
@@ -106,10 +117,20 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Nodes</string>
+    <string>&amp;Nodes</string>
    </property>
    <property name="toolTip">
     <string>Toggle the Nodes widget</string>
+   </property>
+  </action>
+  <action name="actionCameraSettings">
+   <property name="text">
+    <string>&amp;Settings</string>
+   </property>
+  </action>
+  <action name="actionResetCameraPosition">
+   <property name="text">
+    <string>&amp;Reset Position</string>
    </property>
   </action>
  </widget>

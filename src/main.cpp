@@ -31,7 +31,7 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 // clang-format off
-// The first OpenGL include should come safely before any OSG components.
+// TODO: Maybe unnecessary now?
 #include <QOpenGLContext>
 // clang-format on
 
@@ -40,15 +40,17 @@
 #include <QSurfaceFormat>
 
 int main(int argc, char *argv[]) {
-  QApplication application(argc, argv);
-
   QSurfaceFormat format;
-  format.setVersion(2, 1);
-  format.setProfile(QSurfaceFormat::CompatibilityProfile);
-
+  format.setVersion(3, 3);
+  format.setProfile(QSurfaceFormat::CoreProfile);
   QSurfaceFormat::setDefaultFormat(format);
 
+  // Default QSurfaceFormat must be set before QApplication
+  // on some platforms
+  QApplication application(argc, argv);
+
   visualization::MainWindow mainWindow;
+  mainWindow.setWindowIcon(QIcon{":/application/resources/application.png"});
   mainWindow.show();
   return QApplication::exec();
 }

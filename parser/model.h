@@ -37,46 +37,48 @@
 #include <variant>
 #include <vector>
 
-namespace visualization {
+namespace parser {
+
+struct Ns3Coordinate {
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+};
 
 struct GlobalConfiguration {
   double millisecondsPerFrame = 1.0;
+  Ns3Coordinate minLocation;
+  Ns3Coordinate maxLocation;
 };
 
 struct Node {
-  uint32_t id = 0;
+  unsigned int id = 0;
   std::string model;
-  double scale = 1.0;
-  double opacity = 1.0;
+  float scale = 1.0f;
+  double opacity = 1.0; // TODO: Unused
   bool visible = true;
-  std::array<double, 3> position{0.0};
+  Ns3Coordinate position;
   std::array<double, 3> orientation{0.0};
 };
 
 struct Building {
-  uint32_t id = 0;
-  double opacity = 1.0;
+  unsigned int id = 0;
+  double opacity = 1.0; // TODO: Unused
   bool visible = true;
   uint16_t floors = 0;
   uint16_t roomsX = 0;
   uint16_t roomsY = 0;
-  double xMin = 0.0;
-  double xMax = 0.0;
-
-  double yMin = 0.0;
-  double yMax = 0.0;
-
-  double zMin = 0.0;
-  double zMax = 0.0;
+  Ns3Coordinate min;
+  Ns3Coordinate max;
 };
 
 struct Decoration {
-  uint32_t id;
+  unsigned int id;
   std::string model;
-  std::array<double, 3> position{0.0};
+  Ns3Coordinate position;
   std::array<double, 3> orientation{0.0};
   double opacity = 1.0;
-  double scale = 1.0;
+  float scale = 1.0f;
 };
 
 struct ValueAxis {
@@ -94,7 +96,7 @@ struct XYSeries {
   enum class Connection { None, Line, Spline };
   enum class LabelMode { Hidden, Shown };
 
-  uint32_t id = 0u;
+  unsigned int id = 0u;
   std::string name;
   Connection connection = Connection::Line;
   LabelMode labelMode = LabelMode::Shown;
@@ -107,7 +109,7 @@ struct XYSeries {
 };
 
 struct SeriesCollection {
-  uint32_t id = 0u;
+  unsigned int id = 0u;
   std::string name;
   std::vector<uint32_t> series;
   ValueAxis xAxis;
@@ -131,13 +133,8 @@ struct MoveEvent {
 
   /**
    * The position in the scene to move the Node to.
-   *
-   * Note: this will act on the relative position of
-   * the node, not the absolute position.
-   * If the node is affected by another
-   * transform, this will be relative to that transform
    */
-  std::array<double, 3> targetPosition{0.0};
+  Ns3Coordinate targetPosition;
 };
 
 /**
@@ -158,7 +155,7 @@ struct DecorationMoveEvent {
   /**
    * The position in the scene to move the Decoration to.
    */
-  std::array<double, 3> targetPosition{0.0};
+  Ns3Coordinate targetPosition;
 };
 
 /**
@@ -239,18 +236,14 @@ using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChange
                            XYSeriesAddValue>;
 
 /**
- * Events specific to Nodes
+ * Events which affect the rendered scene
  */
-using NodeEvent = std::variant<MoveEvent, NodeOrientationChangeEvent>;
-
-/**
- * Events specific to decorations
- */
-using DecorationEvent = std::variant<DecorationMoveEvent, DecorationOrientationChangeEvent>;
+using SceneEvent =
+    std::variant<MoveEvent, NodeOrientationChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model
  */
 using ChartEvent = std::variant<XYSeriesAddValue>;
 
-} // namespace visualization
+} // namespace parser

@@ -8,18 +8,12 @@ A 3D visualizer for ns-3 scenarios.
     * GCC 7.3.0
     * Clang 6.0.0
 * CMake 3.12 or greater
-* A graphics card supporting OpenGL 2
-* The OpenSceneGraph plugin dependencies for [plugins](http://www.openscenegraph.org/index.php/documentation/guides/user-guides/61-osgplugins) you wish to use
-  * See [the dependencies section](http://www.openscenegraph.org/index.php/download-section/dependencies) for more information
-  * The FBX SDK is strongly recommended as it is very likely you will need to use FBX models. [Get it here](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
-    * See the FBX Models section for more information
-  * The collada-dom library is necessary for reading COLLADA(.dae) files [Get it here](https://github.com/rdiankov/collada-dom)
-    * See the DAE Models section for more information
-
+* A graphics card supporting OpenGL 3.3
+* Qt 5.3
 
 ## Initial Setup
 
-### Clone the Project
+### Cloning
 Clone the repository _recursively_ to collect the dependencies as well as the source
 
 ```shell
@@ -33,137 +27,80 @@ You may pull the dependencies by running
 git submodule update --recursive
 ```
 
-### Setup OpenSceneGraph
-
-#### FBX Models
-If you're working with FBX models, download the FBX SDK for your platform [here](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
-and specify the path to the (installed) AutoDesk SDK in `FBX_DIR`
-
+### Building
+Move into the project's root directory, and make a new directory called `build` and cd into it
 ```shell
-export FBX_DIR={where you installed the sdk}/AutoDeskSDK
-```
-Note, once OpenSceneGraph has been configured CMake will remember this location for as long as you keep the configured directory
-
-#### DAE Models
-COLLADA files are a common exchange format for 3D applications. For the application to be able to read DAE files
-OpenSceneGraph will have to be build with [collada-dom](https://github.com/rdiankov/collada-dom) which will have to be built
-from source.
-
-Alternatively, if you wish to use a package instead there is a package available:
-* Debian Based distros: `libcollada-dom2.4-dp-dev`
-* Red Hat Based distros: `collada-dom-devel`
-
-##### Building collada-dom
-To build collada-dom you'll need CMake, Boost Filesystem, and Libxml2.
-
-For more information see the [collada wiki](https://www.khronos.org/collada/wiki/DOM_guide:_Setting_up)
-be careful though as some information seems dated.
-
-To make linking easier when building later, we'll do an in-source build.
-```shell
-git clone https://github.com/rdiankov/collada-dom.git
-cd collada-dom
-cmake .
-cmake --build .
-```
-
-##### Using collada-dom
-When configuring OpenSceneGraph, specify the collada-dom source/build directory in `COLLADA_DIR`
-
-```shell
-export COLLADA_DIR=/path/to/collada-dom
-```
-
-If you installed a package (or installed after you built from source, then you can ignore this section)
-Unfortunately, the project is set-up to be build only as a shared library,
-so it'll have to be added to your `LD_LIBRARY_PATH` to load DAE models at runtime.
-```shell
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/path/to/collada-dom
-```
-
-
-#### Building OpenSceneGraph
-Move into `lib/OpenSceneGraph` and make a directory called `build` and cd into it
-```shell
-cd visualization/lib/OpenSceneGraph
 mkdir build
 cd build
-```
-
-Run `cmake` to configure and then build OpenSceneGraph.
-Note: This will produce a `release` mode build
-```shell
-# configure
-cmake ..
-# build (add '-j' after the '.' for a parallel build)
-cmake --build .
-```
-
-### Building the Visualizer
-Move back to the project's root directory, and make a new directory called `build` and cd into it
-```shell
-# Move us up from lib/OpenSceneGraph/build
-cd ../../..
-mkdir build
-cd build
-```
-
-Specify to CMake the location of OpenSceneGraph.
-To do this the environment variables `OSG_ROOT` and `OSG_DIR` must be exported.
-
-Set `OSG_ROOT` to the root directory of OpenSceneGraph e.g.:
-```shell
-export OSG_ROOT="/absolute/path/to/the/project/lib/OpenSceneGraph"
-```
-
-
-Set `OSG_DIR` to the build directory you created in the OpenSceneGraph directory.
-You can set this from the `OSG_ROOT` from before e.g.:
-```shell
-export OSG_DIR="${OSG_ROOT}/build"
 ```
 
 Run `cmake` and specify the source directory. Then run the build tool
 ```shell
 cmake ..
-cmake --build .
+cmake --build . --parallel
 ```
 
-### Running the Visualizer
-
-#### LD_LIBRARY_PATH
-To run the visualizer, specify the built lib location of OpenSceneGraph and its plugins
-in your `LD_LIBRARY_PATH`
-
-The first path should be to `/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib`
-note the `build/lib` at the end of the path. This is the directory the *.so files were built
-
-The second path `/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.6.5`
-This is the same as the previous path except the for the `osgPlugins-3.6.5` at the end.
-Had you not included this path, the project would launch, but you'd be unable to load
-any outside models.
-
-Set your `LD_LIBRARY_PATH` based on the below. Note the `:` between paths.
-If `LD_LIBRARY_PATH` is not currently set on your system, you may ignore the first portion
+### Running
+After building the application may launched from the project root directory with the following command:
 ```shell
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib:/absolute/path/to/the/project/lib/OpenSceneGraph/build/lib/osgPlugins-3.6.5"
+cd ../
+./build/src/visualization
 ```
 
-Note: if you plan to load DAE files then you'll have to add collada-dom to your `LD_LIBRARY_PATH` as well,
-unless you installed it of course.
+## Resources
 
-See: [Using collada-dom](#using-collada-dom)
+### Supported Model Formats
+For the list of supported formats, see the [assimp wiki](https://github.com/assimp/assimp#supported-file-formats)
 
-#### Model Paths
-By default OpenSceneGraph will search from the current working directory for models.
-To allow a root directory other than the current working directory
-specify the `OSG_FILE_PATH` environment variable
+### Supported Texture Formats
+Anything supported by [stb-image](https://github.com/nothings/stb/blob/master/stb_image.h).
+The following is an excerpt from `stb_image.h` on support:
+
+```
+JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib)
+PNG 1/2/4/8/16-bit-per-channel
+TGA (not sure what subset, if a subset)
+BMP non-1bpp, non-RLE
+PSD (composited view only, no extra channels, 8/16 bit-per-channel)
+GIF (*comp always reports as 4-channel)
+HDR (radiance rgbE format)
+PIC (Softimage PIC)
+PNM (PPM and PGM binary only)
+```
+
+### Resource Paths
+By default the Visualizer will search from the current working directory the following:
+
+Textures in:
 ```shell
-OSG_FILE_PATH="/path/to/model/directory"
+$(working_directory)/resources/textures
 ```
 
-#### Execute the Command
-Now with the `LD_LIBRARY_PATH` set to find OpenSceneGraph, the application may be launched.
+Models in:
 ```shell
-./src/visualization
+$(working_directory)/resources/models
 ```
+All searches for textures in models will be redirected to the texture source above
+
+A solution independent of the current working directory is forthcoming...
+
+## Controls
+Currently all controls are fixed. Perhaps in the future we may allow them to be changed.
+
+### Camera
+The camera may be rotated by clicking and holding the left mouse button on the scene.
+
+The camera may be moved with the `W`, `A`, `S`, & `D` Keys:
+
+`W`: Forward
+
+`A`: Left
+
+`S`: Backward
+
+`D`: Right
+
+### Play/Pause
+The simulation starts in a paused state, the scene will still render, but time will not advance until it is unpaused.
+
+`P`: Pause/Resume scenario playback.

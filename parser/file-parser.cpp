@@ -32,11 +32,11 @@
  */
 #include "file-parser.h"
 #include "handler/JsonHandler.h"
+#include <algorithm>
 #include <iostream>
 #include <json.hpp>
-#include <memory>
 
-namespace visualization {
+namespace parser {
 
 void FileParser::parse(const char *path) {
   std::ifstream infile{path};
@@ -46,6 +46,23 @@ void FileParser::parse(const char *path) {
 
   JsonHandler handler{*this};
   nlohmann::json::sax_parse(infile, &handler);
+  std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) { return left.id < right.id; });
+
+  std::sort(buildings.begin(), buildings.end(),
+            [](const Building &left, const Building &right) { return left.id < right.id; });
+
+  std::sort(decorations.begin(), decorations.end(),
+            [](const Decoration &left, const Decoration &right) { return left.id < right.id; });
+}
+
+void FileParser::reset() {
+  nodes.clear();
+  buildings.clear();
+  decorations.clear();
+  sceneEvents.clear();
+  chartEvents.clear();
+  xySeries.clear();
+  seriesCollections.clear();
 }
 
 const GlobalConfiguration &FileParser::getConfiguration() const {
@@ -64,8 +81,12 @@ const std::vector<Decoration> &FileParser::getDecorations() const {
   return decorations;
 }
 
-const std::vector<Event> &FileParser::getEvents() const {
-  return events;
+const std::vector<SceneEvent> &FileParser::getSceneEvents() const {
+  return sceneEvents;
+}
+
+const std::vector<ChartEvent> &FileParser::getChartsEvents() const {
+  return chartEvents;
 }
 
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
@@ -75,4 +96,5 @@ const std::vector<XYSeries> &FileParser::getXYSeries() const {
 const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
   return seriesCollections;
 }
-} // namespace visualization
+
+} // namespace parser
