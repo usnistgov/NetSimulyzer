@@ -311,4 +311,9 @@ void RenderWidget::showCameraConfigurationDialogue() {
   cameraConfigurationDialogue.show();
 }
 
+void RenderWidget::resetCamera() {
+  camera.setPosition({0.0f, 0.0f, 0.0f});
+  camera.resetRotation();
+}
+
 } // namespace visualization

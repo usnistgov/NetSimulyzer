@@ -43,6 +43,7 @@
      <string>&amp;Camera</string>
     </property>
     <addaction name="actionCameraSettings"/>
+    <addaction name="actionResetCameraPosition"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWidget"/>
@@ -125,6 +126,11 @@
   <action name="actionCameraSettings">
    <property name="text">
     <string>&amp;Settings</string>
+   </property>
+  </action>
+  <action name="actionResetCameraPosition">
+   <property name="text">
+    <string>&amp;Reset Position</string>
    </property>
   </action>
  </widget>

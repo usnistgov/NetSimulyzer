@@ -128,6 +128,7 @@ public:
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
 
   void showCameraConfigurationDialogue();
+  void resetCamera();
 
 signals:
   void timeAdvanced(double simulationTime);

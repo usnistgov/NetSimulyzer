@@ -86,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
   QObject::connect(ui->actionCameraSettings, &QAction::triggered,
                    [this]() { render.showCameraConfigurationDialogue(); });
+
+  QObject::connect(ui->actionResetCameraPosition, &QAction::triggered, &render, &RenderWidget::resetCamera);
 }
 
 MainWindow::~MainWindow() {
