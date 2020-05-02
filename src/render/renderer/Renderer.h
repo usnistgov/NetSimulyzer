@@ -41,7 +41,7 @@
 #include "../shader/Shader.h"
 #include "../texture/SkyBox.h"
 #include "../texture/TextureCache.h"
-#include "render/Light.h"
+#include "../Light.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <sstream>

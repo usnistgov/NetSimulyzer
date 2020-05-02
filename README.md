@@ -7,7 +7,7 @@ A 3D visualizer for ns-3 scenarios.
   * Minimum supported compilers:
     * GCC 7.3.0
     * Clang 6.0.0
-* CMake 3.12 or greater
+* CMake 3.13 or greater
 * A graphics card supporting OpenGL 3.3
 * Qt 5.3
 
@@ -44,7 +44,7 @@ cmake --build . --parallel
 After building the application may launched from the project root directory with the following command:
 ```shell
 cd ../
-./build/src/visualization
+./build/visualization
 ```
 
 ## Resources

@@ -29,18 +29,7 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package(Qt5 COMPONENTS Core Widgets Gui Charts REQUIRED)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-# Necessary for QThreads & standard threads
-find_package(Threads REQUIRED)
-
-add_executable(visualization
-        main.cpp
+target_sources(visualization PRIVATE
         group/building/Building.h group/building/Building.cpp
         group/decoration/Decoration.h group/decoration/Decoration.cpp
         group/node/Node.h group/node/Node.cpp
@@ -63,16 +52,4 @@ add_executable(visualization
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
         window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
-        coordinate.h coordinate.cpp
-        ../visualization.rc ../resources.qrc)
-
-target_compile_features(visualization PRIVATE cxx_std_17)
-
-target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
-
-target_link_libraries(visualization PRIVATE parser)
-target_link_libraries(visualization PRIVATE assimp)
-target_link_libraries(visualization PRIVATE stb)
-target_include_directories(visualization PRIVATE ../lib/glm)
-target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
-target_link_libraries(visualization PRIVATE Threads::Threads)
+        coordinate.h coordinate.cpp)

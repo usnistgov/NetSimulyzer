@@ -35,7 +35,7 @@
 #include <QOpenGLContext>
 // clang-format on
 
-#include "window/mainWindow.h"
+#include "src/window/mainWindow.h"
 #include <QApplication>
 #include <QSurfaceFormat>
 

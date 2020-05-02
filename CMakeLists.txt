@@ -29,7 +29,7 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(visualization LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -44,4 +44,30 @@ target_compile_options(assimp PRIVATE -w)
 add_subdirectory(lib/json)
 add_subdirectory(lib/stb)
 add_subdirectory(parser)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package(Qt5 COMPONENTS Core Widgets Gui Charts REQUIRED)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# Necessary for QThreads & standard threads
+find_package(Threads REQUIRED)
+
+add_executable(visualization
+        main.cpp
+        visualization.rc
+        resources.qrc)
+
+target_compile_features(visualization PRIVATE cxx_std_17)
+
+target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
+
+target_link_libraries(visualization PRIVATE parser)
+target_link_libraries(visualization PRIVATE assimp)
+target_link_libraries(visualization PRIVATE stb)
+target_include_directories(visualization PRIVATE lib/glm)
+target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
+target_link_libraries(visualization PRIVATE Threads::Threads)
+
 add_subdirectory(src)
