@@ -46,9 +46,11 @@ public:
 private:
   struct active_directions {
     enum class direction { none, forward, backwards };
+    enum class verticalDirection { none, up, down };
     enum class side { none, left, right };
     direction front_back = direction::none;
     side left_right = side::none;
+    verticalDirection upDown = verticalDirection::none;
     side turn = side::none;
   };
 
@@ -58,6 +60,8 @@ private:
   int keyRight = Qt::Key_D;
   int keyTurnLeft = Qt::Key_Q;
   int keyTurnRight = Qt::Key_E;
+  int keyUp = Qt::Key_Z;
+  int keyDown = Qt::Key_X;
 
   glm::vec3 position{0.0f};
   glm::vec3 front{0.0f, 0.0f, -1.0f};
@@ -120,6 +124,12 @@ public:
 
   [[nodiscard]] int getKeyTurnRight() const;
   void setKeyTurnRight(int value);
+
+  [[nodiscard]] int getKeyUp() const;
+  void setKeyUp(int value);
+
+  [[nodiscard]] int getKeyDown() const;
+  void setKeyDown(int value);
 
   [[nodiscard]] move_state getMobility() const;
   void setMobility(move_state state);

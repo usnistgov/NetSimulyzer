@@ -33,7 +33,6 @@
 
 #include "Camera.h"
 #include <cmath>
-#include <iostream>
 
 namespace visualization {
 
@@ -67,6 +66,10 @@ void Camera::handle_keypress(int key) {
     active.turn = active_directions::side::right;
   else if (key == keyTurnLeft)
     active.turn = active_directions::side::left;
+  else if (key == keyUp)
+    active.upDown = active_directions::verticalDirection::up;
+  else if (key == keyDown)
+    active.upDown = active_directions::verticalDirection::down;
 }
 
 void Camera::handle_keyrelease(int key) {
@@ -76,6 +79,8 @@ void Camera::handle_keyrelease(int key) {
     active.left_right = active_directions::side::none;
   else if (key == keyTurnLeft || key == keyTurnRight)
     active.turn = active_directions::side::none;
+  else if (key == keyUp || key == keyDown)
+    active.upDown = active_directions::verticalDirection::none;
 }
 
 float Camera::getFieldOfView() const {
@@ -134,6 +139,11 @@ void Camera::move(float delta_time) {
     position -= right * velocity;
   else if (active.left_right == active_directions::side::right)
     position += right * velocity;
+
+  if (active.upDown == active_directions::verticalDirection::up)
+    position += up * velocity;
+  else if (active.upDown == active_directions::verticalDirection::down)
+    position -= up * velocity;
 
   // No need to `update()` if turns are not involved
   if (active.turn == active_directions::side::none)
@@ -235,6 +245,22 @@ int Camera::getKeyTurnRight() const {
 
 void Camera::setKeyTurnRight(int value) {
   keyTurnRight = value;
+}
+
+int Camera::getKeyUp() const {
+  return keyUp;
+}
+
+void Camera::setKeyUp(int value) {
+  keyUp = value;
+}
+
+int Camera::getKeyDown() const {
+  return keyDown;
+}
+
+void Camera::setKeyDown(int value) {
+  keyDown = value;
 }
 
 } // namespace visualization

@@ -32,6 +32,8 @@ private:
   const int defaultRightKey = Qt::Key_D;
   const int defaultLeftTurnKey = Qt::Key_Q;
   const int defaultRightTurnKey = Qt::Key_E;
+  const int defaultUpKey = Qt::Key_Z;
+  const int defaultDownKey = Qt::Key_X;
 
   Ui::CameraConfigurationDialogue *ui;
   Camera &camera;
@@ -48,6 +50,8 @@ private:
   void rightKeyChanged(const QKeySequence &value);
   void leftTurnKeyChanged(const QKeySequence &value);
   void rightTurnKeyChanged(const QKeySequence &value);
+  void upKeyChanged(const QKeySequence &value);
+  void downKeyChanged(const QKeySequence &value);
 
   void dialogueButtonClicked(QAbstractButton *button);
 };
