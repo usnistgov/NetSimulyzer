@@ -21,24 +21,33 @@ signals:
 
 private:
   const int defaultMoveSpeed = 5;
-  const int defaultTurnSpeed = 5;
+  const int defaultMouseTurnSpeed = 5;
+  const int defaultKeyboardTurnSpeed = 1;
   const int defaultFieldOfView = 45;
   const bool defaultAllowCameraEvents = true;
+  const bool defaultUseMouseControls = true;
   const int defaultForwardKey = Qt::Key_W;
   const int defaultBackwardKey = Qt::Key_S;
   const int defaultLeftKey = Qt::Key_A;
   const int defaultRightKey = Qt::Key_D;
+  const int defaultLeftTurnKey = Qt::Key_Q;
+  const int defaultRightTurnKey = Qt::Key_E;
 
   Ui::CameraConfigurationDialogue *ui;
   Camera &camera;
   void moveSpeedChanged(int value);
-  void turnSpeedChanged(int value);
+  void keyboardTurnSpeedChanged(int value);
+  void mouseTurnSpeedChanged(int value);
   void fieldOfViewChanged(int value);
+
+  void allowCameraEventsChanged(int value);
 
   void forwardKeyChanged(const QKeySequence &value);
   void backwardKeyChanged(const QKeySequence &value);
   void leftKeyChanged(const QKeySequence &value);
   void rightKeyChanged(const QKeySequence &value);
+  void leftTurnKeyChanged(const QKeySequence &value);
+  void rightTurnKeyChanged(const QKeySequence &value);
 
   void dialogueButtonClicked(QAbstractButton *button);
 };

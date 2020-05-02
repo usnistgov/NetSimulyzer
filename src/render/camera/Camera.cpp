@@ -60,16 +60,22 @@ void Camera::handle_keypress(int key) {
   else if (key == keyBackward)
     active.front_back = active_directions::direction::backwards;
   else if (key == keyLeft)
-    active.left_right = active_directions::direction::backwards;
+    active.left_right = active_directions::side::left;
   else if (key == keyRight)
-    active.left_right = active_directions::direction::forward;
+    active.left_right = active_directions::side::right;
+  else if (key == keyTurnRight)
+    active.turn = active_directions::side::right;
+  else if (key == keyTurnLeft)
+    active.turn = active_directions::side::left;
 }
 
 void Camera::handle_keyrelease(int key) {
   if (key == keyForward || key == keyBackward)
     active.front_back = active_directions::direction::none;
   else if (key == keyLeft || key == keyRight)
-    active.left_right = active_directions::direction::none;
+    active.left_right = active_directions::side::none;
+  else if (key == keyTurnLeft || key == keyTurnRight)
+    active.turn = active_directions::side::none;
 }
 
 float Camera::getFieldOfView() const {
@@ -89,11 +95,27 @@ void Camera::setMoveSpeed(float value) {
 }
 
 float Camera::getTurnSpeed() const {
-  return turn_speed;
+  return turnSpeed;
 }
 
 void Camera::setTurnSpeed(float value) {
-  turn_speed = value;
+  turnSpeed = value;
+}
+
+bool Camera::mouseControlsEnabled() const {
+  return enableMouseControls;
+}
+
+void Camera::useMouseControls(bool value) {
+  enableMouseControls = value;
+}
+
+float Camera::getMouseTurnSpeed() const {
+  return mouseTurnSpeed;
+}
+
+void Camera::setMouseTurnSpeed(float value) {
+  mouseTurnSpeed = value;
 }
 
 glm::mat4 Camera::view_matrix() const {
@@ -108,18 +130,30 @@ void Camera::move(float delta_time) {
   else if (active.front_back == active_directions::direction::backwards)
     position -= front * velocity;
 
-  if (active.left_right == active_directions::direction::backwards)
+  if (active.left_right == active_directions::side::left)
     position -= right * velocity;
-  else if (active.left_right == active_directions::direction::forward)
+  else if (active.left_right == active_directions::side::right)
     position += right * velocity;
+
+  // No need to `update()` if turns are not involved
+  if (active.turn == active_directions::side::none)
+    return;
+
+  auto turnVelocity = turnSpeed * delta_time;
+  if (active.turn == active_directions::side::left)
+    yaw -= turnVelocity;
+  else if (active.turn == active_directions::side::right)
+    yaw += turnVelocity;
+
+  update();
 }
 
 void Camera::mouse_move(float delta_x, float delta_y) {
-  if (mobility == move_state::frozen)
+  if (!enableMouseControls || mobility == move_state::frozen)
     return;
 
-  delta_x *= turn_speed;
-  delta_y *= turn_speed;
+  delta_x *= mouseTurnSpeed;
+  delta_y *= mouseTurnSpeed;
 
   yaw += delta_x;
   pitch += delta_y;
@@ -185,6 +219,22 @@ int Camera::getKeyRight() const {
 
 void Camera::setKeyRight(int value) {
   keyRight = value;
+}
+
+int Camera::getKeyTurnLeft() const {
+  return keyTurnLeft;
+}
+
+void Camera::setKeyTurnLeft(int value) {
+  keyTurnLeft = value;
+}
+
+int Camera::getKeyTurnRight() const {
+  return keyTurnRight;
+}
+
+void Camera::setKeyTurnRight(int value) {
+  keyTurnRight = value;
 }
 
 } // namespace visualization

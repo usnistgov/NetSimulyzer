@@ -1,8 +1,8 @@
 #include "CameraConfigurationDialogue.h"
-#include "ui_CameraConfigurationDialogue.h"
 #include <QObject>
 #include <QSlider>
 #include <iostream>
+#include <ui_CameraConfigurationDialogue.h>
 
 namespace visualization {
 
@@ -17,12 +17,21 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
                    [this]() { ui->sliderMoveSpeed->setValue(defaultMoveSpeed); });
   ui->pushButtonResetMoveSpeed->setEnabled(ui->sliderMoveSpeed->value() != defaultMoveSpeed);
 
-  QObject::connect(ui->sliderTurnSpeed, &QSlider::valueChanged, this, &CameraConfigurationDialogue::turnSpeedChanged);
-  ui->sliderTurnSpeed->setValue(static_cast<int>(camera.getTurnSpeed() * 10.0f));
-  ui->labelTurnSpeedValue->setNum(camera.getTurnSpeed());
-  QObject::connect(ui->pushButtonResetTurnSpeed, &QPushButton::clicked,
-                   [this]() { ui->sliderTurnSpeed->setValue(defaultTurnSpeed); });
-  ui->pushButtonResetTurnSpeed->setEnabled(ui->sliderTurnSpeed->value() != defaultTurnSpeed);
+  QObject::connect(ui->sliderKeyboardTurnSpeed, &QSlider::valueChanged, this,
+                   &CameraConfigurationDialogue::keyboardTurnSpeedChanged);
+  ui->sliderKeyboardTurnSpeed->setValue(static_cast<int>(camera.getTurnSpeed() * 10.0f));
+  ui->labelKeyboardTurnSpeedValue->setNum(camera.getTurnSpeed());
+  QObject::connect(ui->pushButtonResetKeyboardTurnSpeed, &QPushButton::clicked,
+                   [this]() { ui->sliderKeyboardTurnSpeed->setValue(defaultKeyboardTurnSpeed); });
+  ui->pushButtonResetKeyboardTurnSpeed->setEnabled(ui->sliderKeyboardTurnSpeed->value() != defaultKeyboardTurnSpeed);
+
+  QObject::connect(ui->sliderMouseTurnSpeed, &QSlider::valueChanged, this,
+                   &CameraConfigurationDialogue::mouseTurnSpeedChanged);
+  ui->sliderMouseTurnSpeed->setValue(static_cast<int>(camera.getMouseTurnSpeed() * 10.0f));
+  ui->labelMouseTurnSpeedValue->setNum(camera.getMouseTurnSpeed());
+  QObject::connect(ui->pushButtonResetMouseTurnSpeed, &QPushButton::clicked,
+                   [this]() { ui->sliderMouseTurnSpeed->setValue(defaultMouseTurnSpeed); });
+  ui->pushButtonResetMouseTurnSpeed->setEnabled(ui->sliderMouseTurnSpeed->value() != defaultMouseTurnSpeed);
 
   QObject::connect(ui->sliderFieldOfView, &QSlider::valueChanged, this,
                    &CameraConfigurationDialogue::fieldOfViewChanged);
@@ -31,6 +40,14 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
   QObject::connect(ui->pushButtonResetFieldOfView, &QPushButton::clicked,
                    [this]() { ui->sliderFieldOfView->setValue(defaultFieldOfView); });
   ui->pushButtonResetFieldOfView->setEnabled(ui->sliderFieldOfView->value() != defaultFieldOfView);
+
+  QObject::connect(ui->checkBoxMouseControls, &QCheckBox::stateChanged, this,
+                   &CameraConfigurationDialogue::allowCameraEventsChanged);
+
+  QObject::connect(ui->pushButtonResetMouseControlsEnabled, &QPushButton::clicked,
+                   [this]() { ui->checkBoxMouseControls->setChecked(defaultUseMouseControls); });
+  ui->pushButtonResetMouseControlsEnabled->setEnabled(ui->checkBoxMouseControls->isChecked() !=
+                                                      defaultUseMouseControls);
 
   QObject::connect(ui->keySequenceEditForward, &QKeySequenceEdit::keySequenceChanged, this,
                    &CameraConfigurationDialogue::forwardKeyChanged);
@@ -60,6 +77,20 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
       ui->keySequenceEditRight->setKeySequence(defaultRightKey);
   });
 
+  QObject::connect(ui->keySequenceEditTurnLeft, &QKeySequenceEdit::keySequenceChanged, this,
+                   &CameraConfigurationDialogue::leftTurnKeyChanged);
+  QObject::connect(ui->keySequenceEditTurnLeft, &QKeySequenceEdit::editingFinished, [this]() {
+    if (ui->keySequenceEditTurnLeft->keySequence().count() == 0)
+      ui->keySequenceEditTurnLeft->setKeySequence(defaultLeftTurnKey);
+  });
+
+  QObject::connect(ui->keySequenceEditTurnRight, &QKeySequenceEdit::keySequenceChanged, this,
+                   &CameraConfigurationDialogue::rightTurnKeyChanged);
+  QObject::connect(ui->keySequenceEditTurnRight, &QKeySequenceEdit::editingFinished, [this]() {
+    if (ui->keySequenceEditTurnRight->keySequence().count() == 0)
+      ui->keySequenceEditTurnRight->setKeySequence(defaultRightTurnKey);
+  });
+
   QObject::connect(ui->pushButtonResetForward, &QPushButton::clicked,
                    [this]() { ui->keySequenceEditForward->setKeySequence(defaultForwardKey); });
   // Only enable the reset button for the control if it is not
@@ -68,21 +99,23 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
 
   QObject::connect(ui->pushButtonResetBackward, &QPushButton::clicked,
                    [this]() { ui->keySequenceEditBackward->setKeySequence(defaultBackwardKey); });
-  // Only enable the reset button for the control if it is not
-  // already the default
   ui->pushButtonResetBackward->setEnabled(camera.getKeyBackward() != defaultBackwardKey);
 
   QObject::connect(ui->pushButtonResetLeft, &QPushButton::clicked,
                    [this]() { ui->keySequenceEditLeft->setKeySequence(defaultLeftKey); });
-  // Only enable the reset button for the control if it is not
-  // already the default
   ui->pushButtonResetLeft->setEnabled(camera.getKeyLeft() != defaultLeftKey);
 
   QObject::connect(ui->pushButtonResetRight, &QPushButton::clicked,
                    [this]() { ui->keySequenceEditRight->setKeySequence(defaultRightKey); });
-  // Only enable the reset button for the control if it is not
-  // already the default
   ui->pushButtonResetRight->setEnabled(camera.getKeyRight() != defaultRightKey);
+
+  QObject::connect(ui->pushButtonResetLeftTurn, &QPushButton::clicked,
+                   [this]() { ui->keySequenceEditTurnLeft->setKeySequence(defaultLeftTurnKey); });
+  ui->pushButtonResetLeftTurn->setEnabled(camera.getKeyTurnLeft() != defaultLeftTurnKey);
+
+  QObject::connect(ui->pushButtonResetRightTurn, &QPushButton::clicked,
+                   [this]() { ui->keySequenceEditTurnRight->setKeySequence(defaultRightTurnKey); });
+  ui->pushButtonResetRightTurn->setEnabled(camera.getKeyTurnRight() != defaultRightTurnKey);
 
   QObject::connect(ui->buttonBox, &QDialogButtonBox::clicked, this,
                    &CameraConfigurationDialogue::dialogueButtonClicked);
@@ -99,11 +132,18 @@ void CameraConfigurationDialogue::moveSpeedChanged(int value) {
   ui->pushButtonResetMoveSpeed->setEnabled(value != defaultMoveSpeed);
 }
 
-void CameraConfigurationDialogue::turnSpeedChanged(int value) {
+void CameraConfigurationDialogue::keyboardTurnSpeedChanged(int value) {
   auto scaledValue = static_cast<float>(value) * 0.1f;
-  ui->labelTurnSpeedValue->setNum(scaledValue);
+  ui->labelKeyboardTurnSpeedValue->setNum(scaledValue);
   camera.setTurnSpeed(scaledValue);
-  ui->pushButtonResetTurnSpeed->setEnabled(value != defaultTurnSpeed);
+  ui->pushButtonResetKeyboardTurnSpeed->setEnabled(value != defaultKeyboardTurnSpeed);
+}
+
+void CameraConfigurationDialogue::mouseTurnSpeedChanged(int value) {
+  auto scaledValue = static_cast<float>(value) * 0.1f;
+  ui->labelMouseTurnSpeedValue->setNum(scaledValue);
+  camera.setMouseTurnSpeed(scaledValue);
+  ui->pushButtonResetMouseTurnSpeed->setEnabled(value != defaultMouseTurnSpeed);
 }
 
 void CameraConfigurationDialogue::fieldOfViewChanged(int value) {
@@ -111,6 +151,15 @@ void CameraConfigurationDialogue::fieldOfViewChanged(int value) {
   camera.setFieldOfView(static_cast<float>(value));
   ui->pushButtonResetFieldOfView->setEnabled(value != defaultFieldOfView);
   emit perspectiveUpdated();
+}
+
+void CameraConfigurationDialogue::allowCameraEventsChanged(int value) {
+  auto isChecked = value == Qt::CheckState::Checked;
+  camera.useMouseControls(isChecked);
+
+  ui->pushButtonResetMouseControlsEnabled->setEnabled(isChecked != defaultUseMouseControls);
+
+  ui->sliderMouseTurnSpeed->setEnabled(isChecked);
 }
 
 void CameraConfigurationDialogue::forwardKeyChanged(const QKeySequence &value) {
@@ -161,17 +210,45 @@ void CameraConfigurationDialogue::rightKeyChanged(const QKeySequence &value) {
   camera.setKeyRight(value[0]);
 }
 
+void CameraConfigurationDialogue::leftTurnKeyChanged(const QKeySequence &value) {
+  if (value.count() > 1)
+    ui->keySequenceEditTurnLeft->setKeySequence(value[0]);
+  else if (value.count() == 0)
+    return;
+
+  // Only enable the reset button for the control if it is not
+  // being set to the default
+  ui->pushButtonResetLeftTurn->setEnabled(value[0] != defaultLeftTurnKey);
+  camera.setKeyTurnLeft(value[0]);
+}
+
+void CameraConfigurationDialogue::rightTurnKeyChanged(const QKeySequence &value) {
+  if (value.count() > 1)
+    ui->keySequenceEditTurnRight->setKeySequence(value[0]);
+  else if (value.count() == 0)
+    return;
+
+  // Only enable the reset button for the control if it is not
+  // being set to the default
+  ui->pushButtonResetRightTurn->setEnabled(value[0] != defaultRightTurnKey);
+  camera.setKeyTurnRight(value[0]);
+}
+
 void CameraConfigurationDialogue::dialogueButtonClicked(QAbstractButton *button) {
   auto standardButton = ui->buttonBox->standardButton(button);
 
   if (standardButton == QDialogButtonBox::RestoreDefaults) {
     ui->pushButtonResetMoveSpeed->click();
-    ui->pushButtonResetTurnSpeed->click();
+    ui->pushButtonResetMouseTurnSpeed->click();
+    ui->pushButtonResetKeyboardTurnSpeed->click();
     ui->pushButtonResetFieldOfView->click();
+    ui->pushButtonResetMouseControlsEnabled->click();
     ui->pushButtonResetForward->click();
     ui->pushButtonResetBackward->click();
     ui->pushButtonResetLeft->click();
     ui->pushButtonResetRight->click();
+    ui->pushButtonResetLeftTurn->click();
+    ui->pushButtonResetRightTurn->click();
     ui->checkBoxAllowCameraEvents->setChecked(defaultAllowCameraEvents);
   } else if (standardButton == QDialogButtonBox::Close) {
     accept();

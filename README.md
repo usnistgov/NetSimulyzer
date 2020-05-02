@@ -89,7 +89,7 @@ A solution independent of the current working directory is forthcoming...
 ### Camera
 The camera may be rotated by clicking and holding the left mouse button on the scene.
 
-The camera may be moved by default with the `W`, `A`, `S`, & `D` Keys:
+The camera may be moved by default with `W`, `A`, `S`, & `D` and turned with the `Q` and `E` keys
 
 `W`: Forward
 
@@ -98,6 +98,10 @@ The camera may be moved by default with the `W`, `A`, `S`, & `D` Keys:
 `S`: Backward
 
 `D`: Right
+
+`Q`: Left
+
+`E`: Right
 
 The camera controls may be changed from the 'Camera Settings' option in the 'Camera' menu
 

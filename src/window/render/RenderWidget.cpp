@@ -187,6 +187,9 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event) {
 
 void RenderWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
+  if (!camera.mouseControlsEnabled())
+    return;
+
   if (event->buttons() & Qt::LeftButton) {
     setCursor(Qt::BlankCursor);
 
@@ -201,6 +204,9 @@ void RenderWidget::mousePressEvent(QMouseEvent *event) {
 
 void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
   QWidget::mouseReleaseEvent(event);
+  if (!camera.mouseControlsEnabled())
+    return;
+
   if (!(event->buttons() & Qt::LeftButton)) {
     unsetCursor();
     camera.setMobility(Camera::move_state::frozen);

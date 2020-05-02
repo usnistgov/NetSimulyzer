@@ -46,14 +46,18 @@ public:
 private:
   struct active_directions {
     enum class direction { none, forward, backwards };
+    enum class side { none, left, right };
     direction front_back = direction::none;
-    direction left_right = direction::none;
+    side left_right = side::none;
+    side turn = side::none;
   };
 
   int keyForward = Qt::Key_W;
   int keyBackward = Qt::Key_S;
   int keyLeft = Qt::Key_A;
   int keyRight = Qt::Key_D;
+  int keyTurnLeft = Qt::Key_Q;
+  int keyTurnRight = Qt::Key_E;
 
   glm::vec3 position{0.0f};
   glm::vec3 front{0.0f, 0.0f, -1.0f};
@@ -67,7 +71,10 @@ private:
   float pitch{0.0f};
 
   float move_speed{0.05f};
-  float turn_speed{0.5f};
+  float turnSpeed{0.1};
+
+  bool enableMouseControls = true;
+  float mouseTurnSpeed{0.5f};
 
   active_directions active;
 
@@ -90,6 +97,12 @@ public:
   [[nodiscard]] float getTurnSpeed() const;
   void setTurnSpeed(float value);
 
+  [[nodiscard]] bool mouseControlsEnabled() const;
+  void useMouseControls(bool value);
+
+  [[nodiscard]] float getMouseTurnSpeed() const;
+  void setMouseTurnSpeed(float value);
+
   [[nodiscard]] int getKeyForward() const;
   void setKeyForward(int value);
 
@@ -101,6 +114,12 @@ public:
 
   [[nodiscard]] int getKeyRight() const;
   void setKeyRight(int value);
+
+  [[nodiscard]] int getKeyTurnLeft() const;
+  void setKeyTurnLeft(int value);
+
+  [[nodiscard]] int getKeyTurnRight() const;
+  void setKeyTurnRight(int value);
 
   [[nodiscard]] move_state getMobility() const;
   void setMobility(move_state state);
