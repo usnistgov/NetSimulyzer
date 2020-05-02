@@ -125,7 +125,7 @@
   </action>
   <action name="actionCameraSettings">
    <property name="text">
-    <string>&amp;Settings</string>
+    <string>Camera &amp;Settings</string>
    </property>
   </action>
   <action name="actionResetCameraPosition">

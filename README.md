@@ -85,12 +85,11 @@ All searches for textures in models will be redirected to the texture source abo
 A solution independent of the current working directory is forthcoming...
 
 ## Controls
-Currently all controls are fixed. Perhaps in the future we may allow them to be changed.
 
 ### Camera
 The camera may be rotated by clicking and holding the left mouse button on the scene.
 
-The camera may be moved with the `W`, `A`, `S`, & `D` Keys:
+The camera may be moved by default with the `W`, `A`, `S`, & `D` Keys:
 
 `W`: Forward
 
@@ -99,6 +98,8 @@ The camera may be moved with the `W`, `A`, `S`, & `D` Keys:
 `S`: Backward
 
 `D`: Right
+
+The camera controls may be changed from the 'Camera Settings' option in the 'Camera' menu
 
 ### Play/Pause
 The simulation starts in a paused state, the scene will still render, but time will not advance until it is unpaused.
