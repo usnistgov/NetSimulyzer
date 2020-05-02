@@ -219,7 +219,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
-  if (!(event->buttons() & Qt::LeftButton))
+  if (!(event->buttons() & Qt::LeftButton) || !camera.mouseControlsEnabled())
     return;
 
   const QPoint widgetCenter{width() / 2, height() / 2};
