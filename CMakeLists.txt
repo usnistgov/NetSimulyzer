@@ -30,7 +30,9 @@
 # Author: Evan Black <evan.black@nist.gov>
 
 cmake_minimum_required(VERSION 3.13)
-project(visualization LANGUAGES C CXX)
+project(visualization
+        VERSION 0.1.0
+        LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -53,6 +55,11 @@ set(CMAKE_AUTOUIC ON)
 
 # Necessary for QThreads & standard threads
 find_package(Threads REQUIRED)
+
+# Version and other info
+configure_file(project.h.in
+        ${PROJECT_BINARY_DIR}/project.h
+        )
 
 add_executable(visualization
         main.cpp
