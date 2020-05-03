@@ -18,76 +18,156 @@
     <normaloff>:/application/resources/application.png</normaloff>:/application/resources/application.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="labelMoveSpeed">
+   <item row="11" column="0">
+    <widget class="QLabel" name="labelTurnRight">
      <property name="text">
-      <string>Move Speed</string>
+      <string>Turn Right</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="labelBackward">
-     <property name="text">
-      <string>Backward</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="3">
+   <item row="1" column="2">
     <widget class="QPushButton" name="pushButtonResetKeyboardTurnSpeed">
      <property name="text">
       <string>Default</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QLabel" name="labelMoveSpeedValue">
-     <property name="text">
-      <string>Value</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QCheckBox" name="checkBoxMouseControls">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditTurnRight">
-     <property name="keySequence">
-      <string>E</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="3">
-    <widget class="QPushButton" name="pushButtonResetFieldOfView">
+   <item row="8" column="2">
+    <widget class="QPushButton" name="pushButtonResetLeft">
      <property name="text">
       <string>Default</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="2">
-    <widget class="QLabel" name="labelMouseTurnSpeedValue">
+   <item row="8" column="0">
+    <widget class="QLabel" name="labelLeft">
      <property name="text">
-      <string>Value</string>
+      <string>Left</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditLeft">
+   <item row="2" column="1">
+    <widget class="QSlider" name="sliderMouseTurnSpeed">
+     <property name="maximum">
+      <number>20</number>
+     </property>
+     <property name="pageStep">
+      <number>5</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditRight">
      <property name="keySequence">
-      <string>A</string>
+      <string>D</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
-    <widget class="QLabel" name="labelFieldOfViewValue">
+   <item row="12" column="2">
+    <widget class="QPushButton" name="pushButtonResetUp">
      <property name="text">
-      <string>Value</string>
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditBackward">
+     <property name="keySequence">
+      <string>S</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelMouseTurnSpeed">
+     <property name="text">
+      <string>Mouse Turn Speed</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="labelFieldOfView">
+     <property name="text">
+      <string>FOV</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="labelKeyboardTurnSpeed">
+     <property name="text">
+      <string>Keyboard Turn Speed</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="2">
+    <widget class="QPushButton" name="pushButtonResetDown">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="labelTurnLeft">
+     <property name="text">
+      <string>Turn Left</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QPushButton" name="pushButtonResetRightTurn">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="labelRight">
+     <property name="text">
+      <string>Right</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditDown">
+     <property name="keySequence">
+      <string>X</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditForward">
+     <property name="keySequence">
+      <string>W</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QPushButton" name="pushButtonResetBackward">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="labelUp">
+     <property name="text">
+      <string>Up</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QPushButton" name="pushButtonResetMouseTurnSpeed">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditUp">
+     <property name="keySequence">
+      <string>Z</string>
      </property>
     </widget>
    </item>
@@ -107,115 +187,10 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="0">
-    <widget class="QLabel" name="labelUp">
-     <property name="text">
-      <string>Up</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="3">
-    <widget class="QPushButton" name="pushButtonResetForward">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="3">
-    <widget class="QPushButton" name="pushButtonResetBackward">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="labelFieldOfView">
-     <property name="text">
-      <string>FOV</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLabel" name="labelKeyboardTurnSpeedValue">
-     <property name="text">
-      <string>Value</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditRight">
-     <property name="keySequence">
-      <string>D</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditBackward">
-     <property name="keySequence">
-      <string>S</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditForward">
-     <property name="keySequence">
-      <string>W</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="3">
-    <widget class="QPushButton" name="pushButtonResetLeftTurn">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="labelTurnRight">
-     <property name="text">
-      <string>Turn Right</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="3">
-    <widget class="QPushButton" name="pushButtonResetRight">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="labelMouseTurnSpeed">
-     <property name="text">
-      <string>Mouse Turn Speed</string>
-     </property>
-    </widget>
-   </item>
    <item row="10" column="1">
     <widget class="QKeySequenceEdit" name="keySequenceEditTurnLeft">
      <property name="keySequence">
       <string>Q</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="labelKeyboardTurnSpeed">
-     <property name="text">
-      <string>Keyboard Turn Speed</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="labelTurnLeft">
-     <property name="text">
-      <string>Turn Left</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="3">
-    <widget class="QPushButton" name="pushButtonResetLeft">
-     <property name="text">
-      <string>Default</string>
      </property>
     </widget>
    </item>
@@ -235,52 +210,24 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditUp">
-     <property name="keySequence">
-      <string>Z</string>
+   <item row="14" column="0" colspan="3">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="labelForward">
+   <item row="13" column="0">
+    <widget class="QLabel" name="labelDown">
      <property name="text">
-      <string>Forward</string>
+      <string>Down</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="labelLeft">
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelMoveSpeed">
      <property name="text">
-      <string>Left</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="3">
-    <widget class="QPushButton" name="pushButtonResetMouseControlsEnabled">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="labelRight">
-     <property name="text">
-      <string>Right</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="3">
-    <widget class="QPushButton" name="pushButtonResetMouseTurnSpeed">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="labelMouseControls">
-     <property name="text">
-      <string>Mouse Controls</string>
+      <string>Move Speed</string>
      </property>
     </widget>
    </item>
@@ -309,44 +256,24 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
+   <item row="7" column="0">
+    <widget class="QLabel" name="labelBackward">
+     <property name="text">
+      <string>Backward</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QPushButton" name="pushButtonResetLeftTurn">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
     <widget class="QPushButton" name="pushButtonResetMoveSpeed">
      <property name="text">
       <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="labelAllowCameraEvents">
-     <property name="text">
-      <string>Allow Camera Events</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="3">
-    <widget class="QPushButton" name="pushButtonResetRightTurn">
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QSlider" name="sliderMouseTurnSpeed">
-     <property name="maximum">
-      <number>20</number>
-     </property>
-     <property name="pageStep">
-      <number>5</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="0" colspan="4">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
      </property>
     </widget>
    </item>
@@ -360,31 +287,76 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="0">
-    <widget class="QLabel" name="labelDown">
+   <item row="9" column="2">
+    <widget class="QPushButton" name="pushButtonResetRight">
      <property name="text">
-      <string>Down</string>
+      <string>Default</string>
      </property>
     </widget>
    </item>
-   <item row="13" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditDown">
+   <item row="5" column="0">
+    <widget class="QLabel" name="labelMouseControls">
+     <property name="text">
+      <string>Mouse Controls</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditLeft">
      <property name="keySequence">
-      <string>X</string>
+      <string>A</string>
      </property>
     </widget>
    </item>
-   <item row="12" column="3">
-    <widget class="QPushButton" name="pushButtonResetUp">
+   <item row="11" column="1">
+    <widget class="QKeySequenceEdit" name="keySequenceEditTurnRight">
+     <property name="keySequence">
+      <string>E</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QCheckBox" name="checkBoxMouseControls">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="2">
+    <widget class="QPushButton" name="pushButtonResetForward">
      <property name="text">
       <string>Default</string>
      </property>
     </widget>
    </item>
-   <item row="13" column="3">
-    <widget class="QPushButton" name="pushButtonResetDown">
+   <item row="5" column="2">
+    <widget class="QPushButton" name="pushButtonResetMouseControlsEnabled">
      <property name="text">
       <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="labelForward">
+     <property name="text">
+      <string>Forward</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="pushButtonResetFieldOfView">
+     <property name="text">
+      <string>Default</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="labelAllowCameraEvents">
+     <property name="text">
+      <string>Allow Camera Events</string>
      </property>
     </widget>
    </item>

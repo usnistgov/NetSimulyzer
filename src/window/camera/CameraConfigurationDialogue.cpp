@@ -12,7 +12,6 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
 
   QObject::connect(ui->sliderMoveSpeed, &QSlider::valueChanged, this, &CameraConfigurationDialogue::moveSpeedChanged);
   ui->sliderMoveSpeed->setValue(static_cast<int>(camera.getMoveSpeed() * 100.0f));
-  ui->labelMoveSpeedValue->setNum(camera.getMoveSpeed());
   QObject::connect(ui->pushButtonResetMoveSpeed, &QPushButton::clicked,
                    [this]() { ui->sliderMoveSpeed->setValue(defaultMoveSpeed); });
   ui->pushButtonResetMoveSpeed->setEnabled(ui->sliderMoveSpeed->value() != defaultMoveSpeed);
@@ -20,7 +19,6 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
   QObject::connect(ui->sliderKeyboardTurnSpeed, &QSlider::valueChanged, this,
                    &CameraConfigurationDialogue::keyboardTurnSpeedChanged);
   ui->sliderKeyboardTurnSpeed->setValue(static_cast<int>(camera.getTurnSpeed() * 10.0f));
-  ui->labelKeyboardTurnSpeedValue->setNum(camera.getTurnSpeed());
   QObject::connect(ui->pushButtonResetKeyboardTurnSpeed, &QPushButton::clicked,
                    [this]() { ui->sliderKeyboardTurnSpeed->setValue(defaultKeyboardTurnSpeed); });
   ui->pushButtonResetKeyboardTurnSpeed->setEnabled(ui->sliderKeyboardTurnSpeed->value() != defaultKeyboardTurnSpeed);
@@ -28,7 +26,6 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
   QObject::connect(ui->sliderMouseTurnSpeed, &QSlider::valueChanged, this,
                    &CameraConfigurationDialogue::mouseTurnSpeedChanged);
   ui->sliderMouseTurnSpeed->setValue(static_cast<int>(camera.getMouseTurnSpeed() * 10.0f));
-  ui->labelMouseTurnSpeedValue->setNum(camera.getMouseTurnSpeed());
   QObject::connect(ui->pushButtonResetMouseTurnSpeed, &QPushButton::clicked,
                    [this]() { ui->sliderMouseTurnSpeed->setValue(defaultMouseTurnSpeed); });
   ui->pushButtonResetMouseTurnSpeed->setEnabled(ui->sliderMouseTurnSpeed->value() != defaultMouseTurnSpeed);
@@ -36,7 +33,6 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
   QObject::connect(ui->sliderFieldOfView, &QSlider::valueChanged, this,
                    &CameraConfigurationDialogue::fieldOfViewChanged);
   ui->sliderFieldOfView->setValue(static_cast<int>(camera.getFieldOfView()));
-  ui->labelFieldOfViewValue->setNum(camera.getFieldOfView());
   QObject::connect(ui->pushButtonResetFieldOfView, &QPushButton::clicked,
                    [this]() { ui->sliderFieldOfView->setValue(defaultFieldOfView); });
   ui->pushButtonResetFieldOfView->setEnabled(ui->sliderFieldOfView->value() != defaultFieldOfView);
@@ -149,27 +145,23 @@ CameraConfigurationDialogue::~CameraConfigurationDialogue() {
 
 void CameraConfigurationDialogue::moveSpeedChanged(int value) {
   auto scaledValue = static_cast<float>(value) * 0.01f;
-  ui->labelMoveSpeedValue->setNum(scaledValue);
   camera.setMoveSpeed(scaledValue);
   ui->pushButtonResetMoveSpeed->setEnabled(value != defaultMoveSpeed);
 }
 
 void CameraConfigurationDialogue::keyboardTurnSpeedChanged(int value) {
   auto scaledValue = static_cast<float>(value) * 0.1f;
-  ui->labelKeyboardTurnSpeedValue->setNum(scaledValue);
   camera.setTurnSpeed(scaledValue);
   ui->pushButtonResetKeyboardTurnSpeed->setEnabled(value != defaultKeyboardTurnSpeed);
 }
 
 void CameraConfigurationDialogue::mouseTurnSpeedChanged(int value) {
   auto scaledValue = static_cast<float>(value) * 0.1f;
-  ui->labelMouseTurnSpeedValue->setNum(scaledValue);
   camera.setMouseTurnSpeed(scaledValue);
   ui->pushButtonResetMouseTurnSpeed->setEnabled(value != defaultMouseTurnSpeed);
 }
 
 void CameraConfigurationDialogue::fieldOfViewChanged(int value) {
-  ui->labelFieldOfViewValue->setNum(value);
   camera.setFieldOfView(static_cast<float>(value));
   ui->pushButtonResetFieldOfView->setEnabled(value != defaultFieldOfView);
   emit perspectiveUpdated();
