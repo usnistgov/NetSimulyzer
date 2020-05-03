@@ -42,7 +42,7 @@ private:
   void mouseTurnSpeedChanged(int value);
   void fieldOfViewChanged(int value);
 
-  void allowCameraEventsChanged(int value);
+  void useMouseControlsChanged(int value);
 
   void forwardKeyChanged(const QKeySequence &value);
   void backwardKeyChanged(const QKeySequence &value);

@@ -42,7 +42,7 @@ CameraConfigurationDialogue::CameraConfigurationDialogue(Camera &camera, QWidget
   ui->pushButtonResetFieldOfView->setEnabled(ui->sliderFieldOfView->value() != defaultFieldOfView);
 
   QObject::connect(ui->checkBoxMouseControls, &QCheckBox::stateChanged, this,
-                   &CameraConfigurationDialogue::allowCameraEventsChanged);
+                   &CameraConfigurationDialogue::useMouseControlsChanged);
 
   QObject::connect(ui->pushButtonResetMouseControlsEnabled, &QPushButton::clicked,
                    [this]() { ui->checkBoxMouseControls->setChecked(defaultUseMouseControls); });
@@ -175,7 +175,7 @@ void CameraConfigurationDialogue::fieldOfViewChanged(int value) {
   emit perspectiveUpdated();
 }
 
-void CameraConfigurationDialogue::allowCameraEventsChanged(int value) {
+void CameraConfigurationDialogue::useMouseControlsChanged(int value) {
   auto isChecked = value == Qt::CheckState::Checked;
   camera.useMouseControls(isChecked);
 
