@@ -37,7 +37,15 @@
 
 #include "src/window/mainWindow.h"
 #include <QApplication>
+#include <QCoreApplication>
+#include <QSettings>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QDir>
 #include <QSurfaceFormat>
+#include <iostream>
+#include <project.h>
+#include "settings.h"
 
 int main(int argc, char *argv[]) {
   QSurfaceFormat format;
@@ -48,6 +56,72 @@ int main(int argc, char *argv[]) {
   // Default QSurfaceFormat must be set before QApplication
   // on some platforms
   QApplication application(argc, argv);
+
+  // Necessary for QSettings to save information
+  // Setting these here will save us
+  // rewriting them every time we construct
+  // a QSettings object
+  QCoreApplication::setOrganizationName("NIST");
+  QCoreApplication::setOrganizationDomain("nist.gov");
+  QCoreApplication::setApplicationName(VISUALIZER_APPLICATION_NAME);
+
+  // Prevent up from using odd formats
+  // Note: everything becomes a string as a result
+  QSettings::setDefaultFormat(QSettings::Format::IniFormat);
+
+  QSettings settings;
+  std::cout << "Settings file at: " << settings.fileName().toStdString() << '\n';
+
+  if (settings.contains(visualization::settingsVersion)) {
+    auto settingsVersion = settings.value(visualization::settingsVersion).toString().toStdString();
+
+    if (settingsVersion != std::string{VISUALIZER_VERSION}) {
+      // TODO: Settings Migration
+      std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
+                << VISUALIZER_VERSION << '\n';
+      settings.setValue(visualization::settingsVersion, VISUALIZER_VERSION);
+    }
+  } else
+    settings.setValue(visualization::settingsVersion, VISUALIZER_VERSION);
+
+  if (!settings.contains(visualization::resourcePathKey)) {
+
+    QDir dir{QCoreApplication::applicationDirPath(), "resources"};
+    dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
+
+    // Try both the application directory & the working directory
+    if (dir.count() == 0)
+      dir.setPath(QDir::currentPath());
+
+    if (dir.count() > 0) {
+      auto entry = dir.entryInfoList()[0];
+      std::cout << "Assuming resource dir at: " << entry.canonicalFilePath().toStdString() << '\n';
+      settings.setValue(visualization::resourcePathKey, entry.canonicalFilePath());
+    } else {
+      QMessageBox::warning(nullptr, "Resource Path Not Found",
+                           "The 'resources' directory was not found in the application directory. "
+                           "Please set the location of the 'resources' directory in the following dialogue.");
+      auto candidatePath =
+#ifdef __APPLE__
+          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
+#else
+          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory", "",
+                                            QFileDialog::DontUseNativeDialog);
+#endif
+
+      QDir resources{candidatePath};
+      if (!candidatePath.isEmpty() && resources.exists() && resources.isReadable())
+        settings.setValue(visualization::resourcePathKey, resources.canonicalPath());
+      else {
+        QMessageBox::critical(nullptr, "Invalid 'resources' directory",
+                              "An invalid 'resources' directory was selected. "
+                              "A valid 'resources' directory is necessary to run the application");
+        return 1;
+      }
+    }
+  }
+
+  std::cout << "Resources path: " << settings.value(visualization::resourcePathKey).toString().toStdString() << '\n';
 
   visualization::MainWindow mainWindow;
   mainWindow.setWindowIcon(QIcon{":/application/resources/application.png"});

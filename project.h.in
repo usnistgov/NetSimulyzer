@@ -1,7 +1,13 @@
 #pragma once
+// Make sure clang format doesn't touch the @ signs
+// clang-format off
 
 #define VISUALIZER_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
 #define VISUALIZER_VERSION_MINOR @PROJECT_VERSION_MINOR@
 #define VISUALIZER_VERSION_PATCH @PROJECT_VERSION_PATCH@
 
 #define VISUALIZER_VERSION "@PROJECT_VERSION@"
+
+#define VISUALIZER_APPLICATION_NAME "@PROJECT_NAME@"
+
+// clang-format on
