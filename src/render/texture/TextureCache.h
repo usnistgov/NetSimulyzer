@@ -39,6 +39,7 @@
 #include <array>
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -48,6 +49,7 @@ class TextureCache : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, std::size_t> indexMap;
   std::vector<Texture> textures;
   std::optional<unsigned long> fallbackTexture;
+  std::string basePath;
 
 public:
   struct CubeMap {
@@ -65,6 +67,7 @@ public:
     return initializeOpenGLFunctions();
   }
 
+  void setBasePath(std::string value);
   unsigned int loadFallback(QImage &texture);
   std::size_t load(const std::string &path);
   unsigned long load(const CubeMap &cubeMap);

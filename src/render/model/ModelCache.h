@@ -80,12 +80,14 @@ class ModelCache : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, std::size_t> indexMap;
   std::vector<ModelRenderInfo> models;
   TextureCache &textureCache;
+  std::string basePath;
 
 public:
   const std::size_t fallbackModel = 0u;
   explicit ModelCache(TextureCache &textureCache);
   ~ModelCache() override;
 
+  void setBasePath(std::string value);
   void init(const std::string &fallbackModelPath);
   unsigned long load(const std::string &path);
   ModelRenderInfo &get(std::size_t index);

@@ -34,9 +34,9 @@
 #include "TextureCache.h"
 #include "../mesh/Mesh.h"
 #include <QImage>
-#include <cstdio>
 #include <iostream>
 #include <stb_image.h>
+#include <utility>
 
 namespace visualization {
 
@@ -72,16 +72,25 @@ TextureCache::~TextureCache() {
   clear();
 }
 
+void TextureCache::setBasePath(std::string value) {
+  basePath = std::move(value);
+
+  if (basePath.back() != '/')
+    basePath.push_back('/');
+}
+
 std::size_t TextureCache::load(const std::string &path) {
+  auto fullPath = basePath + path;
+
   // If we've already loaded the texture, use that ID
-  auto existing = indexMap.find(path);
+  auto existing = indexMap.find(fullPath);
   if (existing != indexMap.end()) {
     return existing->second;
   }
 
   Texture t;
   int depth;
-  auto *data = stbi_load(path.c_str(), &t.width, &t.height, &depth, 0);
+  auto *data = stbi_load(fullPath.c_str(), &t.width, &t.height, &depth, 0);
   if (!data) {
     std::cerr << "Failed to load " << path << '\n';
     if (fallbackTexture)
@@ -98,15 +107,13 @@ std::size_t TextureCache::load(const std::string &path) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  QImage test{path.c_str()};
-
   unsigned int format;
   if (depth == 4)
     format = GL_RGBA;
   else if (depth == 3)
     format = GL_RGB;
   else {
-    std::cerr << "Unsupported texture depth in texture: " << path << '\n' << "Depth: " << depth << '\n';
+    std::cerr << "Unsupported texture depth in texture: " << fullPath << '\n' << "Depth: " << depth << '\n';
     if (fallbackTexture)
       return *fallbackTexture;
     std::cerr << "No fallback texture!\n";
@@ -121,7 +128,7 @@ std::size_t TextureCache::load(const std::string &path) {
 
   textures.emplace_back(t);
   const auto newIndex = textures.size() - 1;
-  indexMap.emplace(path, newIndex);
+  indexMap.emplace(fullPath, newIndex);
   return newIndex;
 }
 

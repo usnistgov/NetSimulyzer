@@ -36,10 +36,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <unordered_map>
-
-#include <assimp/Importer.hpp>
 #include <iostream>
+#include <unordered_map>
+#include <utility>
 
 namespace visualization {
 
@@ -115,7 +114,7 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
       if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
         std::string pathCppString{path.data};
         // Strips back to the last '/' character (i.e. '/home/evan/projects' -> 'projects')
-        auto filepath = "resources/textures/" + pathCppString.substr(pathCppString.rfind('\\') + 1);
+        auto filepath = pathCppString.substr(pathCppString.rfind('\\') + 1);
         m.textureId = textureCache.load(filepath);
       } else if (fallbackTexture.has_value()) {
         m.textureId = *fallbackTexture;
@@ -162,27 +161,36 @@ ModelCache::~ModelCache() {
   clear();
 }
 
+void ModelCache::setBasePath(std::string value) {
+  basePath = std::move(value);
+
+  if (basePath.back() != '/')
+    basePath.push_back('/');
+}
+
 void ModelCache::init(const std::string &fallbackModelPath) {
   initializeOpenGLFunctions();
   load(fallbackModelPath);
 }
 
 unsigned long ModelCache::load(const std::string &path) {
-  auto existing = indexMap.find(path);
+  auto fullPath = basePath + path;
+
+  auto existing = indexMap.find(fullPath);
   if (existing != indexMap.end()) {
     return existing->second;
   }
 
   Assimp::Importer importer;
   const auto *const scene =
-      importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
-                                          aiProcess_JoinIdenticalVertices);
+      importer.ReadFile(fullPath.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
+                                              aiProcess_JoinIdenticalVertices);
   if (!scene) {
-    std::cerr << "Model (" << path << ") failed to load: " << importer.GetErrorString() << '\n';
+    std::cerr << "Model (" << fullPath << ") failed to load: " << importer.GetErrorString() << '\n';
 
     // Make sure we have a fallback model
     if (models.empty()) {
-      std::cerr << "Failed loading fallback model at: " << path << '\n';
+      std::cerr << "Failed loading fallback model at: " << fullPath << '\n';
       std::abort();
     }
 
@@ -190,7 +198,7 @@ unsigned long ModelCache::load(const std::string &path) {
   }
 
   models.emplace_back(scene, textureCache);
-  indexMap.emplace(path, models.size() - 1);
+  indexMap.emplace(fullPath, models.size() - 1);
   return models.size() - 1;
 }
 

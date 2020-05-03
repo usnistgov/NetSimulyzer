@@ -35,11 +35,13 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include "../../settings.h"
 #include <QFile>
 #include <QKeyEvent>
 #include <QObject>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLFunctions_4_5_Core>
+#include <QSettings>
 #include <QTextStream>
 #include <Qt>
 #include <QtGui/QOpenGLFunctions>
@@ -102,7 +104,7 @@ void RenderWidget::initializeGL() {
   }
   QImage fallback{":/texture/resources/textures/plain.png"};
   textures.loadFallback(fallback);
-  models.init("resources/models/fallback.obj");
+  models.init("fallback.obj");
   renderer.init();
 
   TextureCache::CubeMap cubeMap;
@@ -114,7 +116,7 @@ void RenderWidget::initializeGL() {
   cubeMap.front = QImage{":/texture/resources/textures/skybox/front.png"};
   skyBox = std::make_unique<SkyBox>(textures.load(cubeMap));
 
-  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("resources/textures/grass.png")));
+  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("grass.png")));
   floor->setPosition({0.0f, -0.5f, 0.0f});
 
   auto s = size();
@@ -243,8 +245,16 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
 RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWidget(parent, f) {
   // Make sure we get keyboard events
   setFocusPolicy(Qt::StrongFocus);
-
   setMinimumSize({640, 480});
+
+  QSettings settings;
+  auto resourceDir = settings.value(resourcePathKey).toString().toStdString();
+
+  if (resourceDir.back() != '/')
+    resourceDir.push_back('/');
+
+  textures.setBasePath(resourceDir + "textures/");
+  models.setBasePath(resourceDir + "models/");
 
   QObject::connect(&cameraConfigurationDialogue, &CameraConfigurationDialogue::perspectiveUpdated, [this]() {
     renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
@@ -285,12 +295,12 @@ void RenderWidget::add(const std::vector<parser::Building> &buildingModels,
 
   decorations.reserve(decorationModels.size());
   for (const auto &decoration : decorationModels) {
-    decorations.try_emplace(decoration.id, Model{models.load("resources/models/" + decoration.model)}, decoration);
+    decorations.try_emplace(decoration.id, Model{models.load(decoration.model)}, decoration);
   }
 
   nodes.reserve(nodeModels.size());
   for (const auto &node : nodeModels) {
-    nodes.try_emplace(node.id, Model{models.load("resources/models/" + node.model)}, node);
+    nodes.try_emplace(node.id, Model{models.load(node.model)}, node);
   }
 
   doneCurrent();

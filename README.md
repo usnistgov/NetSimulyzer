@@ -69,20 +69,22 @@ PNM (PPM and PGM binary only)
 ```
 
 ### Resource Paths
-By default the Visualizer will search from the current working directory the following:
+When the Visualizer is first launched it well search the directory the application is
+in and the current working directory for the `resources/` directory.
+If that fails, the Visualizer will prompt for the location of the `resources/` directory.
+
+By default the Visualizer will search from the `resources/` directory the following:
 
 Textures in:
 ```shell
-$(working_directory)/resources/textures
+resources/textures
 ```
 
 Models in:
 ```shell
-$(working_directory)/resources/models
+resources/models
 ```
-All searches for textures in models will be redirected to the texture source above
-
-A solution independent of the current working directory is forthcoming...
+All searches for textures in models will be redirected to the texture source above.
 
 ## Controls
 
