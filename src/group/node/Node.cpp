@@ -37,8 +37,9 @@
 
 namespace visualization {
 
-Node::Node(const Model &model, parser::Node ns3Node) : model(model), ns3Node(std::move(ns3Node)) {
-  this->model.setPosition(toRenderCoordinate(ns3Node.position));
+Node::Node(const Model &model, parser::Node ns3Node)
+    : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)) {
+  this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
   this->model.setScale(ns3Node.scale);
 }
@@ -48,7 +49,7 @@ const Model &Node::getModel() const {
 }
 
 void Node::handle(const parser::MoveEvent &e) {
-  this->model.setPosition(toRenderCoordinate(e.targetPosition));
+  this->model.setPosition(toRenderCoordinate(e.targetPosition) + offset);
 }
 
 void Node::handle(const parser::NodeOrientationChangeEvent &e) {

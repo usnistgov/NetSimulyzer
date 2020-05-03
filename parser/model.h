@@ -58,6 +58,7 @@ struct Node {
   double opacity = 1.0; // TODO: Unused
   bool visible = true;
   Ns3Coordinate position;
+  Ns3Coordinate offset;
   std::array<double, 3> orientation{0.0};
 };
 

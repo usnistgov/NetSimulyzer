@@ -148,6 +148,12 @@ void JsonHandler::parseNode(const nlohmann::json &object) {
   node.position.y = object["position"]["y"].get<float>();
   node.position.z = object["position"]["z"].get<float>();
 
+  if (object.contains("offset")) {
+    node.offset.x = object["offset"]["x"].get<float>();
+    node.offset.y = object["offset"]["y"].get<float>();
+    node.offset.z = object["offset"]["z"].get<float>();
+  }
+
   updateLocationBounds(node.position);
 
   fileParser.nodes.emplace_back(node);

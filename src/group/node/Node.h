@@ -34,6 +34,7 @@
 #pragma once
 
 #include "../../render/model/Model.h"
+#include <glm/glm.hpp>
 #include <model.h>
 
 namespace visualization {
@@ -41,6 +42,7 @@ namespace visualization {
 class Node {
   Model model;
   parser::Node ns3Node;
+  glm::vec3 offset;
 
 public:
   Node(const Model &model, parser::Node ns3Node);
