@@ -46,6 +46,7 @@
 #include "../../render/shader/Shader.h"
 #include "../../render/texture/SkyBox.h"
 #include "../../render/texture/TextureCache.h"
+#include "../../settings/SettingsManager.h"
 #include "../camera/CameraConfigurationDialogue.h"
 #include <QApplication>
 #include <QElapsedTimer>
@@ -69,6 +70,7 @@ namespace visualization {
 
 class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
+  SettingsManager settings;
   Camera camera;
   QPoint initialCursorPosition{width() / 2, height() / 2};
   CameraConfigurationDialogue cameraConfigurationDialogue{camera, this};

@@ -62,7 +62,6 @@ configure_file(project.h.in
         )
 
 add_executable(visualization
-        settings.h
         main.cpp
         visualization.rc
         resources.qrc)

@@ -35,9 +35,9 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
-#include "../../settings.h"
 #include <QFile>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QObject>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLFunctions_4_5_Core>
@@ -247,8 +247,16 @@ RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLW
   setFocusPolicy(Qt::StrongFocus);
   setMinimumSize({640, 480});
 
-  QSettings settings;
-  auto resourceDir = settings.value(resourcePathKey).toString().toStdString();
+  auto resourceDirSetting = settings.get<std::string>(SettingsManager::Key::ResourcePath);
+
+  // Shouldn't happen, but just in case
+  if (!resourceDirSetting) {
+    QMessageBox::critical(this, "No 'resources/' Directory Set",
+                          "No 'resources/' directory was set "
+                          "rerun the application and set one");
+    std::abort();
+  }
+  auto resourceDir = *resourceDirSetting;
 
   if (resourceDir.back() != '/')
     resourceDir.push_back('/');

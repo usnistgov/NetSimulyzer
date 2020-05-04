@@ -36,6 +36,7 @@
 // clang-format on
 
 #include "src/window/mainWindow.h"
+#include "src/settings/SettingsManager.h"
 #include <QApplication>
 #include <QCoreApplication>
 #include <QSettings>
@@ -44,8 +45,8 @@
 #include <QDir>
 #include <QSurfaceFormat>
 #include <iostream>
+#include <string>
 #include <project.h>
-#include "settings.h"
 
 int main(int argc, char *argv[]) {
   QSurfaceFormat format;
@@ -69,22 +70,27 @@ int main(int argc, char *argv[]) {
   // Note: everything becomes a string as a result
   QSettings::setDefaultFormat(QSettings::Format::IniFormat);
 
-  QSettings settings;
-  std::cout << "Settings file at: " << settings.fileName().toStdString() << '\n';
+  {
+    QSettings settings;
+    std::cout << "Settings file at: " << settings.fileName().toStdString() << '\n';
+  }
 
-  if (settings.contains(visualization::settingsVersion)) {
-    auto settingsVersion = settings.value(visualization::settingsVersion).toString().toStdString();
+  using Key = visualization::SettingsManager::Key;
+  visualization::SettingsManager settings;
+
+  if (settings.isDefined(Key::SettingsVersion)) {
+    auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
 
     if (settingsVersion != std::string{VISUALIZER_VERSION}) {
       // TODO: Settings Migration
       std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
                 << VISUALIZER_VERSION << '\n';
-      settings.setValue(visualization::settingsVersion, VISUALIZER_VERSION);
+      settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
     }
   } else
-    settings.setValue(visualization::settingsVersion, VISUALIZER_VERSION);
+    settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
 
-  if (!settings.contains(visualization::resourcePathKey)) {
+  if (!settings.isDefined(Key::ResourcePath)) {
 
     QDir dir{QCoreApplication::applicationDirPath(), "resources"};
     dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
@@ -96,7 +102,7 @@ int main(int argc, char *argv[]) {
     if (dir.count() > 0) {
       auto entry = dir.entryInfoList()[0];
       std::cout << "Assuming resource dir at: " << entry.canonicalFilePath().toStdString() << '\n';
-      settings.setValue(visualization::resourcePathKey, entry.canonicalFilePath());
+      settings.set(Key::ResourcePath, entry.canonicalFilePath());
     } else {
       QMessageBox::warning(nullptr, "Resource Path Not Found",
                            "The 'resources' directory was not found in the application directory. "
@@ -111,7 +117,7 @@ int main(int argc, char *argv[]) {
 
       QDir resources{candidatePath};
       if (!candidatePath.isEmpty() && resources.exists() && resources.isReadable())
-        settings.setValue(visualization::resourcePathKey, resources.canonicalPath());
+        settings.set(Key::ResourcePath, resources.canonicalPath());
       else {
         QMessageBox::critical(nullptr, "Invalid 'resources' directory",
                               "An invalid 'resources' directory was selected. "
@@ -121,7 +127,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::cout << "Resources path: " << settings.value(visualization::resourcePathKey).toString().toStdString() << '\n';
+  std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
 
   visualization::MainWindow mainWindow;
   mainWindow.setWindowIcon(QIcon{":/application/resources/application.png"});

@@ -60,7 +60,7 @@
     </widget>
    </item>
    <item row="9" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditRight">
+    <widget class="SingleKeySequenceEdit" name="keyRight">
      <property name="keySequence">
       <string>D</string>
      </property>
@@ -74,7 +74,7 @@
     </widget>
    </item>
    <item row="7" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditBackward">
+    <widget class="SingleKeySequenceEdit" name="keyBackward">
      <property name="keySequence">
       <string>S</string>
      </property>
@@ -130,14 +130,14 @@
     </widget>
    </item>
    <item row="13" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditDown">
+    <widget class="SingleKeySequenceEdit" name="keyDown">
      <property name="keySequence">
       <string>X</string>
      </property>
     </widget>
    </item>
    <item row="6" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditForward">
+    <widget class="SingleKeySequenceEdit" name="keyForward">
      <property name="keySequence">
       <string>W</string>
      </property>
@@ -165,7 +165,7 @@
     </widget>
    </item>
    <item row="12" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditUp">
+    <widget class="SingleKeySequenceEdit" name="keyUp">
      <property name="keySequence">
       <string>Z</string>
      </property>
@@ -188,7 +188,7 @@
     </widget>
    </item>
    <item row="10" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditTurnLeft">
+    <widget class="SingleKeySequenceEdit" name="keyTurnLeft">
      <property name="keySequence">
       <string>Q</string>
      </property>
@@ -213,7 +213,7 @@
    <item row="14" column="0" colspan="3">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::Discard|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set>
      </property>
     </widget>
    </item>
@@ -302,14 +302,14 @@
     </widget>
    </item>
    <item row="8" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditLeft">
+    <widget class="SingleKeySequenceEdit" name="keyLeft">
      <property name="keySequence">
       <string>A</string>
      </property>
     </widget>
    </item>
    <item row="11" column="1">
-    <widget class="QKeySequenceEdit" name="keySequenceEditTurnRight">
+    <widget class="SingleKeySequenceEdit" name="keyTurnRight">
      <property name="keySequence">
       <string>E</string>
      </property>
@@ -362,6 +362,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SingleKeySequenceEdit</class>
+   <extends>QKeySequenceEdit</extends>
+   <header>src/window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../../resources.qrc"/>
  </resources>

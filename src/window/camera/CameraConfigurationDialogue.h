@@ -1,5 +1,6 @@
 #pragma once
 #include "../../render/camera/Camera.h"
+#include "../../settings/SettingsManager.h"
 #include <QAbstractButton>
 #include <QDialog>
 #include <QKeySequence>
@@ -12,31 +13,23 @@ namespace visualization {
 class CameraConfigurationDialogue : public QDialog {
   Q_OBJECT
 
-public:
-  CameraConfigurationDialogue(Camera &camera, QWidget *parent = nullptr);
-  ~CameraConfigurationDialogue() override;
+  SettingsManager settings;
+  const float moveSpeedScale = 1000.0f;
+  const int defaultMoveSpeed = settings.getDefault<float>(SettingsManager::Key::MoveSpeed) * moveSpeedScale;
 
-signals:
-  void perspectiveUpdated();
+  const float turnSpeedScale = 10.0f;
+  const int defaultMouseTurnSpeed =
+      static_cast<int>(settings.getDefault<float>(SettingsManager::Key::MouseTurnSpeed) * turnSpeedScale);
+  const int defaultKeyboardTurnSpeed =
+      static_cast<int>(settings.getDefault<float>(SettingsManager::Key::KeyboardTurnSpeed) * turnSpeedScale);
 
-private:
-  const int defaultMoveSpeed = 5;
-  const int defaultMouseTurnSpeed = 5;
-  const int defaultKeyboardTurnSpeed = 1;
-  const int defaultFieldOfView = 45;
-  const bool defaultAllowCameraEvents = true;
-  const bool defaultUseMouseControls = true;
-  const int defaultForwardKey = Qt::Key_W;
-  const int defaultBackwardKey = Qt::Key_S;
-  const int defaultLeftKey = Qt::Key_A;
-  const int defaultRightKey = Qt::Key_D;
-  const int defaultLeftTurnKey = Qt::Key_Q;
-  const int defaultRightTurnKey = Qt::Key_E;
-  const int defaultUpKey = Qt::Key_Z;
-  const int defaultDownKey = Qt::Key_X;
+  const int defaultFieldOfView = settings.getDefault<float>(SettingsManager::Key::FieldOfView);
+  const bool defaultAllowCameraEvents = settings.getDefault<bool>(SettingsManager::Key::AllowCameraEvents);
+  const bool defaultUseMouseControls = settings.getDefault<bool>(SettingsManager::Key::CameraMouseControls);
 
   Ui::CameraConfigurationDialogue *ui;
   Camera &camera;
+  void loadSettings();
   void moveSpeedChanged(int value);
   void keyboardTurnSpeedChanged(int value);
   void mouseTurnSpeedChanged(int value);
@@ -44,15 +37,23 @@ private:
 
   void useMouseControlsChanged(int value);
 
-  void forwardKeyChanged(const QKeySequence &value);
-  void backwardKeyChanged(const QKeySequence &value);
-  void leftKeyChanged(const QKeySequence &value);
-  void rightKeyChanged(const QKeySequence &value);
-  void leftTurnKeyChanged(const QKeySequence &value);
-  void rightTurnKeyChanged(const QKeySequence &value);
-  void upKeyChanged(const QKeySequence &value);
-  void downKeyChanged(const QKeySequence &value);
+  void forwardKeyChanged();
+  void backwardKeyChanged();
+  void leftKeyChanged();
+  void rightKeyChanged();
+  void leftTurnKeyChanged();
+  void rightTurnKeyChanged();
+  void upKeyChanged();
+  void downKeyChanged();
 
   void dialogueButtonClicked(QAbstractButton *button);
+
+public:
+  CameraConfigurationDialogue(Camera &camera, QWidget *parent = nullptr);
+  ~CameraConfigurationDialogue() override;
+
+signals:
+  void perspectiveUpdated();
 };
+
 } // namespace visualization
