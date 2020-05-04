@@ -35,8 +35,6 @@
     <property name="title">
      <string>&amp;Widget</string>
     </property>
-    <addaction name="actionNodes"/>
-    <addaction name="actionCharts"/>
    </widget>
    <widget class="QMenu" name="menuCamera">
     <property name="title">
@@ -67,7 +65,7 @@
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Charts</string>
+    <string>&amp;Charts</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -90,7 +88,7 @@
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Nodes</string>
+    <string>&amp;Nodes</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>

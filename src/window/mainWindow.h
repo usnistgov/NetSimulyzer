@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "../settings/SettingsManager.h"
 #include "LoadWorker.h"
 #include "chart/ChartManager.h"
 #include "node/NodeWidget.h"
@@ -63,6 +64,9 @@ signals:
   void startLoading(const QString &fileName);
 
 private:
+  const int stateVersion = 0;
+  SettingsManager settings;
+
   ChartManager *charts;
   NodeWidget *nodeWidget;
   Ui::MainWindow *ui;
@@ -79,6 +83,8 @@ private:
 
   void timeAdvanced(double time);
   void load();
-  void toggleCharts();
+
+protected:
+  void closeEvent(QCloseEvent *event) override;
 };
 } // namespace visualization

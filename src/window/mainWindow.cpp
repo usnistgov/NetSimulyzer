@@ -60,15 +60,17 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
 
+  auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
+  if (state)
+    restoreState(*state, stateVersion);
+
   loadWorker.moveToThread(&loadThread);
   QObject::connect(this, &MainWindow::startLoading, &loadWorker, &LoadWorker::load);
   QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
   loadThread.start();
 
-  QObject::connect(ui->nodesDock, &QDockWidget::visibilityChanged,
-                   [this](bool visible) { ui->actionNodes->setChecked(visible); });
-
-  QObject::connect(ui->actionNodes, &QAction::triggered, [this](bool checked) { ui->nodesDock->setVisible(checked); });
+  ui->menuWidget->addAction(ui->nodesDock->toggleViewAction());
+  ui->menuWidget->addAction(ui->chartDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -82,7 +84,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   QObject::connect(nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
-  QObject::connect(ui->actionCharts, &QAction::triggered, this, &MainWindow::toggleCharts);
 
   QObject::connect(ui->actionCameraSettings, &QAction::triggered,
                    [this]() { render.showCameraConfigurationDialogue(); });
@@ -156,8 +157,9 @@ void MainWindow::finishLoading(const QString &fileName) {
   ui->actionLoad->setEnabled(true);
 }
 
-void MainWindow::toggleCharts() {
-  ui->chartDock->toggleViewAction()->trigger();
+void MainWindow::closeEvent(QCloseEvent *event) {
+  settings.set(SettingsManager::Key::MainWindowState, saveState(stateVersion));
+  QMainWindow::closeEvent(event);
 }
 
 } // namespace visualization
