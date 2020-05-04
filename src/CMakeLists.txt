@@ -46,10 +46,12 @@ target_sources(visualization PRIVATE
         render/texture/SkyBox.h render/texture/SkyBox.cpp
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
+        settings/SettingsManager.h settings/SettingsManager.cpp
         window/LoadWorker.h window/LoadWorker.cpp
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
+        window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
         coordinate.h coordinate.cpp)
