@@ -130,7 +130,6 @@ int main(int argc, char *argv[]) {
   std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
 
   visualization::MainWindow mainWindow;
-  mainWindow.setWindowIcon(QIcon{":/application/resources/application.png"});
   mainWindow.show();
   return QApplication::exec();
 }

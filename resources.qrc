@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/application">
-        <file>resources/application.png</file>
+        <file>application.png</file>
     </qresource>
     <qresource prefix="/texture">
         <file>resources/textures/plain.png</file>
