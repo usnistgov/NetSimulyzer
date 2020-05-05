@@ -57,26 +57,26 @@ Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
 void Renderer::init() {
   initializeOpenGLFunctions();
 
-  QFile modelVertex{":/shader/resources/shaders/model.vert"};
+  QFile modelVertex{":/shader/shaders/model.vert"};
   auto modelVertexSrc = qFileToString(modelVertex);
 
-  QFile modelFragment{":/shader/resources/shaders/model.frag"};
+  QFile modelFragment{":/shader/shaders/model.frag"};
   auto modelFragmentSrc = qFileToString(modelFragment);
 
   modelShader.init(modelVertexSrc, modelFragmentSrc);
 
-  QFile buildingVertex{":shader/resources/shaders/building.vert"};
+  QFile buildingVertex{":shader/shaders/building.vert"};
   auto buildingVertexSrc = qFileToString(buildingVertex);
 
-  QFile buildingFragment{":shader/resources/shaders/building.frag"};
+  QFile buildingFragment{":shader/shaders/building.frag"};
   auto buildingFragmentSrc = qFileToString(buildingFragment);
 
   buildingShader.init(buildingVertexSrc, buildingFragmentSrc);
 
-  QFile skyBoxVertex{":/shader/resources/shaders/skybox.vert"};
+  QFile skyBoxVertex{":/shader/shaders/skybox.vert"};
   auto skyBoxVertexSrc = qFileToString(skyBoxVertex);
 
-  QFile skyBoxFragment{":/shader/resources/shaders/skybox.frag"};
+  QFile skyBoxFragment{":/shader/shaders/skybox.frag"};
   auto skyBoxFragmentSrc = qFileToString(skyBoxFragment);
 
   skyBoxShader.init(skyBoxVertexSrc, skyBoxFragmentSrc);

@@ -12,11 +12,11 @@
         <file>resources/textures/skybox/front.png</file>
     </qresource>
     <qresource prefix="/shader">
-        <file>resources/shaders/model.vert</file>
-        <file>resources/shaders/model.frag</file>
-        <file>resources/shaders/building.frag</file>
-        <file>resources/shaders/building.vert</file>
-        <file>resources/shaders/skybox.vert</file>
-        <file>resources/shaders/skybox.frag</file>
+        <file>shaders/model.vert</file>
+        <file>shaders/model.frag</file>
+        <file>shaders/building.frag</file>
+        <file>shaders/building.vert</file>
+        <file>shaders/skybox.vert</file>
+        <file>shaders/skybox.frag</file>
     </qresource>
 </RCC>
