@@ -33,6 +33,8 @@
 
 #include "ModelCache.h"
 #include "../shader/Shader.h"
+#include <QDebug>
+#include <QFileInfo>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -179,6 +181,15 @@ unsigned long ModelCache::load(const std::string &path) {
   auto existing = indexMap.find(fullPath);
   if (existing != indexMap.end()) {
     return existing->second;
+  }
+
+  // TODO: Leave this in for a little, then remove it
+  QFileInfo normalPath{QString::fromStdString(fullPath)};
+  QFileInfo quirkPath{QString::fromStdString(basePath) + "models/" + QString::fromStdString(path)};
+  if (!normalPath.exists() && quirkPath.exists()) {
+    std::cerr << "Warning: Using depreciated path style for: " << path << '\n'
+              << "Please prepend 'models/' to your old paths!\n ";
+    return load("models/" + path);
   }
 
   Assimp::Importer importer;
