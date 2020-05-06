@@ -34,6 +34,7 @@
 #pragma once
 
 #include "texture.h"
+#include <QDir>
 #include <QImage>
 #include <QOpenGLFunctions_3_3_Core>
 #include <array>
@@ -49,7 +50,7 @@ class TextureCache : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, std::size_t> indexMap;
   std::vector<Texture> textures;
   std::optional<unsigned long> fallbackTexture;
-  std::string basePath;
+  QDir resourceDirectory;
 
 public:
   struct CubeMap {
@@ -67,9 +68,9 @@ public:
     return initializeOpenGLFunctions();
   }
 
-  void setBasePath(std::string value);
+  void setResourceDirectory(const QDir &value);
   unsigned int loadFallback(QImage &texture);
-  std::size_t load(const std::string &path);
+  std::size_t load(const std::string &filename);
   unsigned long load(const CubeMap &cubeMap);
   [[nodiscard]] const Texture &get(std::size_t index);
 

@@ -261,7 +261,7 @@ RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLW
   if (resourceDir.back() != '/')
     resourceDir.push_back('/');
 
-  textures.setBasePath(resourceDir + "textures/");
+  textures.setResourceDirectory({QString::fromStdString(resourceDir)});
   models.setBasePath(resourceDir + "models/");
 
   QObject::connect(&cameraConfigurationDialogue, &CameraConfigurationDialogue::perspectiveUpdated, [this]() {

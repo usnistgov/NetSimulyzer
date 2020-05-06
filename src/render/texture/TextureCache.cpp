@@ -33,12 +33,48 @@
 
 #include "TextureCache.h"
 #include "../mesh/Mesh.h"
+#include <QDir>
 #include <QImage>
+#include <QString>
 #include <iostream>
 #include <stb_image.h>
 #include <utility>
 
+namespace {
+std::optional<QFileInfo> findTexture(const QDir &base, const QString &fileName, unsigned int max = 25u) {
+  // Cut us off after `max` levels
+  if (max == 0u)
+    return {};
+
+  QDir searchFile{base};
+  searchFile.setFilter(QDir::Files | QDir::Readable);
+  searchFile.setNameFilters({fileName});
+
+  auto fileResults = searchFile.entryInfoList();
+  if (fileResults.count() > 0)
+    return {fileResults[0]};
+
+  QDir subDirectories{base};
+  subDirectories.setFilter(QDir::Dirs | QDir::Readable | QDir::NoDotAndDotDot);
+  // no name filter
+
+  auto directoryResults = subDirectories.entryInfoList();
+  for (const auto &subDirectory : directoryResults) {
+    auto result = findTexture({subDirectory.canonicalFilePath()}, fileName, max - 1);
+    if (result)
+      return result;
+  }
+
+  return {};
+}
+
+} // namespace
+
 namespace visualization {
+
+void TextureCache::setResourceDirectory(const QDir &value) {
+  resourceDirectory = value;
+}
 
 unsigned int TextureCache::loadFallback(QImage &texture) {
   Texture t;
@@ -72,27 +108,29 @@ TextureCache::~TextureCache() {
   clear();
 }
 
-void TextureCache::setBasePath(std::string value) {
-  basePath = std::move(value);
-
-  if (basePath.back() != '/')
-    basePath.push_back('/');
-}
-
-std::size_t TextureCache::load(const std::string &path) {
-  auto fullPath = basePath + path;
+std::size_t TextureCache::load(const std::string &filename) {
 
   // If we've already loaded the texture, use that ID
-  auto existing = indexMap.find(fullPath);
+  auto existing = indexMap.find(filename);
   if (existing != indexMap.end()) {
     return existing->second;
   }
+
+  auto result = findTexture(resourceDirectory, QString::fromStdString(filename));
+  if (!result && fallbackTexture)
+    return *fallbackTexture;
+  else if (!result && !fallbackTexture) {
+    std::cerr << "No fallback texture loaded! Nothing to fallback on\n";
+    std::abort();
+  }
+
+  auto fullPath = result->canonicalFilePath().toStdString();
 
   Texture t;
   int depth;
   auto *data = stbi_load(fullPath.c_str(), &t.width, &t.height, &depth, 0);
   if (!data) {
-    std::cerr << "Failed to load " << path << '\n';
+    std::cerr << "Failed to load " << fullPath << '\n';
     if (fallbackTexture)
       return *fallbackTexture;
     std::cerr << "No fallback texture loaded! Nothing to fallback on\n";
