@@ -104,7 +104,7 @@ void RenderWidget::initializeGL() {
   }
   QImage fallback{":/texture/resources/textures/plain.png"};
   textures.loadFallback(fallback);
-  models.init("fallback.obj");
+  models.init("models/fallback.obj");
   renderer.init();
 
   TextureCache::CubeMap cubeMap;
@@ -262,7 +262,7 @@ RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLW
     resourceDir.push_back('/');
 
   textures.setResourceDirectory({QString::fromStdString(resourceDir)});
-  models.setBasePath(resourceDir + "models/");
+  models.setBasePath(resourceDir);
 
   QObject::connect(&cameraConfigurationDialogue, &CameraConfigurationDialogue::perspectiveUpdated, [this]() {
     renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),

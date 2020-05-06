@@ -75,10 +75,8 @@ If that fails, the Visualizer will prompt for the location of the `resources/` d
 
 By default the Visualizer will search from the `resources/` directory the following:
 
-Models in:
-```shell
-resources/models
-```
+Models should have the path to the model relative to the root of the resources directory
+(e.g. `models/fallback.obj`)
 
 Textures will be searched for recursively in the `resources/` directory, and _must have unique names_.
 If two textures have the same name, it is undefined which one will be selected.
