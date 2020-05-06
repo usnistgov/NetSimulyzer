@@ -75,16 +75,15 @@ If that fails, the Visualizer will prompt for the location of the `resources/` d
 
 By default the Visualizer will search from the `resources/` directory the following:
 
-Textures in:
-```shell
-resources/textures
-```
-
 Models in:
 ```shell
 resources/models
 ```
-All searches for textures in models will be redirected to the texture source above.
+
+Textures will be searched for recursively in the `resources/` directory, and _must have unique names_.
+If two textures have the same name, it is undefined which one will be selected.
+
+All searches for textures in models will follow the texture rules above.
 
 ## Controls
 
