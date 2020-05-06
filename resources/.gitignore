@@ -1,0 +1,7 @@
+*
+# Ignore eveything but the following
+# so we don't try and track user models
+!.gitignore
+!models/
+!textures/
+!sources.txt

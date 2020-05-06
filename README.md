@@ -83,6 +83,24 @@ If two textures have the same name, it is undefined which one will be selected.
 
 All searches for textures in models will follow the texture rules above.
 
+#### Non-distributable Resources
+
+To add the models not available for public release into the project `cd` into the `resources/`
+directory and clone the
+['Visualization Resources Non-Distributable'](https://gitlab.nist.gov/wnd-publicsafety/visualization-resources_non-distributable)
+project.
+
+```shell
+# From the project root
+cd resources/
+
+# Substitute with HTTPS if you prefer
+# clones into a new directory 'extras/' for convenience
+git clone git@gitlab.nist.gov:wnd-publicsafety/visualization-resources_non-distributable.git extras
+```
+
+The models may be referenced like so: `extras/models/props/Smartphone.obj`
+
 ## Controls
 
 ### Camera
