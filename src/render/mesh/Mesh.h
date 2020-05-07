@@ -36,6 +36,7 @@
 #include "../material/material.h"
 #include "Vertex.h"
 #include <QOpenGLFunctions_3_3_Core>
+#include <glm/glm.hpp>
 #include <utility>
 
 namespace visualization {
@@ -49,8 +50,14 @@ public:
     int indexCount = 0;
   };
 
+  struct MeshBounds {
+    glm::vec3 min{0.0f};
+    glm::vec3 max{0.0f};
+  };
+
 private:
   MeshRenderInfo renderInfo;
+  MeshBounds bounds;
   Material material;
 
   void move(Mesh &&other) noexcept;
@@ -76,6 +83,8 @@ public:
   void setMaterial(const Material &value);
 
   [[nodiscard]] const MeshRenderInfo &getRenderInfo() const;
+
+  [[nodiscard]] const MeshBounds &getBounds() const;
 
   void render();
 

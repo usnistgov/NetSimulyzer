@@ -39,7 +39,10 @@
 
 namespace visualization {
 
-Model::Model(unsigned long modelId) : modelId(modelId) {
+Model::Model(const Model::ModelLoadInfo &info) : Model(info.id, info.min, info.max) {
+}
+
+Model::Model(unsigned long modelId, const glm::vec3 &min, const glm::vec3 &max) : modelId(modelId), min(min), max(max) {
 }
 
 void Model::rebuildModelMatrix() {
@@ -52,12 +55,22 @@ void Model::rebuildModelMatrix() {
   rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[2]), {0, 0, 1});
   modelMatrix *= rotateMatrix;
 
+  modelMatrix = glm::scale(modelMatrix, {targetHeightScale, targetHeightScale, targetHeightScale});
   modelMatrix = glm::scale(modelMatrix, {scale, scale, scale});
 }
 
 void Model::setPosition(const glm::vec3 &value) {
   position = value;
   rebuildModelMatrix();
+}
+
+void Model::setTargetHeightScale(float value) {
+  targetHeightScale = value;
+  rebuildModelMatrix();
+}
+
+float Model::getTargetHeightScale() const {
+  return targetHeightScale;
 }
 
 void Model::setScale(float value) {
@@ -85,6 +98,9 @@ void Model::setRotate(float x, float y, float z) {
 
 unsigned long Model::getModelId() const {
   return modelId;
+}
+Model::ModelBounds Model::getBounds() const {
+  return {min, max};
 }
 
 } // namespace visualization

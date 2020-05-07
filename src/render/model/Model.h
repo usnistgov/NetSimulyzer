@@ -41,22 +41,43 @@
 namespace visualization {
 
 class Model {
+public:
+  struct ModelLoadInfo {
+    unsigned long id;
+    glm::vec3 min;
+    glm::vec3 max;
+  };
+
+  struct ModelBounds {
+    glm::vec3 min;
+    glm::vec3 max;
+  };
+
+private:
   const unsigned long modelId;
+  const glm::vec3 min;
+  const glm::vec3 max;
+
   glm::vec3 position{0.0f};
+  float targetHeightScale = 1.0f;
   float scale = 1.0f;
   std::array<float, 3> rotate{0.0f};
 
   /**
    * Final model matrix built from the
-   * `position` `rotation` & `scale`
+   * `position` `rotation` `targetHeightScale` & `scale`
    */
   glm::mat4 modelMatrix{1.0f};
 
 public:
-  Model(unsigned long modelId);
+  Model(const ModelLoadInfo &info);
+  Model(unsigned long modelId, const glm::vec3 &min, const glm::vec3 &max);
 
   void setPosition(const glm::vec3 &value);
   [[nodiscard]] const glm::vec3 &getPosition() const;
+
+  void setTargetHeightScale(float value);
+  [[nodiscard]] float getTargetHeightScale() const;
 
   void setScale(float value);
   [[nodiscard]] float getScale() const;
@@ -66,6 +87,8 @@ public:
   [[nodiscard]] unsigned long getModelId() const;
 
   [[nodiscard]] const glm::mat4 &getModelMatrix() const;
+
+  [[nodiscard]] ModelBounds getBounds() const;
 
   void rebuildModelMatrix();
 };

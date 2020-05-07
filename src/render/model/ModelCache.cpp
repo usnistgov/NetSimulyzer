@@ -44,6 +44,33 @@
 
 namespace visualization {
 
+void ModelRenderInfo::updateBounds() {
+  if (!meshes.empty()) {
+    const auto &firstBounds = meshes.front().getBounds();
+    bounds.min = firstBounds.min;
+    bounds.max = firstBounds.max;
+  }
+
+  for (const auto &mesh : meshes) {
+    const auto &meshBounds = mesh.getBounds();
+
+    if (meshBounds.max.x > bounds.max.x)
+      bounds.max.x = bounds.max.x;
+    else if (meshBounds.min.x < bounds.min.x)
+      bounds.min.x = meshBounds.min.x;
+
+    if (meshBounds.max.y > bounds.max.y)
+      bounds.max.y = bounds.max.y;
+    else if (meshBounds.min.y < bounds.min.y)
+      bounds.min.y = meshBounds.min.y;
+
+    if (meshBounds.max.z > bounds.max.z)
+      bounds.max.z = bounds.max.z;
+    else if (meshBounds.min.z < bounds.min.z)
+      bounds.min.z = meshBounds.min.z;
+  }
+}
+
 void ModelRenderInfo::loadNode(aiNode const *node, aiScene const *scene) {
   for (auto i = 0u; i < node->mNumMeshes; i++) {
     loadMesh(scene->mMeshes[node->mMeshes[i]], scene);
@@ -92,11 +119,15 @@ ModelRenderInfo::ModelRenderInfo(aiScene const *scene, TextureCache &textureCach
   initializeOpenGLFunctions();
   loadMaterials(scene);
   loadNode(scene->mRootNode, scene);
+
+  updateBounds();
 }
 
 ModelRenderInfo::ModelRenderInfo(std::vector<Mesh> meshes, TextureCache &textureCache)
     : meshes(std::move(meshes)), textureCache(textureCache) {
   initializeOpenGLFunctions();
+
+  updateBounds();
 }
 
 ModelRenderInfo::~ModelRenderInfo() {
@@ -137,6 +168,10 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
   }
 }
 
+const ModelRenderInfo::ModelRenderBounds &ModelRenderInfo::getBounds() const {
+  return bounds;
+}
+
 void ModelRenderInfo::render(Shader &) {
   for (auto &m : meshes) {
     // Operator [] for unordered map is not const...
@@ -151,7 +186,6 @@ void ModelRenderInfo::render(Shader &) {
     m.render();
   }
 }
-
 void ModelRenderInfo::clear() {
   meshes.clear();
 }
@@ -175,12 +209,13 @@ void ModelCache::init(const std::string &fallbackModelPath) {
   load(fallbackModelPath);
 }
 
-unsigned long ModelCache::load(const std::string &path) {
+Model::ModelLoadInfo ModelCache::load(const std::string &path) {
   auto fullPath = basePath + path;
 
   auto existing = indexMap.find(fullPath);
   if (existing != indexMap.end()) {
-    return existing->second;
+    const auto &bounds = get(existing->second).getBounds();
+    return {existing->second, bounds.min, bounds.max};
   }
 
   // TODO: Leave this in for a little, then remove it
@@ -205,12 +240,15 @@ unsigned long ModelCache::load(const std::string &path) {
       std::abort();
     }
 
-    return fallbackModel;
+    const auto &bounds = get(fallbackModel).getBounds();
+    return {fallbackModel, bounds.min, bounds.max};
   }
 
   models.emplace_back(scene, textureCache);
   indexMap.emplace(fullPath, models.size() - 1);
-  return models.size() - 1;
+
+  auto bounds = models.back().getBounds();
+  return {models.size() - 1, bounds.min, bounds.max};
 }
 
 ModelRenderInfo &ModelCache::get(std::size_t index) {
@@ -218,6 +256,7 @@ ModelRenderInfo &ModelCache::get(std::size_t index) {
 }
 
 void ModelCache::clear() {
+  // TODO: Implement
 }
 
 void ModelCache::render(std::size_t index, Shader &s) {

@@ -40,6 +40,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -48,9 +49,19 @@
 namespace visualization {
 
 class ModelRenderInfo : protected QOpenGLFunctions_3_3_Core {
+public:
+  struct ModelRenderBounds {
+    glm::vec3 min{0.0f};
+    glm::vec3 max{0.0f};
+  };
+
+private:
   std::vector<Mesh> meshes;
   TextureCache &textureCache;
   std::vector<Material> materials;
+  ModelRenderBounds bounds;
+
+  void updateBounds();
 
   void loadNode(aiNode const *node, aiScene const *scene);
   void loadMesh(aiMesh const *m, aiScene const *scene);
@@ -63,7 +74,9 @@ public:
 
   // Allow Moves
   ModelRenderInfo(ModelRenderInfo &&other) noexcept
-      : meshes(std::move(other.meshes)), textureCache(other.textureCache), materials(std::move(other.materials)){};
+      : meshes(std::move(other.meshes)), textureCache(other.textureCache), materials(std::move(other.materials)) {
+    bounds = other.bounds;
+  };
 
   // We cannot allow the assignment operator since we have a reference member
   ModelRenderInfo &operator=(ModelRenderInfo &&other) = delete;
@@ -71,6 +84,8 @@ public:
   // Disallow copies
   ModelRenderInfo(const ModelRenderInfo &) = delete;
   ModelRenderInfo &operator=(const ModelRenderInfo &) = delete;
+
+  [[nodiscard]] const ModelRenderBounds &getBounds() const;
 
   void render(Shader &s);
   void clear();
@@ -89,7 +104,7 @@ public:
 
   void setBasePath(std::string value);
   void init(const std::string &fallbackModelPath);
-  unsigned long load(const std::string &path);
+  Model::ModelLoadInfo load(const std::string &path);
   ModelRenderInfo &get(std::size_t index);
 
   ModelRenderInfo &operator[](std::size_t index) {

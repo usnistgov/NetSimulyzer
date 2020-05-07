@@ -33,6 +33,8 @@
 
 #include "Node.h"
 #include "../../coordinate.h"
+#include <cmath>
+#include <glm/glm.hpp>
 #include <utility>
 
 namespace visualization {
@@ -41,6 +43,14 @@ Node::Node(const Model &model, parser::Node ns3Node)
     : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)) {
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
+
+  if (ns3Node.height) {
+    const auto bounds = model.getBounds();
+    auto height = std::abs(bounds.max.y - bounds.min.y);
+
+    this->model.setTargetHeightScale(*ns3Node.height / height);
+  }
+
   this->model.setScale(ns3Node.scale);
 }
 

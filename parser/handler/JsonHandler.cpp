@@ -138,6 +138,10 @@ void JsonHandler::parseNode(const nlohmann::json &object) {
   node.scale = object["scale"].get<float>();
   node.opacity = object["opacity"].get<double>();
 
+  if (object.contains("height")) {
+    node.height = object["height"].get<float>();
+  }
+
   node.orientation[0] = object["orientation"]["x"].get<double>();
   node.orientation[1] = object["orientation"]["y"].get<double>();
   node.orientation[2] = object["orientation"]["z"].get<double>();
@@ -193,6 +197,10 @@ void JsonHandler::parseDecoration(const nlohmann::json &object) {
   decoration.position.x = object["position"]["x"].get<float>();
   decoration.position.y = object["position"]["y"].get<float>();
   decoration.position.z = object["position"]["z"].get<float>();
+
+  if (object.contains("height")) {
+    decoration.height = object["height"].get<float>();
+  }
 
   updateLocationBounds(decoration.position);
 

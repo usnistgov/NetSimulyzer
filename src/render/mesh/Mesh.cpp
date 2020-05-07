@@ -40,6 +40,7 @@ void Mesh::move(Mesh &&other) noexcept {
   initializeOpenGLFunctions();
   renderInfo = other.renderInfo;
   material = other.material;
+  bounds = other.bounds;
 
   // Clear the other one
   // so it doesn't delete the mesh
@@ -60,6 +61,30 @@ void Mesh::setMaterial(const Material &value) {
 Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertexCount, int indexCount) {
   initializeOpenGLFunctions();
   renderInfo.indexCount = indexCount;
+
+  if (vertexCount > 0u) {
+    const auto &v = vertices[0];
+    bounds.min = {v.position[0], v.position[1], v.position[2]};
+    bounds.max = bounds.min;
+  }
+
+  for (auto i = 0u; i < vertexCount; i++) {
+    const auto &v = vertices[i];
+    if (v.position[0] > bounds.max.x)
+      bounds.max.x = v.position[0];
+    else if (v.position[0] < bounds.min.x)
+      bounds.min.x = v.position[0];
+
+    if (v.position[1] > bounds.max.y)
+      bounds.max.y = v.position[1];
+    else if (v.position[1] < bounds.min.y)
+      bounds.min.y = v.position[1];
+
+    if (v.position[2] > bounds.max.z)
+      bounds.max.z = v.position[2];
+    else if (v.position[2] < bounds.min.z)
+      bounds.min.z = v.position[2];
+  }
 
   glGenVertexArrays(1, &renderInfo.vao);
   glBindVertexArray(renderInfo.vao);
@@ -91,6 +116,10 @@ Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertexC
 
 const Mesh::MeshRenderInfo &Mesh::getRenderInfo() const {
   return renderInfo;
+}
+
+const Mesh::MeshBounds &Mesh::getBounds() const {
+  return bounds;
 }
 
 void Mesh::render() {
