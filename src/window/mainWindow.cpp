@@ -54,9 +54,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   charts = new ChartManager{ui->chartDock};
   ui->chartDock->setWidget(charts);
 
-  QObject::connect(ui->chartDock, &QDockWidget::visibilityChanged,
-                   [this](bool visible) { ui->actionCharts->setChecked(visible); });
-
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
 
