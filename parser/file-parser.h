@@ -113,6 +113,16 @@ public:
   [[nodiscard]] const std::vector<ChartEvent> &getChartsEvents() const;
 
   /**
+   * Gets the collection of events for the Scenario Log controller from the parsed file
+   * `parse()` should be called first.
+   *
+   * This returns a partial collection of the events from the parsed file
+   *
+   * @return The events specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<LogEvent> &getLogEvents() const;
+
+  /**
    * Gets the collection of XY series from the parsed file
    * `parse()` should be called first
    *
@@ -127,6 +137,15 @@ public:
    * @return The series collections specified by the parsed file
    */
   [[nodiscard]] const std::vector<SeriesCollection> &getSeriesCollections() const;
+
+  /**
+   * Gets the collection of LogStreams for the Scenario Log controller from the parsed file
+   * `parse()` should be called first.
+   *
+   *
+   * @return The LogStreams specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<LogStream> &getLogStreams() const;
 
 private:
   /**
@@ -160,6 +179,11 @@ private:
   std::vector<ChartEvent> chartEvents;
 
   /**
+   * The events for the Log module defined by the 'events' JSON collection
+   */
+  std::vector<LogEvent> logEvents;
+
+  /**
    * The XY Series defined within the 'series' JSON collection
    */
   std::vector<XYSeries> xySeries;
@@ -168,6 +192,11 @@ private:
    * The Series Collections defined within the 'series' JSON collection
    */
   std::vector<SeriesCollection> seriesCollections;
+
+  /**
+   * The Streams defined within the 'streams' JSON collection
+   */
+  std::vector<LogStream> logStreams;
 };
 
 } // namespace parser

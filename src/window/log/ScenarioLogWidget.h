@@ -32,61 +32,86 @@
  */
 
 #pragma once
-
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "render/RenderWidget.h"
-#include "ui_mainWindow.h"
-#include <QDockWidget>
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
+#include "ui_ScenarioLogWidget.h"
+#include <QColor>
+#include <QString>
+#include <QTextCharFormat>
+#include <QTextCursor>
+#include <QTextDocument>
+#include <QWidget>
 #include <deque>
-#include <file-parser.h>
+#include <memory>
+#include <model.h>
+#include <optional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace visualization {
-class MainWindow : public QMainWindow {
+
+class ScenarioLogWidget : public QWidget {
   Q_OBJECT
+  Ui::ScenarioLogWidget ui{};
+  const unsigned int unifiedStreamId = 0u;
+  QTextDocument unifiedStreamDocument{this};
+  QTextCursor unifiedStreamCursor{&unifiedStreamDocument};
+
+  class LogStreamPair {
+    parser::LogStream model;
+    std::unique_ptr<QTextDocument> data = std::make_unique<QTextDocument>();
+    std::unique_ptr<QTextCursor> cursor = std::make_unique<QTextCursor>(data.get());
+    QTextCharFormat textFormat;
+    QString name;
+
+  public:
+    explicit LogStreamPair(parser::LogStream model);
+
+    // No Copies
+    LogStreamPair(const LogStreamPair &other) = delete;
+    LogStreamPair &operator=(const LogStreamPair &other) = delete;
+
+    // Allow Moves
+    LogStreamPair(LogStreamPair &&other) noexcept = default;
+    LogStreamPair &operator=(LogStreamPair &&other) noexcept = default;
+
+    ~LogStreamPair() = default;
+
+    void print(const QString &value) const {
+      cursor->insertText(value, textFormat);
+    }
+
+    [[nodiscard]] QTextDocument &getData() {
+      return *data;
+    };
+
+    [[nodiscard]] const parser::LogStream &getModel() {
+      return model;
+    };
+
+    [[nodiscard]] const QString &getName() const {
+      return name;
+    }
+
+    [[nodiscard]] const QTextCharFormat &getFormat() const {
+      return textFormat;
+    }
+  };
+
+  unsigned int lastUnifiedWriter = 0u;
+  std::unordered_map<unsigned int, LogStreamPair> streams;
+  std::deque<parser::LogEvent> events;
+
+  void handleEvent(const parser::StreamAppendEvent &e);
+  void streamSelected(unsigned int id);
+  void printToUnifiedLog(LogStreamPair &pair, const QString &value);
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
-  ~MainWindow() override;
+  explicit ScenarioLogWidget(QWidget *parent = nullptr);
 
-public slots:
-  void finishLoading(const QString &fileName);
-
-signals:
-  void startLoading(const QString &fileName);
-
-private:
-  const int stateVersion = 1;
-  SettingsManager settings;
-
-  ChartManager *charts;
-  NodeWidget *nodeWidget;
-  ScenarioLogWidget *logWidget;
-  Ui::MainWindow *ui;
-  /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
-   */
-  QLabel statusLabel{"0ms", this};
-  RenderWidget render{this};
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
-
+  void addStream(const parser::LogStream &stream);
+  void enqueueEvents(const std::vector<parser::LogEvent> &e);
   void timeAdvanced(double time);
-  void load();
-
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  void reset();
 };
+
 } // namespace visualization

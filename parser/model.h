@@ -46,11 +46,20 @@ struct Ns3Coordinate {
   float z = 0.0f;
 };
 
+struct Ns3Color {
+  uint8_t red = 0u;
+  uint8_t green = 0u;
+  uint8_t blue = 0u;
+  uint8_t alpha = 255u;
+};
+
 struct GlobalConfiguration {
   double millisecondsPerFrame = 1.0;
   Ns3Coordinate minLocation;
   Ns3Coordinate maxLocation;
 };
+
+// ----- Scene Models -----
 
 struct Node {
   unsigned int id = 0;
@@ -85,6 +94,8 @@ struct Decoration {
   float scale = 1.0f;
 };
 
+// ----- Chart Models -----
+
 struct ValueAxis {
   enum class BoundMode { Fixed, HighestValue };
   enum class Scale { Linear, Logarithmic };
@@ -118,6 +129,14 @@ struct SeriesCollection {
   std::vector<uint32_t> series;
   ValueAxis xAxis;
   ValueAxis yAxis;
+};
+
+// ----- Log Models -----
+
+struct LogStream {
+  unsigned int id = 0u;
+  std::string name;
+  std::optional<Ns3Color> color;
 };
 
 /**
@@ -234,10 +253,31 @@ struct XYSeriesAddValue {
 };
 
 /**
+ * Event that appends a message to a given LogStream
+ */
+struct StreamAppendEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The ID of the stream to append to
+   */
+  unsigned int streamId = 0u;
+
+  /**
+   * The string to append to the log
+   */
+  std::string value;
+};
+
+/**
  * Variant defined for every event model
  */
 using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, DecorationOrientationChangeEvent,
-                           XYSeriesAddValue>;
+                           XYSeriesAddValue, StreamAppendEvent>;
 
 /**
  * Events which affect the rendered scene
@@ -249,5 +289,10 @@ using SceneEvent =
  * Event types specific to the charts model
  */
 using ChartEvent = std::variant<XYSeriesAddValue>;
+
+/**
+ * Events which affect the Scenario Log
+ */
+using LogEvent = std::variant<StreamAppendEvent>;
 
 } // namespace parser

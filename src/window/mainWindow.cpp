@@ -57,6 +57,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
 
+  logWidget = new ScenarioLogWidget{ui->logDock};
+  ui->logDock->setWidget(logWidget);
+
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
     restoreState(*state, stateVersion);
@@ -68,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 
   ui->menuWidget->addAction(ui->nodesDock->toggleViewAction());
   ui->menuWidget->addAction(ui->chartDock->toggleViewAction());
+  ui->menuWidget->addAction(ui->logDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -76,6 +80,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   ui->statusbar->insertWidget(0, &statusLabel);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, charts, &ChartManager::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeAdvanced, logWidget, &ScenarioLogWidget::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
 
   QObject::connect(nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
@@ -91,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
 MainWindow::~MainWindow() {
   delete ui;
   loadThread.quit();
-  // Make sure the tread has time to close before trying to destroy it
+  // Make sure the thread has time to close before trying to destroy it
   loadThread.wait();
 }
 void MainWindow::timeAdvanced(double time) {
@@ -144,9 +149,16 @@ void MainWindow::finishLoading(const QString &fileName) {
     charts->addSeries(series);
   }
 
+  logWidget->reset();
+  const auto &logStreams = parser.getLogStreams();
+  for (const auto &logStream : logStreams) {
+    logWidget->addStream(logStream);
+  }
+
   // Events
   render.enqueueEvents(parser.getSceneEvents());
   charts->enqueueEvents(parser.getChartsEvents());
+  logWidget->enqueueEvents(parser.getLogEvents());
 
   ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
   statusLabel.setText("0ms");

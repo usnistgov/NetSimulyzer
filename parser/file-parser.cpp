@@ -61,6 +61,8 @@ void FileParser::reset() {
   decorations.clear();
   sceneEvents.clear();
   chartEvents.clear();
+  logEvents.clear();
+  logStreams.clear();
   xySeries.clear();
   seriesCollections.clear();
 }
@@ -89,12 +91,20 @@ const std::vector<ChartEvent> &FileParser::getChartsEvents() const {
   return chartEvents;
 }
 
+const std::vector<LogEvent> &FileParser::getLogEvents() const {
+  return logEvents;
+}
+
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
   return xySeries;
 }
 
 const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
   return seriesCollections;
+}
+
+const std::vector<LogStream> &FileParser::getLogStreams() const {
+  return logStreams;
 }
 
 } // namespace parser

@@ -77,6 +77,8 @@ constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
       return Section::Nodes;
     else if (key == "series")
       return Section::Series;
+    else if (key == "streams")
+      return Section::Streams;
     else
       return Section::None;
   }
@@ -105,6 +107,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
       parseDecorationOrientationEvent(object);
     else if (type == "xy-series-append")
       parseSeriesAppend(object);
+    else if (type == "stream-append")
+      parseStreamAppend(object);
     else
       std::cerr << "Unhandled Event type: " << type << '\n';
   } break;
@@ -120,6 +124,9 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
     else
       std::cerr << "Unhandled Series type: " << type << '\n';
   } break;
+  case Section::Streams:
+    parseLogStream(object);
+    break;
   default:
     std::cerr << "Non-section key passed to do_parse with object:" << object << '\n';
     break;
@@ -326,6 +333,33 @@ void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
   fileParser.seriesCollections.emplace_back(collection);
 }
 
+void JsonHandler::parseLogStream(const nlohmann::json &object) {
+  parser::LogStream stream;
+  stream.id = object["id"].get<unsigned int>();
+  stream.name = object["name"].get<std::string>();
+
+  if (object.contains("color")) {
+    parser::Ns3Color color{};
+    color.blue = object["color"]["blue"].get<uint8_t>();
+    color.green = object["color"]["green"].get<uint8_t>();
+    color.red = object["color"]["red"].get<uint8_t>();
+    // No alpha component
+
+    stream.color = color;
+  }
+
+  fileParser.logStreams.emplace_back(stream);
+}
+
+void JsonHandler::parseStreamAppend(const nlohmann::json &object) {
+  parser::StreamAppendEvent event;
+  event.time = object["milliseconds"].get<double>();
+  event.streamId = object["stream-id"].get<unsigned int>();
+  event.value = object["data"].get<std::string>();
+
+  fileParser.logEvents.emplace_back(event);
+}
+
 void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) {
   auto &config = fileParser.globalConfiguration;
 
@@ -431,7 +465,6 @@ bool JsonHandler::key(nlohmann::json::string_t &value) {
   }
   return true;
 }
-
 bool JsonHandler::parse_error(std::size_t position, const std::string &last_token,
                               const nlohmann::detail::exception &ex) {
   throw ex;

@@ -48,7 +48,7 @@ class JsonHandler {
   /**
    * The possible section in the document
    */
-  enum class Section { None, Buildings, Configuration, Decorations, Events, Nodes, Series };
+  enum class Section { None, Buildings, Configuration, Decorations, Events, Nodes, Series, Streams };
 
   parser::FileParser &fileParser;
 
@@ -102,7 +102,8 @@ class JsonHandler {
    * @param value
    * The value to store in currentKey
    */
-  template <typename T> void handle(T &&value) {
+  template <typename T>
+  void handle(T &&value) {
     if (jsonStack.empty() || !currentKey)
       return;
 
@@ -211,6 +212,22 @@ class JsonHandler {
    * The object from the 'series' section with the 'xy-series' type
    */
   void parseSeriesCollection(const nlohmann::json &object);
+
+  /**
+   * Parse and emplace a Stream for the Scenario Log
+   *
+   * @param object
+   * The object from the 'streams' section
+   */
+  void parseLogStream(const nlohmann::json &object);
+
+  /**
+   * Parse and emplace a stream append event
+   *
+   * @param object
+   * The object from the 'events' section with the 'stream-append' type
+   */
+  void parseStreamAppend(const nlohmann::json &object);
 
   /**
    * Check the min/max bounds against `coordinate` and update accordingly
