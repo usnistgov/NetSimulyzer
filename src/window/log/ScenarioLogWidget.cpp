@@ -130,6 +130,9 @@ void ScenarioLogWidget::timeAdvanced(double time) {
   while (!events.empty() && std::visit(handle, events.front())) {
     // Intentionally Blank
   }
+
+  if (events.empty())
+    emit eventsComplete();
 }
 
 void ScenarioLogWidget::reset() {

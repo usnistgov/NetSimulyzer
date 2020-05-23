@@ -89,6 +89,9 @@ void RenderWidget::handleEvents() {
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     events.pop_front();
   }
+
+  if (events.empty())
+    emit eventsComplete();
 }
 
 void RenderWidget::initializeGL() {
@@ -178,7 +181,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
 
-  if (event->key() == pauseKey)
+  if (event->key() == pauseKey && canPauseToggle)
     paused = !paused;
 }
 
@@ -339,6 +342,13 @@ void RenderWidget::showCameraConfigurationDialogue() {
 void RenderWidget::resetCamera() {
   camera.setPosition({0.0f, 0.0f, 0.0f});
   camera.resetRotation();
+}
+void RenderWidget::pause() {
+  paused = true;
+}
+
+void RenderWidget::allowPauseToggle(bool value) {
+  canPauseToggle = value;
 }
 
 } // namespace visualization

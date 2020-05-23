@@ -94,6 +94,9 @@ public:
   void showSeries(uint32_t seriesId);
   void timeAdvanced(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
+
+signals:
+  void eventsComplete();
 };
 
 } // namespace visualization

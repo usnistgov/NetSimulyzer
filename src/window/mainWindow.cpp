@@ -83,6 +83,21 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   QObject::connect(&render, &RenderWidget::timeAdvanced, logWidget, &ScenarioLogWidget::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
 
+  QObject::connect(&render, &RenderWidget::eventsComplete, [this]() {
+    renderEventsComplete = true;
+    checkPause();
+  });
+
+  QObject::connect(logWidget, &ScenarioLogWidget::eventsComplete, [this]() {
+    logEventsComplete = true;
+    checkPause();
+  });
+
+  QObject::connect(charts, &ChartManager::eventsComplete, [this]() {
+    chartEventsComplete = true;
+    checkPause();
+  });
+
   QObject::connect(nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
 
   QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
@@ -156,14 +171,31 @@ void MainWindow::finishLoading(const QString &fileName) {
   }
 
   // Events
-  render.enqueueEvents(parser.getSceneEvents());
-  charts->enqueueEvents(parser.getChartsEvents());
-  logWidget->enqueueEvents(parser.getLogEvents());
+  const auto &sceneEvents = parser.getSceneEvents();
+  renderEventsComplete = sceneEvents.empty();
+  render.enqueueEvents(sceneEvents);
+
+  const auto &chartEvents = parser.getChartsEvents();
+  chartEventsComplete = chartEvents.empty();
+  charts->enqueueEvents(chartEvents);
+
+  const auto &logEvents = parser.getLogEvents();
+  logEventsComplete = logEvents.empty();
+  logWidget->enqueueEvents(logEvents);
+  checkPause();
 
   ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
   statusLabel.setText("0ms");
   loading = false;
   ui->actionLoad->setEnabled(true);
+}
+
+void MainWindow::checkPause() {
+  if (chartEventsComplete && logEventsComplete && renderEventsComplete) {
+    render.pause();
+    render.allowPauseToggle(false);
+  } else
+    render.allowPauseToggle(true);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

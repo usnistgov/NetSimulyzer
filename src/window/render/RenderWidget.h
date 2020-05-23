@@ -97,6 +97,7 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Decoration> decorations;
 
   bool paused = true;
+  bool canPauseToggle = false;
   std::deque<parser::SceneEvent> events;
 
   void handleEvents();
@@ -132,7 +133,11 @@ public:
   void showCameraConfigurationDialogue();
   void resetCamera();
 
+  void pause();
+  void allowPauseToggle(bool value);
+
 signals:
   void timeAdvanced(double simulationTime);
+  void eventsComplete();
 };
 } // namespace visualization

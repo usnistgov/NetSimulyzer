@@ -112,6 +112,9 @@ public:
   void enqueueEvents(const std::vector<parser::LogEvent> &e);
   void timeAdvanced(double time);
   void reset();
+
+signals:
+  void eventsComplete();
 };
 
 } // namespace visualization

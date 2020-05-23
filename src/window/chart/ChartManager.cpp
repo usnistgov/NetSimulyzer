@@ -321,6 +321,9 @@ void ChartManager::timeAdvanced(double time) {
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     // Intentionally Blank
   }
+
+  if (events.empty())
+    emit eventsComplete();
 }
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
