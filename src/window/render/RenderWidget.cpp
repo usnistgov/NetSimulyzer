@@ -288,6 +288,7 @@ void RenderWidget::reset() {
   nodes.clear();
   decorations.clear();
   events.clear();
+  simulationTime = 0.0;
 }
 
 void RenderWidget::add(const std::vector<parser::Building> &buildingModels,
