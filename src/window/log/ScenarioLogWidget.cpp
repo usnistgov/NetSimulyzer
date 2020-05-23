@@ -63,37 +63,27 @@ void ScenarioLogWidget::handleEvent(const parser::StreamAppendEvent &e) {
 }
 
 void ScenarioLogWidget::printToUnifiedLog(LogStreamPair &pair, const QString &value) {
-  auto id = pair.getModel().id;
-  const auto &format = pair.getFormat();
-  QString prompt = '[' + pair.getName() + "]: ";
-
-  if (value.contains('\n')) {
-    auto split = value.split('\n');
-
-    // If the last section is just a newline
-    // remove it, since we'll add that newline back
-    if (split.last().isEmpty())
-      split.removeLast();
-
-    if (split.length() == 1 && split[0].isEmpty()) {
-      unifiedStreamCursor.insertText(QString{'\n'}, format);
-      // Reset this so the next line gets a prompt
-      lastUnifiedWriter = 0uL;
-      return;
-    }
-
-    for (const auto &splitValue : split)
-      unifiedStreamCursor.insertText(prompt + splitValue + '\n', format);
+  // File us down to single line prints
+  if (value.count('\n') > 1) {
+    auto lines = value.split('\n');
+    for (const auto &line : lines)
+      printToUnifiedLog(pair, line + '\n');
 
     return;
   }
 
-  if (id != lastUnifiedWriter) {
+  auto id = pair.getModel().id;
+  const auto &format = pair.getFormat();
+  QString prompt = '[' + pair.getName() + "]: ";
+
+  if (id != lastUnifiedWriter && !unifiedStreamCursor.atBlockStart())
+    unifiedStreamCursor.insertText("\n", format);
+
+  if (unifiedStreamCursor.atBlockStart())
     unifiedStreamCursor.insertText(prompt, format);
-    lastUnifiedWriter = id;
-  }
 
   unifiedStreamCursor.insertText(value);
+  lastUnifiedWriter = id;
 }
 
 void ScenarioLogWidget::streamSelected(unsigned int id) {
