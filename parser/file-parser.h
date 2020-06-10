@@ -131,6 +131,14 @@ public:
   [[nodiscard]] const std::vector<XYSeries> &getXYSeries() const;
 
   /**
+   * Gets the collection of Category Value series from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The Category Value series specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<CategoryValueSeries> &getCategoryValueSeries() const;
+
+  /**
    * Gets the collection of series collections from the parsed file
    * `parse()` should be called first
    *
@@ -187,6 +195,11 @@ private:
    * The XY Series defined within the 'series' JSON collection
    */
   std::vector<XYSeries> xySeries;
+
+  /**
+   * The Category Value Series defined within the 'series' JSON collection
+   */
+  std::vector<CategoryValueSeries> categoryValueSeries;
 
   /**
    * The Series Collections defined within the 'series' JSON collection

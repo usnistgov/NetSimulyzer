@@ -32,6 +32,7 @@
  */
 
 #include "JsonHandler.h"
+#include <algorithm>
 #include <cmath>
 
 parser::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
@@ -59,6 +60,28 @@ parser::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
   axis.min = object["min"].get<double>();
   axis.name = object["name"].get<std::string>();
   axis.scale = scaleFromString(object["scale"].get<std::string>());
+
+  return axis;
+}
+
+parser::CategoryAxis categoryAxisFromObject(const nlohmann::json &object) {
+  parser::CategoryAxis axis;
+  axis.name = object["name"].get<std::string>();
+
+  const auto &values = object["values"];
+  for (const auto &value : values) {
+    parser::CategoryAxis::Category category;
+
+    category.id = value["id"].get<unsigned int>();
+    category.name = value["value"].get<std::string>();
+
+    axis.values.emplace_back(category);
+  }
+
+  // Category values must be sorted least to greatest
+  // since we may only define a category's end position
+  std::sort(axis.values.begin(), axis.values.end(),
+            [](const auto &left, const auto &right) { return left.id < right.id; });
 
   return axis;
 }
@@ -107,6 +130,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
       parseDecorationOrientationEvent(object);
     else if (type == "xy-series-append")
       parseSeriesAppend(object);
+    else if (type == "category-series-append")
+      parseCategorySeriesAppend(object);
     else if (type == "stream-append")
       parseStreamAppend(object);
     else
@@ -119,6 +144,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
     auto type = object["type"].get<std::string>();
     if (type == "xy-series")
       parseXYSeries(object);
+    else if (type == "category-value-series")
+      parseCategoryValueSeries(object);
     else if (type == "series-collection")
       parseSeriesCollection(object);
     else
@@ -284,6 +311,17 @@ void JsonHandler::parseSeriesAppend(const nlohmann::json &object) {
   fileParser.chartEvents.emplace_back(event);
 }
 
+void JsonHandler::parseCategorySeriesAppend(const nlohmann::json &object) {
+  parser::CategorySeriesAddValue event;
+
+  event.time = object["milliseconds"].get<double>();
+  event.seriesId = object["series-id"].get<uint32_t>();
+  event.category = object["category"].get<unsigned int>();
+  event.value = object["value"].get<double>();
+
+  fileParser.chartEvents.emplace_back(event);
+}
+
 void JsonHandler::parseXYSeries(const nlohmann::json &object) {
   parser::XYSeries series;
 
@@ -316,6 +354,31 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
   series.yAxis = valueAxisFromObject(object["y-axis"]);
 
   fileParser.xySeries.emplace_back(series);
+}
+
+void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
+  parser::CategoryValueSeries series;
+
+  series.id = object["id"].get<uint32_t>();
+  series.name = object["name"].get<std::string>();
+
+  series.alpha = object["color"]["alpha"].get<uint8_t>();
+  series.blue = object["color"]["blue"].get<uint8_t>();
+  series.green = object["color"]["green"].get<uint8_t>();
+  series.red = object["color"]["red"].get<uint8_t>();
+
+  auto connectionMode = object["connection-mode"].get<std::string>();
+  if (connectionMode == "all")
+    series.connectionMode = parser::CategoryValueSeries::ConnectionMode::All;
+  else if (connectionMode == "in category")
+    series.connectionMode = parser::CategoryValueSeries::ConnectionMode::InCategory;
+  else
+    std::cerr << "Unrecognized connection mode: " << connectionMode << '\n';
+
+  series.xAxis = valueAxisFromObject(object["x-axis"]);
+  series.yAxis = categoryAxisFromObject(object["y-axis"]);
+
+  fileParser.categoryValueSeries.emplace_back(series);
 }
 
 void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
@@ -413,55 +476,100 @@ bool JsonHandler::string(nlohmann::json::string_t &value) {
 }
 
 bool JsonHandler::start_object(std::size_t elements) {
-  if (currentKey)
-    jsonStack.push({*currentKey, nlohmann::json::object()});
+  // Root object case
+  if (jsonStack.empty()) {
+    jsonStack.push({"root", nlohmann::json::object()});
+    return true;
+  }
 
+  auto &top = jsonStack.top();
+
+  // Do not overwrite existing values
+  if (top.value.is_array()) {
+    jsonStack.push({"", nlohmann::json::object()});
+    return true;
+  }
+
+  top.value = nlohmann::json::object();
   sectionDepth++;
   return true;
 }
 
 bool JsonHandler::end_object() {
-  // Possibly empty at the end of a message
-  if (!jsonStack.empty()) {
-    sectionDepth--;
-
-    if (sectionDepth == 0) {
-      auto frame = jsonStack.top();
-      jsonStack.pop();
-      do_parse(currentSection, frame.value);
-    } else {
-      auto top = jsonStack.top();
-      jsonStack.pop();
-      jsonStack.top().value[top.key] = top.value;
-    }
+  // TODO: Error
+  if (jsonStack.empty()) {
+    return false;
   }
-  return true;
-}
 
-bool JsonHandler::start_array(std::size_t elements) {
-  if (!currentKey) {
+  auto oldTop = jsonStack.top();
+  jsonStack.pop();
+
+  if (jsonStack.empty()) {
+    assert(oldTop.key == "root");
     return true;
   }
 
-  if (isSection(*currentKey) != Section::None)
-    sectionDepth = 0;
-  else {
-    jsonStack.top().value[*currentKey] = nlohmann::json::array();
+  auto &currentTop = jsonStack.top();
+
+  // Special case, "configuration" is parsed
+  // as a normal unit
+  if (currentSection == Section::Configuration && oldTop.key == "configuration") {
+    parseConfiguration(oldTop.value);
+    return true;
   }
 
+  // All other sections have one parse call per item
+  if (isSection(jsonStack.top().key) != Section::None) {
+    do_parse(currentSection, oldTop.value);
+    return true;
+  }
+
+  if (currentTop.value.is_array()) {
+    currentTop.value.emplace_back(oldTop.value);
+    return true;
+  }
+
+  if (currentTop.value.is_object()) {
+    currentTop.value[oldTop.key] = oldTop.value;
+    return true;
+  }
+
+  return false;
+}
+
+bool JsonHandler::start_array(std::size_t elements) {
+  if (jsonStack.empty()) {
+    return false;
+  }
+
+  jsonStack.top().value = nlohmann::json::array();
   return true;
 }
 
 bool JsonHandler::end_array() {
+  auto oldTop = jsonStack.top();
+  jsonStack.pop();
+
+  auto &currentTop = jsonStack.top();
+  if (currentTop.value.is_object())
+    currentTop.value[oldTop.key] = oldTop.value;
+  else if (currentTop.value.is_array())
+    currentTop.value.emplace_back(oldTop.value);
+  else {
+    std::cerr << currentTop.value << '\n';
+    std::abort();
+  }
+
   return true;
 }
 
 bool JsonHandler::key(nlohmann::json::string_t &value) {
-  currentKey = value;
+  jsonStack.push({value});
 
   auto possibleSection = isSection(value);
   if (possibleSection != Section::None) {
     currentSection = possibleSection;
+    sectionDepth = 0;
   }
   return true;
 }

@@ -107,6 +107,16 @@ struct ValueAxis {
   double max = 0.0;
 };
 
+struct CategoryAxis {
+  struct Category {
+    unsigned int id = 0u;
+    std::string name;
+  };
+
+  std::string name;
+  std::vector<Category> values;
+};
+
 struct XYSeries {
   enum class Connection { None, Line, Spline };
   enum class LabelMode { Hidden, Shown };
@@ -121,6 +131,20 @@ struct XYSeries {
   uint8_t alpha = 255u;
   ValueAxis xAxis;
   ValueAxis yAxis;
+};
+
+struct CategoryValueSeries {
+  enum class ConnectionMode { All, InCategory };
+
+  unsigned int id = 0u;
+  std::string name;
+  ConnectionMode connectionMode = ConnectionMode::InCategory;
+  uint8_t red = 0u;
+  uint8_t green = 0u;
+  uint8_t blue = 0u;
+  uint8_t alpha = 255u;
+  ValueAxis xAxis;
+  CategoryAxis yAxis;
 };
 
 struct SeriesCollection {
@@ -253,6 +277,35 @@ struct XYSeriesAddValue {
 };
 
 /**
+ * Event that appends a value with a category to a series
+ */
+struct CategorySeriesAddValue {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The series to append the value to
+   */
+  uint32_t seriesId = 0u;
+
+  /**
+   * The value to append to the series
+   * on the X axis
+   */
+  double value = 0.0;
+
+  /**
+   * The ID of the category
+   * to append `value` to
+   * on the y axis
+   */
+  unsigned int category = 0u;
+};
+
+/**
  * Event that appends a message to a given LogStream
  */
 struct StreamAppendEvent {
@@ -288,7 +341,7 @@ using SceneEvent =
 /**
  * Event types specific to the charts model
  */
-using ChartEvent = std::variant<XYSeriesAddValue>;
+using ChartEvent = std::variant<XYSeriesAddValue, CategorySeriesAddValue>;
 
 /**
  * Events which affect the Scenario Log

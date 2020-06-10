@@ -104,14 +104,37 @@ class JsonHandler {
    */
   template <typename T>
   void handle(T &&value) {
-    if (jsonStack.empty() || !currentKey)
-      return;
+    // TODO: Probably an error if this happens
+    if (jsonStack.empty())
+      std::abort();
 
-    auto &top = jsonStack.top();
-    if (top.value[*currentKey].type() == nlohmann::json::value_t::array)
-      top.value[*currentKey].emplace_back(value);
-    else
-      top.value[*currentKey] = value;
+    // Special case, array of primitives
+    // ex: [1, 2, 3]
+    if (jsonStack.top().value.is_array()) {
+      jsonStack.top().value.emplace_back(value);
+      return;
+    }
+
+    // Copy the old top, since we're about to clear it
+    // should contain just a key
+    // since `handle()` is for primitives
+    auto oldTop = jsonStack.top();
+
+    if (!oldTop.value.is_null()) {
+      std::cerr << oldTop.value << '\n';
+      std::abort();
+    }
+
+    jsonStack.pop();
+    auto &currentTop = jsonStack.top();
+
+    if (currentTop.value.is_object()) {
+      currentTop.value[oldTop.key] = value;
+      return;
+    }
+
+    std::abort();
+    // TODO: Error as well...
   }
 
   /**
@@ -198,12 +221,28 @@ class JsonHandler {
   void parseSeriesAppend(const nlohmann::json &object);
 
   /**
+   * Parse and emplace a category value append event
+   *
+   * @param object
+   * The object from the 'events' section with the 'category-series-append' type
+   */
+  void parseCategorySeriesAppend(const nlohmann::json &object);
+
+  /**
    * Parse and emplace a linear series
    *
    * @param object
    * The object from the 'series' section with the 'xy-series' type
    */
   void parseXYSeries(const nlohmann::json &object);
+
+  /**
+   * Parse and emplace a category value series.
+   *
+   * @param object
+   * The object from the 'series' section with the 'category-value-series' type
+   */
+  void parseCategoryValueSeries(const nlohmann::json &object);
 
   /**
    * Parse and emplace a series collection

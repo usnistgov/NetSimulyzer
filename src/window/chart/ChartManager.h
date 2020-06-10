@@ -38,6 +38,7 @@
 #include <QGraphicsItem>
 #include <QLayout>
 #include <QObject>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
@@ -52,7 +53,7 @@ namespace visualization {
 class ChartManager : public QWidget {
   Q_OBJECT
 
-  enum class SeriesType { XYSeries, SeriesCollection };
+  enum class SeriesType { XYSeries, SeriesCollection, CategoryValue };
 
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
@@ -67,9 +68,16 @@ class ChartManager : public QWidget {
     QAbstractAxis *yAxis;
   };
 
+  struct CategoryValueTie {
+    parser::CategoryValueSeries model;
+    QtCharts::QXYSeries *qtSeries;
+    QAbstractAxis *xAxis;
+    QCategoryAxis *yAxis;
+  };
+
   Ui::ChartManager *ui = new Ui::ChartManager;
   std::deque<parser::ChartEvent> events;
-  std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie>> series;
+  std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>> series;
   QtCharts::QChart chart;
 
   /**
@@ -79,6 +87,7 @@ class ChartManager : public QWidget {
   void seriesSelected(int index);
   void showSeries(const XYSeriesTie &tie);
   void showSeries(const SeriesCollectionTie &tie);
+  void showSeries(const CategoryValueTie &tie);
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
 
 public:
@@ -91,6 +100,7 @@ public:
   void reset();
   void addSeries(const parser::XYSeries &s);
   void addSeries(const parser::SeriesCollection &s);
+  void addSeries(const parser::CategoryValueSeries &s);
   void showSeries(uint32_t seriesId);
   void timeAdvanced(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);

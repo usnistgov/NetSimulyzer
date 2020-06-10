@@ -164,6 +164,12 @@ void MainWindow::finishLoading(const QString &fileName) {
     charts->addSeries(series);
   }
 
+  const auto &categoryValueSeries = parser.getCategoryValueSeries();
+  for (const auto &series : categoryValueSeries) {
+    charts->addSeries(series);
+  }
+
+  // Log Streams
   logWidget->reset();
   const auto &logStreams = parser.getLogStreams();
   for (const auto &logStream : logStreams) {

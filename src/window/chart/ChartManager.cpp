@@ -133,6 +133,10 @@ void ChartManager::reset() {
       auto qtSeries = std::get<XYSeriesTie>(value).qtSeries;
       qtSeries->setParent(nullptr);
       qtSeries->deleteLater();
+    } else if (std::holds_alternative<CategoryValueTie>(value)) {
+      auto qtSeries = std::get<CategoryValueTie>(value).qtSeries;
+      qtSeries->setParent(nullptr);
+      qtSeries->deleteLater();
     }
     // No need to handle SeriesCollection since it has no pointers
   }
@@ -217,6 +221,47 @@ void ChartManager::addSeries(const parser::SeriesCollection &s) {
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
 }
 
+void ChartManager::addSeries(const parser::CategoryValueSeries &s) {
+  CategoryValueTie tie;
+  tie.model = s;
+  tie.qtSeries = new QtCharts::QLineSeries(this);
+
+  tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
+  tie.qtSeries->setName(QString::fromStdString(s.name));
+
+  // X Axis (values)
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
+  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
+
+  // Y axis (categories)
+  auto yAxis = new QCategoryAxis(this);
+  const auto &categories = tie.model.yAxis.values;
+
+  yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
+  // Just to be safe
+  if (!categories.empty()) {
+    // Give slight padding before/after the min/max values
+    yAxis->setMin(static_cast<double>(categories.front().id) - 0.1);
+    yAxis->setMax(static_cast<double>(categories.back().id) + 0.1);
+  }
+  for (const auto &category : categories)
+    yAxis->append(QString::fromStdString(category.name), category.id);
+
+  // Center the label within the range
+  // since we use the ID as the end
+  // of the range, rather than the center
+  yAxis->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
+
+  tie.yAxis = yAxis;
+
+  series.insert({s.id, tie});
+  ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+}
+
 void ChartManager::showSeries(uint32_t seriesId) {
   clearChart();
 
@@ -229,10 +274,12 @@ void ChartManager::showSeries(uint32_t seriesId) {
   }
 
   auto &s = seriesIterator->second;
-  if (std::holds_alternative<ChartManager::XYSeriesTie>(s))
-    showSeries(std::get<ChartManager::XYSeriesTie>(s));
-  else if (std::holds_alternative<ChartManager::SeriesCollectionTie>(s))
-    showSeries(std::get<ChartManager::SeriesCollectionTie>(s));
+  if (std::holds_alternative<XYSeriesTie>(s))
+    showSeries(std::get<XYSeriesTie>(s));
+  else if (std::holds_alternative<SeriesCollectionTie>(s))
+    showSeries(std::get<SeriesCollectionTie>(s));
+  else if (std::holds_alternative<CategoryValueTie>(s))
+    showSeries(std::get<CategoryValueTie>(s));
 }
 
 void ChartManager::showSeries(const XYSeriesTie &tie) {
@@ -269,6 +316,21 @@ void ChartManager::showSeries(const ChartManager::SeriesCollectionTie &tie) {
     chartSeries->attachAxis(tie.xAxis);
     chartSeries->attachAxis(tie.yAxis);
   }
+}
+
+void ChartManager::showSeries(const ChartManager::CategoryValueTie &tie) {
+  chart.setTitle(QString::fromStdString(tie.model.name));
+
+  // Qt wants the series on the chart before the axes
+  chart.addSeries(tie.qtSeries);
+
+  chart.addAxis(tie.xAxis, Qt::AlignBottom);
+  chart.addAxis(tie.yAxis, Qt::AlignLeft);
+
+  // The series may only be attached to an axis _after_ both have
+  // been added to the chart...
+  tie.qtSeries->attachAxis(tie.xAxis);
+  tie.qtSeries->attachAxis(tie.yAxis);
 }
 
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
@@ -310,6 +372,20 @@ void ChartManager::timeAdvanced(double time) {
       }
       updateCollectionRanges(e.seriesId, e.x, e.y);
       s.qtSeries->append(e.x, e.y);
+      events.pop_front();
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, parser::CategorySeriesAddValue>) {
+      const auto &s = std::get<CategoryValueTie>(series[e.seriesId]);
+      if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
+        updateRange(s.xAxis, e.value);
+      }
+
+      // Y axis on category charts is a fixed size
+
+      s.qtSeries->append(e.value, e.category);
+      updateCollectionRanges(e.seriesId, e.value, e.category);
       events.pop_front();
       return true;
     }

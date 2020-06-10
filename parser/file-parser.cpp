@@ -64,6 +64,7 @@ void FileParser::reset() {
   logEvents.clear();
   logStreams.clear();
   xySeries.clear();
+  categoryValueSeries.clear();
   seriesCollections.clear();
 }
 
@@ -97,6 +98,10 @@ const std::vector<LogEvent> &FileParser::getLogEvents() const {
 
 const std::vector<XYSeries> &FileParser::getXYSeries() const {
   return xySeries;
+}
+
+const std::vector<CategoryValueSeries> &FileParser::getCategoryValueSeries() const {
+  return categoryValueSeries;
 }
 
 const std::vector<SeriesCollection> &FileParser::getSeriesCollections() const {
