@@ -148,9 +148,16 @@ void ChartManager::addSeries(const parser::XYSeries &s) {
   ChartManager::XYSeriesTie tie;
   tie.model = s;
   switch (s.connection) {
-  case parser::XYSeries::Connection::None:
-    tie.qtSeries = new QtCharts::QScatterSeries(this);
-    break;
+  case parser::XYSeries::Connection::None: {
+    auto scatterSeries = new QtCharts::QScatterSeries(this);
+
+    // Hide the borders of points, as they cover up other points
+    scatterSeries->setBorderColor(QColor(Qt::transparent));
+
+    // Cut this down, as the default size (15 at time of writing) is quite large
+    scatterSeries->setMarkerSize(5.0);
+    tie.qtSeries = scatterSeries;
+  } break;
   case parser::XYSeries::Connection::Line:
     tie.qtSeries = new QtCharts::QLineSeries(this);
     break;
@@ -215,7 +222,7 @@ void ChartManager::addSeries(const parser::SeriesCollection &s) {
     tie.yAxis = new QtCharts::QLogValueAxis(this);
   tie.yAxis = new QtCharts::QValueAxis(this);
   tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
-  tie.yAxis->setRange(s.xAxis.min, s.yAxis.max);
+  tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
 
   series.insert({s.id, tie});
   ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);

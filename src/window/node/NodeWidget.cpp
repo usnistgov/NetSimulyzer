@@ -55,7 +55,7 @@ NodeWidget::~NodeWidget() {
 void NodeWidget::addNode(const parser::Node &node) {
   nodes.emplace_back(node);
 
-  auto listItem = new QListWidgetItem{QString("Node: ") + std::to_string(node.id).c_str(), ui->nodeList};
+  auto listItem = new QListWidgetItem{QString::fromStdString (node.name) + " (" + QString::number(node.id) + ")", ui->nodeList};
   listItem->setData(Qt::UserRole, node.id);
 
   ui->nodeList->addItem(listItem);

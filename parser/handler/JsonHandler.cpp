@@ -168,6 +168,7 @@ void JsonHandler::parseNode(const nlohmann::json &object) {
   parser::Node node;
 
   node.id = object["id"].get<uint32_t>();
+  node.name = object["name"].get<std::string>();
   node.model = object["model"].get<std::string>();
   node.scale = object["scale"].get<float>();
   node.opacity = object["opacity"].get<double>();

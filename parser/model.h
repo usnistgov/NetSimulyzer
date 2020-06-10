@@ -63,6 +63,7 @@ struct GlobalConfiguration {
 
 struct Node {
   unsigned int id = 0;
+  std::string name;
   std::string model;
   float scale = 1.0f;
   double opacity = 1.0; // TODO: Unused
