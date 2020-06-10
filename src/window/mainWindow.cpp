@@ -82,6 +82,12 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   QObject::connect(&render, &RenderWidget::timeAdvanced, charts, &ChartManager::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, logWidget, &ScenarioLogWidget::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::pauseToggled, [this](bool paused) {
+    // clears any temporary messages when playback is started/resumed
+    // so the time is visible
+    if (!paused)
+      ui->statusbar->clearMessage();
+  });
 
   QObject::connect(&render, &RenderWidget::eventsComplete, [this]() {
     renderEventsComplete = true;

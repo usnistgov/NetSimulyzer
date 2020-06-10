@@ -181,8 +181,10 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
 
-  if (event->key() == pauseKey && canPauseToggle)
+  if (event->key() == pauseKey && canPauseToggle) {
     paused = !paused;
+    emit pauseToggled(paused);
+  }
 }
 
 void RenderWidget::keyReleaseEvent(QKeyEvent *event) {
@@ -345,6 +347,7 @@ void RenderWidget::resetCamera() {
 }
 void RenderWidget::pause() {
   paused = true;
+  emit pauseToggled(paused);
 }
 
 void RenderWidget::allowPauseToggle(bool value) {

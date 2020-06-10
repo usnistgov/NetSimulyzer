@@ -139,5 +139,6 @@ public:
 signals:
   void timeAdvanced(double simulationTime);
   void eventsComplete();
+  void pauseToggled(bool paused);
 };
 } // namespace visualization
