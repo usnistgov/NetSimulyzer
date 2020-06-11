@@ -60,6 +60,11 @@ void ScenarioLogWidget::handleEvent(const parser::StreamAppendEvent &e) {
   pair.print(value);
 
   printToUnifiedLog(pair, value);
+
+  // Scroll the document to the bottom (where the cursor is now)
+  // after every append, keeping the newest info visible
+  // TODO: Should be a setting "autoscroll logs" maybe?
+  ui.plainTextLog->ensureCursorVisible();
 }
 
 void ScenarioLogWidget::printToUnifiedLog(LogStreamPair &pair, const QString &value) {
@@ -89,6 +94,13 @@ void ScenarioLogWidget::printToUnifiedLog(LogStreamPair &pair, const QString &va
 void ScenarioLogWidget::streamSelected(unsigned int id) {
   if (id == unifiedStreamId) {
     ui.plainTextLog->setDocument(&unifiedStreamDocument);
+
+    // When changing the document, the cursor seems to get stuck
+    // at the top, so move it back to the end
+    ui.plainTextLog->moveCursor(QTextCursor::End);
+
+    // Scroll the document to the bottom (where the cursor is now)
+    ui.plainTextLog->ensureCursorVisible();
     return;
   }
 
@@ -97,6 +109,13 @@ void ScenarioLogWidget::streamSelected(unsigned int id) {
     return;
 
   ui.plainTextLog->setDocument(&iter->second.getData());
+
+  // When changing the document, the cursor seems to get stuck
+  // at the top, so move it back to the end
+  ui.plainTextLog->moveCursor(QTextCursor::End);
+
+  // Scroll the document to the bottom (where the cursor is now)
+  ui.plainTextLog->ensureCursorVisible();
 }
 
 ScenarioLogWidget::ScenarioLogWidget(QWidget *parent) : QWidget(parent) {
