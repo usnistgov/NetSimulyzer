@@ -32,7 +32,7 @@
  */
 
 #include "Node.h"
-#include "../../coordinate.h"
+#include "../../conversion.h"
 #include <cmath>
 #include <glm/glm.hpp>
 #include <utility>

@@ -31,14 +31,14 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "coordinate.h"
-#include <array>
+#pragma once
+#include <glm/glm.hpp>
+#include <model.h>
 
 namespace visualization {
 
-glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate) {
-  // Yes this is the right order
-  return {coordinate.x, coordinate.z, coordinate.y};
-}
+glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate);
+
+glm::vec3 toRenderColor(const parser::Ns3Color3 &color);
 
 } // namespace visualization

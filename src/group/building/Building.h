@@ -52,7 +52,7 @@ public:
 
 private:
   RenderInfo renderInfo;
-  glm::vec3 color{0.8f};
+  glm::vec3 color;
   parser::Building model;
 
 public:

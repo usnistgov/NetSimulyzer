@@ -46,11 +46,10 @@ struct Ns3Coordinate {
   float z = 0.0f;
 };
 
-struct Ns3Color {
+struct Ns3Color3 {
   uint8_t red = 0u;
   uint8_t green = 0u;
   uint8_t blue = 0u;
-  uint8_t alpha = 255u;
 };
 
 struct GlobalConfiguration {
@@ -76,7 +75,7 @@ struct Node {
 
 struct Building {
   unsigned int id = 0;
-  double opacity = 1.0; // TODO: Unused
+  Ns3Color3 color;
   bool visible = true;
   uint16_t floors = 0;
   uint16_t roomsX = 0;
@@ -161,7 +160,7 @@ struct SeriesCollection {
 struct LogStream {
   unsigned int id = 0u;
   std::string name;
-  std::optional<Ns3Color> color;
+  std::optional<Ns3Color3> color;
 };
 
 /**

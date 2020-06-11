@@ -32,7 +32,7 @@
  */
 
 #include "Renderer.h"
-#include "../../coordinate.h"
+#include "../../conversion.h"
 #include "../material/material.h"
 #include <QFile>
 #include <QString>

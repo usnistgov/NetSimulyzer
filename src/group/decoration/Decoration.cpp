@@ -32,7 +32,7 @@
  */
 
 #include "Decoration.h"
-#include "../../coordinate.h"
+#include "../../conversion.h"
 
 namespace visualization {
 

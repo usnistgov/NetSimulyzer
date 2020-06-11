@@ -202,7 +202,25 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
   parser::Building building;
 
   building.id = object["id"].get<uint32_t>();
-  building.opacity = object["opacity"].get<double>();
+
+  if (object.contains("color")) {
+    building.color.red = object["color"]["red"].get<uint8_t>();
+    building.color.green = object["color"]["green"].get<uint8_t>();
+    building.color.blue = object["color"]["blue"].get<uint8_t>();
+  } else {
+    // TODO: Remove later
+    std::cerr << "Warning: Building ID " << building.id
+              << " does not define a color! "
+                 "'color' is a new, required attribute. "
+                 "This message will be replaced with a parse error "
+                 "in a future version!\n";
+
+    // Old default color
+    building.color.red = 204u;
+    building.color.green = 204u;
+    building.color.blue = 204u;
+  }
+
   building.visible = object["visible"].get<bool>();
   building.floors = object["floors"].get<uint16_t>();
 
@@ -403,11 +421,10 @@ void JsonHandler::parseLogStream(const nlohmann::json &object) {
   stream.name = object["name"].get<std::string>();
 
   if (object.contains("color")) {
-    parser::Ns3Color color{};
+    parser::Ns3Color3 color{};
     color.blue = object["color"]["blue"].get<uint8_t>();
     color.green = object["color"]["green"].get<uint8_t>();
     color.red = object["color"]["red"].get<uint8_t>();
-    // No alpha component
 
     stream.color = color;
   }

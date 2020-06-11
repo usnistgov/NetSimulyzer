@@ -31,12 +31,18 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-#include <glm/glm.hpp>
-#include <model.h>
+#include "conversion.h"
 
 namespace visualization {
 
-glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate);
-
+glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate) {
+  // Yes this is the right order
+  return {coordinate.x, coordinate.z, coordinate.y};
 }
+
+glm::vec3 toRenderColor(const parser::Ns3Color3 &color) {
+  return {static_cast<float>(color.red) / 255.0f, static_cast<float>(color.green) / 255.0f,
+          static_cast<float>(color.blue) / 255.0f};
+}
+
+} // namespace visualization

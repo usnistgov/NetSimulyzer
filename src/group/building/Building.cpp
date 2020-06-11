@@ -31,13 +31,12 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 #include "Building.h"
-#include <array>
-#include <vector>
+#include "../../conversion.h"
 
 namespace visualization {
 
 Building::Building(const Building::RenderInfo &renderInfo, const parser::Building &model)
-    : renderInfo(renderInfo), model(model) {
+    : renderInfo(renderInfo), color(toRenderColor(model.color)), model(model) {
 }
 
 const Building::RenderInfo &Building::getRenderInfo() const {

@@ -55,4 +55,4 @@ target_sources(visualization PRIVATE
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
-        coordinate.h coordinate.cpp)
+        conversion.h conversion.cpp)

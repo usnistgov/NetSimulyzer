@@ -32,7 +32,7 @@
  */
 
 #include "ScenarioLogWidget.h"
-#include "../../coordinate.h"
+#include "../../conversion.h"
 #include "ui_ScenarioLogWidget.h"
 #include <QColor>
 #include <QString>
