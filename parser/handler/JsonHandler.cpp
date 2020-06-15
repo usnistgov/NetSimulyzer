@@ -86,9 +86,20 @@ parser::CategoryAxis categoryAxisFromObject(const nlohmann::json &object) {
   return axis;
 }
 
+parser::Area::DrawMode drawModeFromString(const std::string &mode) {
+  if (mode == "solid")
+    return parser::Area::DrawMode::Solid;
+  else if (mode == "hidden")
+    return parser::Area::DrawMode::Hidden;
+  else
+    assert(!"Unhandled Area::DrawMode mode");
+}
+
 constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
   {
-    if (key == "buildings")
+    if (key == "areas")
+      return Section::Areas;
+    else if (key == "buildings")
       return Section::Buildings;
     else if (key == "configuration")
       return Section::Configuration;
@@ -109,6 +120,9 @@ constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
 
 void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &object) {
   switch (section) {
+  case Section::Areas:
+    parseArea(object);
+    break;
   case Section::Buildings:
     parseBuilding(object);
     break;
@@ -155,7 +169,7 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
     parseLogStream(object);
     break;
   default:
-    std::cerr << "Non-section key passed to do_parse with object:" << object << '\n';
+    std::cerr << "Unidentified key passed to do_parse with object:" << object << '\n';
     break;
   }
 }
@@ -265,6 +279,42 @@ void JsonHandler::parseDecoration(const nlohmann::json &object) {
   decoration.scale = object["scale"].get<float>();
 
   fileParser.decorations.emplace_back(decoration);
+}
+
+void JsonHandler::parseArea(const nlohmann::json &object) {
+  parser::Area area;
+
+  area.id = object["id"].get<unsigned int>();
+  area.name = object["name"].get<std::string>();
+  area.height = object["height"].get<float>();
+
+  for (const auto &point : object["points"]) {
+    parser::Ns3Coordinate coordinate;
+
+    coordinate.x = point["x"].get<float>();
+    coordinate.y = point["y"].get<float>();
+
+    // An area is 2D, so each point shares the same
+    // height, included with the coordinates for
+    // convenience
+    coordinate.z = area.height;
+
+    area.points.emplace_back(coordinate);
+  }
+
+  area.fillMode = drawModeFromString(object["fill-mode"].get<std::string>());
+
+  area.fillColor.red = object["fill-color"]["red"].get<uint8_t>();
+  area.fillColor.green = object["fill-color"]["green"].get<uint8_t>();
+  area.fillColor.blue = object["fill-color"]["blue"].get<uint8_t>();
+
+  area.borderMode = drawModeFromString(object["border-mode"].get<std::string>());
+
+  area.borderColor.red = object["border-color"]["red"].get<uint8_t>();
+  area.borderColor.green = object["border-color"]["green"].get<uint8_t>();
+  area.borderColor.blue = object["border-color"]["blue"].get<uint8_t>();
+
+  fileParser.areas.emplace_back(area);
 }
 
 void JsonHandler::parseMoveEvent(const nlohmann::json &object) {

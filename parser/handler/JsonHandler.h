@@ -48,7 +48,7 @@ class JsonHandler {
   /**
    * The possible section in the document
    */
-  enum class Section { None, Buildings, Configuration, Decorations, Events, Nodes, Series, Streams };
+  enum class Section { None, Areas, Buildings, Configuration, Decorations, Events, Nodes, Series, Streams };
 
   parser::FileParser &fileParser;
 
@@ -179,6 +179,14 @@ class JsonHandler {
    * The object from the 'decoration' section
    */
   void parseDecoration(const nlohmann::json &object);
+
+  /**
+   * Parse and emplace an area
+   *
+   * @param object
+   * The object from the 'areas' section
+   */
+  void parseArea(const nlohmann::json &object);
 
   /**
    * Parse and emplace a move event

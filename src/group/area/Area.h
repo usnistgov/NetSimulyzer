@@ -32,58 +32,36 @@
  */
 
 #pragma once
-#include "../../group/area/Area.h"
-#include "../../group/building/Building.h"
-#include "../Light.h"
-#include "../camera/Camera.h"
-#include "../helper/Floor.h"
-#include "../mesh/Mesh.h"
-#include "../model/Model.h"
-#include "../model/ModelCache.h"
-#include "../shader/Shader.h"
-#include "../texture/SkyBox.h"
-#include "../texture/TextureCache.h"
-#include <QOpenGLFunctions_3_3_Core>
-#include <glm/glm.hpp>
-#include <sstream>
-#include <vector>
+
+#include <glm/vec3.hpp>
+#include <model.h>
 
 namespace visualization {
 
-class Renderer : protected QOpenGLFunctions_3_3_Core {
-  ModelCache &modelCache;
-  TextureCache &textureCache;
+class Area {
+public:
+  struct RenderInfo {
+    bool renderBorder = true;
+    unsigned int borderVao = 0u;
+    unsigned int borderVbo = 0u;
+    unsigned int borderVbo_size = 0u;
+    glm::vec3 borderColor;
 
-  Shader areaShader;
-  Shader buildingShader;
-  Shader modelShader;
-  Shader skyBoxShader;
+    bool renderFill = true;
+    unsigned int fillVao = 0u;
+    unsigned int fillVbo = 0u;
+    unsigned int fillVbo_size = 0u;
+    glm::vec3 fillColor;
+  };
+
+private:
+  RenderInfo renderInfo;
+  parser::Area model;
 
 public:
-  const unsigned int maxPointLights = 5u;
-  const unsigned int maxSpotLights = 5u;
+  Area(RenderInfo renderInfo, parser::Area model);
 
-  Renderer(ModelCache &modelCache, TextureCache &textureCache);
-  void init();
-  void setPerspective(const glm::mat4 &perspective);
-
-  void setPointLightCount(unsigned int count);
-  void setSpotLightCount(unsigned int count);
-
-  Building::RenderInfo allocate(const parser::Building &building);
-  Area::RenderInfo allocate(const parser::Area &area);
-  Mesh allocateFloor(float size, unsigned int textureId);
-  void resize(Floor &f, float size);
-
-  void use(const Camera &cam);
-  void render(const DirectionalLight &light);
-  void render(const PointLight &light);
-  void render(const SpotLight &light);
-  void render(const std::vector<Area> &areas);
-  void render(std::vector<Building> &buildings);
-  void render(const Model &m);
-  void render(Floor &f);
-  void render(SkyBox &skyBox);
+  [[nodiscard]] const RenderInfo &getRenderInfo() const;
 };
 
 } // namespace visualization

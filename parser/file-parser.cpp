@@ -59,6 +59,7 @@ void FileParser::reset() {
   nodes.clear();
   buildings.clear();
   decorations.clear();
+  areas.clear();
   sceneEvents.clear();
   chartEvents.clear();
   logEvents.clear();
@@ -78,6 +79,10 @@ const std::vector<Node> &FileParser::getNodes() const {
 
 const std::vector<Building> &FileParser::getBuildings() const {
   return buildings;
+}
+
+const std::vector<Area> &FileParser::getAreas() const {
+  return areas;
 }
 
 const std::vector<Decoration> &FileParser::getDecorations() const {

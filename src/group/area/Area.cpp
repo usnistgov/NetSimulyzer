@@ -31,59 +31,18 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-#include "../../group/area/Area.h"
-#include "../../group/building/Building.h"
-#include "../Light.h"
-#include "../camera/Camera.h"
-#include "../helper/Floor.h"
-#include "../mesh/Mesh.h"
-#include "../model/Model.h"
-#include "../model/ModelCache.h"
-#include "../shader/Shader.h"
-#include "../texture/SkyBox.h"
-#include "../texture/TextureCache.h"
-#include <QOpenGLFunctions_3_3_Core>
-#include <glm/glm.hpp>
-#include <sstream>
-#include <vector>
+#include "Area.h"
+#include "../../conversion.h"
+#include <utility>
 
 namespace visualization {
 
-class Renderer : protected QOpenGLFunctions_3_3_Core {
-  ModelCache &modelCache;
-  TextureCache &textureCache;
+Area::Area(Area::RenderInfo renderInfo, parser::Area model) : renderInfo(renderInfo), model(std::move(model)) {
+  this->renderInfo.fillColor = toRenderColor(this->model.fillColor);
+}
 
-  Shader areaShader;
-  Shader buildingShader;
-  Shader modelShader;
-  Shader skyBoxShader;
-
-public:
-  const unsigned int maxPointLights = 5u;
-  const unsigned int maxSpotLights = 5u;
-
-  Renderer(ModelCache &modelCache, TextureCache &textureCache);
-  void init();
-  void setPerspective(const glm::mat4 &perspective);
-
-  void setPointLightCount(unsigned int count);
-  void setSpotLightCount(unsigned int count);
-
-  Building::RenderInfo allocate(const parser::Building &building);
-  Area::RenderInfo allocate(const parser::Area &area);
-  Mesh allocateFloor(float size, unsigned int textureId);
-  void resize(Floor &f, float size);
-
-  void use(const Camera &cam);
-  void render(const DirectionalLight &light);
-  void render(const PointLight &light);
-  void render(const SpotLight &light);
-  void render(const std::vector<Area> &areas);
-  void render(std::vector<Building> &buildings);
-  void render(const Model &m);
-  void render(Floor &f);
-  void render(SkyBox &skyBox);
-};
+const Area::RenderInfo &Area::getRenderInfo() const {
+  return renderInfo;
+}
 
 } // namespace visualization

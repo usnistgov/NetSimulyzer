@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "../../group/area/Area.h"
 #include "../../group/building/Building.h"
 #include "../../group/decoration/Decoration.h"
 #include "../../group/node/Node.h"
@@ -92,6 +93,7 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   parser::GlobalConfiguration config;
   double simulationTime = 0.0;
 
+  std::vector<Area> areas;
   std::vector<Building> buildings;
   std::unordered_map<unsigned int, Node> nodes;
   std::unordered_map<unsigned int, Decoration> decorations;
@@ -116,8 +118,8 @@ public:
   explicit RenderWidget(QWidget *parent = nullptr, const Qt::WindowFlags &f = Qt::WindowFlags());
   void setConfiguration(parser::GlobalConfiguration configuration);
   void reset();
-  void add(const std::vector<parser::Building> &buildingModels, const std::vector<parser::Decoration> &decorationModels,
-           const std::vector<parser::Node> &nodeModels);
+  void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
+           const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::Node> &nodeModels);
   /**
    * Center the specified Node in the view.
    * If the Node with ID nodeId is not found,

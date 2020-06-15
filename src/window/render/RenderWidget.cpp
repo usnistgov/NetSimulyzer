@@ -162,6 +162,8 @@ void RenderWidget::paintGL() {
   }
   renderer.render(*floor);
 
+  renderer.render(areas);
+
   // Keep this last
   renderer.render(buildings);
   frameTimer.restart();
@@ -289,6 +291,7 @@ void RenderWidget::setConfiguration(parser::GlobalConfiguration configuration) {
 }
 
 void RenderWidget::reset() {
+  areas.clear();
   buildings.clear();
   nodes.clear();
   decorations.clear();
@@ -296,12 +299,18 @@ void RenderWidget::reset() {
   simulationTime = 0.0;
 }
 
-void RenderWidget::add(const std::vector<parser::Building> &buildingModels,
+void RenderWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
                        const std::vector<parser::Decoration> &decorationModels,
                        const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
+
+  areas.reserve(areaModels.size());
+  for (const auto &area : areaModels) {
+    areas.emplace_back(renderer.allocate(area), area);
+  }
+
   buildings.reserve(buildingModels.size());
   for (const auto &building : buildingModels) {
     buildings.emplace_back(renderer.allocate(building), building);

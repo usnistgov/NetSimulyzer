@@ -57,13 +57,13 @@ Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
 void Renderer::init() {
   initializeOpenGLFunctions();
 
-  QFile modelVertex{":/shader/shaders/model.vert"};
-  auto modelVertexSrc = qFileToString(modelVertex);
+  QFile areaVertex{":shader/shaders/area.vert"};
+  auto areaVertexSrc = qFileToString(areaVertex);
 
-  QFile modelFragment{":/shader/shaders/model.frag"};
-  auto modelFragmentSrc = qFileToString(modelFragment);
+  QFile areaFragment{":shader/shaders/area.frag"};
+  auto areaFragmentSrc = qFileToString(areaFragment);
 
-  modelShader.init(modelVertexSrc, modelFragmentSrc);
+  areaShader.init(areaVertexSrc, areaFragmentSrc);
 
   QFile buildingVertex{":shader/shaders/building.vert"};
   auto buildingVertexSrc = qFileToString(buildingVertex);
@@ -72,6 +72,14 @@ void Renderer::init() {
   auto buildingFragmentSrc = qFileToString(buildingFragment);
 
   buildingShader.init(buildingVertexSrc, buildingFragmentSrc);
+
+  QFile modelVertex{":/shader/shaders/model.vert"};
+  auto modelVertexSrc = qFileToString(modelVertex);
+
+  QFile modelFragment{":/shader/shaders/model.frag"};
+  auto modelFragmentSrc = qFileToString(modelFragment);
+
+  modelShader.init(modelVertexSrc, modelFragmentSrc);
 
   QFile skyBoxVertex{":/shader/shaders/skybox.vert"};
   auto skyBoxVertexSrc = qFileToString(skyBoxVertex);
@@ -83,8 +91,9 @@ void Renderer::init() {
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
-  modelShader.uniform("projection", perspective);
+  areaShader.uniform("projection", perspective);
   buildingShader.uniform("projection", perspective);
+  modelShader.uniform("projection", perspective);
   skyBoxShader.uniform("projection", perspective);
 }
 
@@ -210,6 +219,104 @@ Building::RenderInfo Renderer::allocate(const parser::Building &building) {
   return info;
 }
 
+Area::RenderInfo Renderer::allocate(const parser::Area &area) {
+  Area::RenderInfo info;
+
+  // Convert to OpenGl coordinates
+  // for easier reading later
+  // Also handle the fill
+  std::vector<glm::vec3> convertedPoints;
+  convertedPoints.reserve(area.points.size());
+  for (const auto &point : area.points) {
+    auto converted = toRenderCoordinate(point);
+    convertedPoints.emplace_back(converted);
+
+    // Handle the fill vertexes
+    // since we're already looping through all the points
+  }
+
+  using DrawMode = parser::Area::DrawMode;
+
+  // Fill
+  info.renderFill = area.fillMode == DrawMode::Solid;
+  if (info.renderFill) {
+    std::vector<float> fillVertices;
+    fillVertices.reserve(area.points.size() * 3uL);
+
+    for (const auto &point : convertedPoints) {
+      // It's easiest to pass a flat array of floats
+      // with only one vertex attribute
+      // (Location in this case)
+      fillVertices.insert(fillVertices.end(), {point.x, point.y, point.z});
+    }
+
+    glGenVertexArrays(1, &info.fillVao);
+    glBindVertexArray(info.fillVao);
+
+    // Size is in number of three component vertices
+    // not raw number of floats
+    // so the ns-3 or converted point count would work
+    info.fillVbo_size = area.points.size();
+
+    glGenBuffers(1, &info.fillVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, info.fillVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * fillVertices.size(), fillVertices.data(), GL_STATIC_DRAW);
+
+    // Location Attribute
+    glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+    glEnableVertexAttribArray(0u);
+  }
+
+  // Border
+  info.renderBorder = area.borderMode == DrawMode::Solid;
+  if (info.renderBorder) {
+    const auto borderWidth = 0.5f; // TODO: Make configurable?
+
+    // TODO: Filled Corners?
+    float borderPoints[] = {
+        // Top Left
+        convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z,               // 0
+        convertedPoints[0].x - borderWidth, convertedPoints[0].y, convertedPoints[0].z, // 1
+
+        // Bottom Left
+        convertedPoints[1].x, convertedPoints[1].y, convertedPoints[1].z,               // 2
+        convertedPoints[1].x - borderWidth, convertedPoints[1].y, convertedPoints[1].z, // 3
+        convertedPoints[1].x, convertedPoints[1].y, convertedPoints[1].z - borderWidth, // 4
+
+        // Bottom Right
+        convertedPoints[2].x, convertedPoints[2].y, convertedPoints[2].z,               // 5
+        convertedPoints[2].x, convertedPoints[2].y, convertedPoints[2].z - borderWidth, // 6
+        convertedPoints[2].x + borderWidth, convertedPoints[2].y, convertedPoints[2].z, // 7
+
+        // Top Right
+        convertedPoints[3].x, convertedPoints[3].y, convertedPoints[3].z,               // 8
+        convertedPoints[3].x + borderWidth, convertedPoints[3].y, convertedPoints[3].z, // 9
+        convertedPoints[3].x, convertedPoints[3].y, convertedPoints[3].z + borderWidth, // 10
+
+        // Top Left (Again)
+        convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z,               // 11 (same as 0)
+        convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z + borderWidth, // 12
+        convertedPoints[0].x - borderWidth, convertedPoints[0].y, convertedPoints[0].z, // 13 (same as 1)
+    };
+
+    info.borderVbo_size = 14u;
+    info.borderColor = toRenderColor(area.borderColor);
+
+    glGenVertexArrays(1, &info.borderVao);
+    glBindVertexArray(info.borderVao);
+
+    glGenBuffers(1, &info.borderVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, info.borderVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(borderPoints), borderPoints, GL_STATIC_DRAW);
+
+    // Location
+    glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+    glEnableVertexAttribArray(0u);
+  }
+
+  return info;
+}
+
 Mesh Renderer::allocateFloor(float size, unsigned int textureId) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
@@ -247,6 +354,8 @@ void Renderer::resize(Floor &f, float size) {
 }
 
 void Renderer::use(const Camera &cam) {
+  areaShader.uniform("view", cam.view_matrix());
+
   modelShader.uniform("view", cam.view_matrix());
   modelShader.uniform("eye_position", cam.get_position());
 
@@ -291,6 +400,25 @@ void Renderer::render(const SpotLight &light) {
   modelShader.uniform(light.prefix + "pointLight.exponent", light.exponent);
 
   modelShader.uniform(light.prefix + "edge", light.processedEdge);
+}
+
+void Renderer::render(const std::vector<Area> &areas) {
+  areaShader.bind();
+
+  for (const auto &area : areas) {
+    const auto &renderInfo = area.getRenderInfo();
+    if (renderInfo.renderFill) {
+      areaShader.uniform("color", renderInfo.fillColor);
+      glBindVertexArray(renderInfo.fillVao);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, renderInfo.fillVbo_size);
+    }
+
+    if (renderInfo.renderBorder) {
+      areaShader.uniform("color", renderInfo.borderColor);
+      glBindVertexArray(renderInfo.borderVao);
+      glDrawArrays(GL_TRIANGLE_STRIP, 0, renderInfo.borderVbo_size);
+    }
+  }
 }
 
 void Renderer::render(std::vector<Building> &buildings) {

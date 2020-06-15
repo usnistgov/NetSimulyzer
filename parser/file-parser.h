@@ -85,6 +85,14 @@ public:
   [[nodiscard]] const std::vector<Building> &getBuildings() const;
 
   /**
+   * Gets the collection of areas from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The areas specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<Area> &getAreas() const;
+
+  /**
    *  Gets the collection of decorations from the parsed file
    * `parse()` should be called first
    *
@@ -175,6 +183,11 @@ private:
    * The Decorations defined by the 'decorations' JSON collection
    */
   std::vector<Decoration> decorations;
+
+  /**
+   * The areas defined by the 'areas' JSON collection
+   */
+  std::vector<Area> areas;
 
   /**
    * The events for the rendered scene defined by the 'events' JSON collection

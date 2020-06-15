@@ -94,6 +94,22 @@ struct Decoration {
   float scale = 1.0f;
 };
 
+struct Area {
+  enum class DrawMode { Solid, Hidden };
+
+  unsigned int id;
+  std::string name;
+
+  Ns3Color3 fillColor;
+  DrawMode fillMode;
+
+  Ns3Color3 borderColor;
+  DrawMode borderMode;
+
+  float height;
+  std::vector<Ns3Coordinate> points;
+};
+
 // ----- Chart Models -----
 
 struct ValueAxis {
