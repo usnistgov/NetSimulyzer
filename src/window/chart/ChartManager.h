@@ -38,6 +38,7 @@
 #include <QGraphicsItem>
 #include <QLayout>
 #include <QObject>
+#include <QtCharts/QAbstractAxis>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
@@ -57,22 +58,22 @@ class ChartManager : public QWidget {
 
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
-    QAbstractAxis *xAxis;
-    QAbstractAxis *yAxis;
+    QtCharts::QAbstractAxis *xAxis;
+    QtCharts::QAbstractAxis *yAxis;
   };
 
   struct XYSeriesTie {
     parser::XYSeries model;
     QtCharts::QXYSeries *qtSeries;
-    QAbstractAxis *xAxis;
-    QAbstractAxis *yAxis;
+    QtCharts::QAbstractAxis *xAxis;
+    QtCharts::QAbstractAxis *yAxis;
   };
 
   struct CategoryValueTie {
     parser::CategoryValueSeries model;
     QtCharts::QXYSeries *qtSeries;
-    QAbstractAxis *xAxis;
-    QCategoryAxis *yAxis;
+    QtCharts::QAbstractAxis *xAxis;
+    QtCharts::QCategoryAxis *yAxis;
   };
 
   Ui::ChartManager *ui = new Ui::ChartManager;

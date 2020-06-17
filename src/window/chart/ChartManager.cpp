@@ -34,6 +34,10 @@
 #include "ChartManager.h"
 #include <QConstOverload>
 #include <QString>
+#include <QtCharts/QCategoryAxis>
+#include <QtCharts/QLogValueAxis>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QSplineSeries>
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
@@ -82,6 +86,12 @@ ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
 
   QObject::connect(ui->comboBoxSeries, qOverload<int>(&QComboBox::currentIndexChanged), this,
                    &ChartManager::seriesSelected);
+
+  grabGesture(Qt::GestureType::PinchGesture);
+  grabGesture(Qt::GestureType::PanGesture);
+
+  chart.grabGesture(Qt::GestureType::PinchGesture);
+  chart.grabGesture(Qt::GestureType::PanGesture);
 }
 
 ChartManager::~ChartManager() {
@@ -245,7 +255,7 @@ void ChartManager::addSeries(const parser::CategoryValueSeries &s) {
   tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
 
   // Y axis (categories)
-  auto yAxis = new QCategoryAxis(this);
+  auto yAxis = new QtCharts::QCategoryAxis(this);
   const auto &categories = tie.model.yAxis.values;
 
   yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
