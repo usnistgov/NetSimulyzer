@@ -40,6 +40,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QObject>
+#include <cstdlib>
 #include <deque>
 #include <file-parser.h>
 #include <unordered_map>
@@ -121,7 +122,40 @@ MainWindow::~MainWindow() {
   loadThread.wait();
 }
 void MainWindow::timeAdvanced(double time) {
-  statusLabel.setText(QString::number(time) + "ms");
+  auto convertedTime = static_cast<long>(time);
+
+  // combine / and %
+  auto result = std::div(convertedTime, 1000L);
+  auto milliseconds = result.rem;
+
+  result = std::div(result.quot, 60L);
+  auto seconds = result.rem;
+
+  result = std::div(result.quot, 60L);
+  auto minutes = result.rem;
+
+  // Dump the rest in as hours
+  auto hours = result.quot;
+
+  QString label;
+  if (convertedTime > 3'600'000) /* 1 Hour in ms */ {
+    label = QString{"%1:%2:%3.%4"}
+                .arg(hours)
+                .arg(minutes, 2, 10, QChar{'0'})
+                .arg(seconds, 2, 10, QChar{'0'})
+                .arg(milliseconds, 3, 10, QChar{'0'});
+  } else if (convertedTime > 60'000L) /* 1 minute in ms */ {
+    label = QString{"%1:%2.%3"}
+                .arg(minutes, 2, 10, QChar{'0'})
+                .arg(seconds, 2, 10, QChar{'0'})
+                .arg(milliseconds, 3, 10, QChar{'0'});
+  } else if (convertedTime > 1000L) {
+    label = QString{"%1.%2"}.arg(seconds, 2, 10, QChar{'0'}).arg(milliseconds, 3, 10, QChar{'0'});
+  } else {
+    label.append('.' + QString::number(milliseconds));
+  }
+
+  statusLabel.setText(label);
 }
 
 void MainWindow::load() {
@@ -197,7 +231,7 @@ void MainWindow::finishLoading(const QString &fileName) {
   checkPause();
 
   ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
-  statusLabel.setText("0ms");
+  statusLabel.setText("Ready");
   loading = false;
   ui->actionLoad->setEnabled(true);
 }

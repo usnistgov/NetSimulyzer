@@ -77,7 +77,7 @@ private:
    *
    * @see: https://doc.qt.io/qt-5/qstatusbar.html
    */
-  QLabel statusLabel{"0ms", this};
+  QLabel statusLabel{"Load Scenario", this};
   RenderWidget render{this};
   bool chartEventsComplete = true;
   bool logEventsComplete = true;
