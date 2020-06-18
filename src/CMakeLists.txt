@@ -52,6 +52,7 @@ target_sources(visualization PRIVATE
         window/mainWindow.cpp window/mainWindow.h window/mainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h window/chart/chartManager.ui
+        window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
