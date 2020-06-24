@@ -134,6 +134,7 @@ void ChartManager::reset() {
   ui->comboBoxSeries->clear();
   ui->comboBoxSeries->addItem("Select Series", 0u);
 
+  seriesInCollections.clear();
   clearChart();
   events.clear();
 
@@ -210,12 +211,18 @@ void ChartManager::addSeries(const parser::XYSeries &s) {
   tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
 
   series.insert({s.id, tie});
-  ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+
+  // Only add the series to the combobox if it is not part of a collection
+  // TODO: Replace this behavior with an ns-3 attribute
+  if (std::find(seriesInCollections.begin(), seriesInCollections.end(), s.id) == seriesInCollections.end()) {
+    ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+  }
 }
 
 void ChartManager::addSeries(const parser::SeriesCollection &s) {
   ChartManager::SeriesCollectionTie tie;
   tie.model = s;
+  seriesInCollections.insert(seriesInCollections.end(), s.series.begin(), s.series.end());
 
   // X Axis
   if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)

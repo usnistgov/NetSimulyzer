@@ -79,6 +79,7 @@ class ChartManager : public QWidget {
   Ui::ChartManager *ui = new Ui::ChartManager;
   std::deque<parser::ChartEvent> events;
   std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>> series;
+  std::vector<unsigned int> seriesInCollections;
   QtCharts::QChart chart;
 
   /**
