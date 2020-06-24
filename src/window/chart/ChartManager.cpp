@@ -33,6 +33,7 @@
 
 #include "ChartManager.h"
 #include <QConstOverload>
+#include <QGraphicsLayout>
 #include <QString>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLogValueAxis>
@@ -80,6 +81,10 @@ ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
 
   chart.legend()->setVisible(true);
   chart.legend()->setAlignment(Qt::AlignBottom);
+
+  // Remove padding
+  chart.layout()->setContentsMargins(0, 0, 0, 0);
+  chart.setBackgroundRoundness(0.0);
 
   ui->chartView->setChart(&chart);
   ui->chartView->setRenderHints(QPainter::Antialiasing);
