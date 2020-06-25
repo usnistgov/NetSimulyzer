@@ -33,64 +33,33 @@
 
 #pragma once
 
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "render/RenderWidget.h"
-#include "ui_mainWindow.h"
+#include "ChartManager.h"
+#include "ui_ChartWidget.h"
 #include <QDockWidget>
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
-#include <deque>
-#include <file-parser.h>
+#include <QWidget>
 
 namespace visualization {
-class MainWindow : public QMainWindow {
+
+class ChartWidget : public QDockWidget {
   Q_OBJECT
+  ChartManager &manager;
+  QtCharts::QChart chart;
+  Ui::ChartWidget ui{};
+
+  void seriesSelected(int index);
+  void showSeries(const ChartManager::XYSeriesTie &tie);
+  void showSeries(const ChartManager::SeriesCollectionTie &tie);
+  void showSeries(const ChartManager::CategoryValueTie &tie);
+
+  /**
+   * Remove all axes & series from the chart
+   */
+  void clearChart();
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
-  ~MainWindow() override;
-
-public slots:
-  void finishLoading(const QString &fileName);
-
-signals:
-  void startLoading(const QString &fileName);
-
-private:
-  const int stateVersion = 2;
-  SettingsManager settings;
-
-  ChartManager *charts;
-  NodeWidget *nodeWidget;
-  ScenarioLogWidget *logWidget;
-  Ui::MainWindow *ui;
-  /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
-   */
-  QLabel statusLabel{"Load Scenario", this};
-  RenderWidget render{this};
-  bool chartEventsComplete = true;
-  bool logEventsComplete = true;
-  bool renderEventsComplete = true;
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
-
-  void timeAdvanced(double time);
-  void load();
-  void checkPause();
-
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  ChartWidget(QWidget *parent, ChartManager &manager);
+  void addSeries(const std::string &name, unsigned int id);
+  void reset();
 };
+
 } // namespace visualization

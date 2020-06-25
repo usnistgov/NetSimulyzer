@@ -47,34 +47,18 @@
     <addaction name="actionCameraSettings"/>
     <addaction name="actionResetCameraPosition"/>
    </widget>
+   <widget class="QMenu" name="menuExperimental">
+    <property name="title">
+     <string>&amp;Experimental</string>
+    </property>
+    <addaction name="actionAddChart"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWidget"/>
    <addaction name="menuCamera"/>
+   <addaction name="menuExperimental"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="chartDock">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>350</width>
-     <height>35</height>
-    </size>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>&amp;Charts</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-  </widget>
   <widget class="QDockWidget" name="nodesDock">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -162,6 +146,11 @@
   <action name="actionResetCameraPosition">
    <property name="text">
     <string>&amp;Reset Position</string>
+   </property>
+  </action>
+  <action name="actionAddChart">
+   <property name="text">
+    <string>&amp;Add Chart</string>
    </property>
   </action>
  </widget>
