@@ -300,6 +300,27 @@ ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
 
   return seriesIterator->second;
 }
+
+void ChartManager::disableSeries(unsigned int id) {
+  // Do nothing for the placeholder
+  if (id == 0u)
+    return;
+
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->disableSeries(id);
+  }
+}
+
+void ChartManager::enableSeries(unsigned int id) {
+  // Do nothing for the placeholder
+  if (id == 0u)
+    return;
+
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->enableSeries(id);
+  }
+}
+
 void ChartManager::timeAdvanced(double time) {
   auto handleEvent = [time, this](auto &&e) {
     // Strip off qualifiers, etc

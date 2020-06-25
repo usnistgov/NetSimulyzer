@@ -34,6 +34,7 @@
 #include "ChartWidget.h"
 #include <QConstOverload>
 #include <QGraphicsLayout>
+#include <QStandardItemModel>
 #include <QString>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLogValueAxis>
@@ -49,6 +50,12 @@ void ChartWidget::seriesSelected(int index) {
   // ID for the "Select Series" element
   if (seriesId == 0u)
     return;
+
+  // Re-enable the previously selected series
+  manager.enableSeries(currentSeries);
+  // Disable series on on other widgets
+  manager.disableSeries(seriesId);
+  currentSeries = seriesId;
 
   auto &s = manager.getSeries(seriesId);
 
@@ -139,6 +146,13 @@ void ChartWidget::clearChart() {
   chart.setTitle("");
 }
 
+void ChartWidget::closeEvent(QCloseEvent *event) {
+  clearChart();
+  manager.enableSeries(currentSeries);
+
+  QDockWidget::closeEvent(event);
+}
+
 ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager) : QDockWidget(parent), manager(manager) {
   ui.setupUi(this);
   ui.comboBoxSeries->addItem("Select Series", 0u);
@@ -163,6 +177,43 @@ void ChartWidget::addSeries(const std::string &name, unsigned int id) {
   ui.comboBoxSeries->addItem(QString::fromStdString(name), id);
 }
 
+void ChartWidget::disableSeries(unsigned int id) {
+  auto index = ui.comboBoxSeries->findData(id);
+
+  // -1 index is not found
+  if (index == -1) {
+    return;
+  }
+
+  // Don't change the status of a currently selected series
+  if (ui.comboBoxSeries->currentIndex() == index) {
+    return;
+  }
+
+  auto item = qobject_cast<QStandardItemModel *>(ui.comboBoxSeries->model())->item(index);
+
+  item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+  ui.comboBoxSeries->show();
+}
+
+void ChartWidget::enableSeries(unsigned int id) {
+  auto index = ui.comboBoxSeries->findData(id);
+
+  // -1 index is not found
+  if (index == -1) {
+    return;
+  }
+
+  // Don't change the status of a currently selected series
+  if (ui.comboBoxSeries->currentIndex() == index) {
+    return;
+  }
+
+  auto item = qobject_cast<QStandardItemModel *>(ui.comboBoxSeries->model())->item(index);
+
+  item->setFlags(item->flags() | Qt::ItemIsEnabled);
+  ui.comboBoxSeries->show();
+}
 void ChartWidget::reset() {
   clearChart();
   ui.comboBoxSeries->clear();

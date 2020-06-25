@@ -101,6 +101,8 @@ public:
   void addSeries(const parser::SeriesCollection &s);
   void addSeries(const parser::CategoryValueSeries &s);
   TieVariant &getSeries(uint32_t seriesId);
+  void disableSeries(unsigned int id);
+  void enableSeries(unsigned int id);
   void timeAdvanced(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 

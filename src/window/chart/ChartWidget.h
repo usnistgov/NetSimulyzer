@@ -45,6 +45,7 @@ class ChartWidget : public QDockWidget {
   ChartManager &manager;
   QtCharts::QChart chart;
   Ui::ChartWidget ui{};
+  unsigned int currentSeries{0u};
 
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
@@ -56,9 +57,14 @@ class ChartWidget : public QDockWidget {
    */
   void clearChart();
 
+protected:
+  void closeEvent(QCloseEvent *event) override;
+
 public:
   ChartWidget(QWidget *parent, ChartManager &manager);
   void addSeries(const std::string &name, unsigned int id);
+  void disableSeries(unsigned int id);
+  void enableSeries(unsigned int id);
   void reset();
 };
 
