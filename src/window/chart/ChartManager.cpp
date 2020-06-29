@@ -32,14 +32,18 @@
  */
 
 #include "ChartManager.h"
-#include <QConstOverload>
+#include "ChartWidget.h"
+#include <QDockWidget>
 #include <QGraphicsLayout>
+#include <QMainWindow>
+#include <QMessageBox>
 #include <QString>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QLogValueAxis>
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QSplineSeries>
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
@@ -74,74 +78,18 @@ void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
 
 namespace visualization {
 
-ChartManager::ChartManager(QWidget *parent) : QWidget(parent) {
-  ui->setupUi(this);
-
-  ui->comboBoxSeries->addItem("Select Series", 0u);
-
-  chart.legend()->setVisible(true);
-  chart.legend()->setAlignment(Qt::AlignBottom);
-
-  // Remove padding
-  chart.layout()->setContentsMargins(0, 0, 0, 0);
-  chart.setBackgroundRoundness(0.0);
-
-  ui->chartView->setChart(&chart);
-  ui->chartView->setRenderHints(QPainter::Antialiasing);
-
-  QObject::connect(ui->comboBoxSeries, qOverload<int>(&QComboBox::currentIndexChanged), this,
-                   &ChartManager::seriesSelected);
-
-  grabGesture(Qt::GestureType::PinchGesture);
-  grabGesture(Qt::GestureType::PanGesture);
-
-  chart.grabGesture(Qt::GestureType::PinchGesture);
-  chart.grabGesture(Qt::GestureType::PanGesture);
-}
-
-ChartManager::~ChartManager() {
-  delete ui;
-}
-void ChartManager::clearChart() {
-  // Remove old axes
-  auto currentAxes = chart.axes();
-
-  // Remove currently attached series
-  for (const auto &currentSeries : chart.series()) {
-    // Detach the axes from each series,
-    // then they may be removed from the chart
-    for (const auto &axis : currentAxes) {
-      currentSeries->detachAxis(axis);
-    }
-
-    chart.removeSeries(currentSeries);
-    // The chart claims ownership of the series when it's attached
-    currentSeries->setParent(this);
-  }
-
-  for (const auto &axis : currentAxes) {
-    chart.removeAxis(axis);
-
-    // Reclaim ownership of the axis
-    // Since the chart takes it when it is attached
-    axis->setParent(this);
-  }
-
-  chart.setTitle("");
-}
-
-void ChartManager::seriesSelected(int index) {
-  auto seriesId = ui->comboBoxSeries->itemData(index).toUInt();
-  showSeries(seriesId);
+ChartManager::ChartManager(QWidget *parent) : QObject(parent) {
 }
 
 void ChartManager::reset() {
-  ui->comboBoxSeries->clear();
-  ui->comboBoxSeries->addItem("Select Series", 0u);
-
   seriesInCollections.clear();
-  clearChart();
   events.clear();
+
+  // Clear the child widgets first
+  // since they may be holding on to series
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->reset();
+  }
 
   for (auto &iterator : series) {
     auto &value = iterator.second;
@@ -220,7 +168,7 @@ void ChartManager::addSeries(const parser::XYSeries &s) {
   // Only add the series to the combobox if it is not part of a collection
   // TODO: Replace this behavior with an ns-3 attribute
   if (std::find(seriesInCollections.begin(), seriesInCollections.end(), s.id) == seriesInCollections.end()) {
-    ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+    addSeriesToChildren(s.name, s.id);
   }
 }
 
@@ -247,7 +195,7 @@ void ChartManager::addSeries(const parser::SeriesCollection &s) {
   tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
 
   series.insert({s.id, tie});
-  ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+  addSeriesToChildren(s.name, s.id);
 }
 
 void ChartManager::addSeries(const parser::CategoryValueSeries &s) {
@@ -288,78 +236,39 @@ void ChartManager::addSeries(const parser::CategoryValueSeries &s) {
   tie.yAxis = yAxis;
 
   series.insert({s.id, tie});
-  ui->comboBoxSeries->addItem(QString::fromStdString(s.name), s.id);
+  addSeriesToChildren(s.name, s.id);
 }
 
-void ChartManager::showSeries(uint32_t seriesId) {
-  clearChart();
-
-  const auto &seriesIterator = series.find(seriesId);
-  if (seriesIterator == series.end()) {
-    // Clear the old series title,
-    // since we don't have a new one to overwrite the old one
-    chart.setTitle("");
-    return;
-  }
-
-  auto &s = seriesIterator->second;
-  if (std::holds_alternative<XYSeriesTie>(s))
-    showSeries(std::get<XYSeriesTie>(s));
-  else if (std::holds_alternative<SeriesCollectionTie>(s))
-    showSeries(std::get<SeriesCollectionTie>(s));
-  else if (std::holds_alternative<CategoryValueTie>(s))
-    showSeries(std::get<CategoryValueTie>(s));
-}
-
-void ChartManager::showSeries(const XYSeriesTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
-
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
-}
-
-void ChartManager::showSeries(const ChartManager::SeriesCollectionTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
-
-  for (auto seriesId : tie.model.series) {
-    const auto &seriesVariant = series[seriesId];
-
-    if (std::holds_alternative<ChartManager::XYSeriesTie>(seriesVariant)) {
-      const auto &xySeries = std::get<ChartManager::XYSeriesTie>(seriesVariant);
-      chart.addSeries(xySeries.qtSeries);
-    }
-  }
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  for (auto chartSeries : chart.series()) {
-    chartSeries->attachAxis(tie.xAxis);
-    chartSeries->attachAxis(tie.yAxis);
+void ChartManager::addSeriesToChildren(const std::string &name, unsigned int id) {
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->addSeries(name, id);
   }
 }
 
-void ChartManager::showSeries(const ChartManager::CategoryValueTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
+void ChartManager::spawnWidget(QMainWindow *parent) {
+  auto newWidget = new ChartWidget{parent, *this};
+  parent->addDockWidget(Qt::RightDockWidgetArea, newWidget);
 
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
+  // Add existing series to the dropdown
+  for (const auto &[key, value] : series) {
+    std::visit(
+        [this, newWidget](auto &&tie) {
+          // XYSeries is the only one which may be in a collection
+          // so we conditionally add it
+          if constexpr (std::is_same_v<std::decay_t<decltype(tie)>, XYSeriesTie>) {
+            if (std::find(seriesInCollections.begin(), seriesInCollections.end(), tie.model.id) ==
+                seriesInCollections.end()) {
+              newWidget->addSeries(tie.model.name, tie.model.id);
+            }
+            return;
+          }
 
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
+          newWidget->addSeries(tie.model.name, tie.model.id);
+        },
+        value);
+  }
 
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
+  chartWidgets.emplace_back(newWidget);
 }
 
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
@@ -378,6 +287,37 @@ void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y)
       if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
         updateRange(collection.yAxis, y);
     }
+  }
+}
+
+ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
+  const auto &seriesIterator = series.find(seriesId);
+  if (seriesIterator == series.end()) {
+    QMessageBox::critical(qobject_cast<QMainWindow *>(parent()), "Series not found",
+                          "The selected series was not found");
+    std::abort();
+  }
+
+  return seriesIterator->second;
+}
+
+void ChartManager::disableSeries(unsigned int id) {
+  // Do nothing for the placeholder
+  if (id == 0u)
+    return;
+
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->disableSeries(id);
+  }
+}
+
+void ChartManager::enableSeries(unsigned int id) {
+  // Do nothing for the placeholder
+  if (id == 0u)
+    return;
+
+  for (auto chartWidget : chartWidgets) {
+    chartWidget->enableSeries(id);
   }
 }
 

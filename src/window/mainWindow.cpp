@@ -52,8 +52,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   ui->setupUi(this);
   setCentralWidget(&render);
 
-  charts = new ChartManager{ui->chartDock};
-  ui->chartDock->setWidget(charts);
+  charts = new ChartManager{this};
+  QObject::connect(ui->actionAddChart, &QAction::triggered, [this]() { charts->spawnWidget(this); });
 
   nodeWidget = new NodeWidget{ui->nodesDock};
   ui->nodesDock->setWidget(nodeWidget);
@@ -71,7 +71,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(par
   loadThread.start();
 
   ui->menuWidget->addAction(ui->nodesDock->toggleViewAction());
-  ui->menuWidget->addAction(ui->chartDock->toggleViewAction());
   ui->menuWidget->addAction(ui->logDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)

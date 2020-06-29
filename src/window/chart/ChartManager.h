@@ -32,11 +32,11 @@
  */
 
 #pragma once
-#include "ui_chartManager.h"
 #include <QComboBox>
 #include <QFrame>
 #include <QGraphicsItem>
 #include <QLayout>
+#include <QMainWindow>
 #include <QObject>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QCategoryAxis>
@@ -51,11 +51,13 @@
 #include <variant>
 
 namespace visualization {
-class ChartManager : public QWidget {
+
+class ChartWidget;
+
+class ChartManager : public QObject {
   Q_OBJECT
 
-  enum class SeriesType { XYSeries, SeriesCollection, CategoryValue };
-
+public:
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
     QtCharts::QAbstractAxis *xAxis;
@@ -76,34 +78,31 @@ class ChartManager : public QWidget {
     QtCharts::QCategoryAxis *yAxis;
   };
 
-  Ui::ChartManager *ui = new Ui::ChartManager;
-  std::deque<parser::ChartEvent> events;
-  std::unordered_map<uint32_t, std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>> series;
-  std::vector<unsigned int> seriesInCollections;
-  QtCharts::QChart chart;
+  using TieVariant = std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>;
 
-  /**
-   * Remove all axes & series from the chart
-   */
-  void clearChart();
-  void seriesSelected(int index);
-  void showSeries(const XYSeriesTie &tie);
-  void showSeries(const SeriesCollectionTie &tie);
-  void showSeries(const CategoryValueTie &tie);
+private:
+  std::deque<parser::ChartEvent> events;
+  std::unordered_map<uint32_t, TieVariant> series;
+  std::vector<unsigned int> seriesInCollections;
+  std::vector<ChartWidget *> chartWidgets;
+
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
+  void addSeriesToChildren(const std::string &name, unsigned int id);
 
 public:
   explicit ChartManager(QWidget *parent);
-  ~ChartManager() override;
 
   /**
    * Clear all series and events
    */
   void reset();
+  void spawnWidget(QMainWindow *parent);
   void addSeries(const parser::XYSeries &s);
   void addSeries(const parser::SeriesCollection &s);
   void addSeries(const parser::CategoryValueSeries &s);
-  void showSeries(uint32_t seriesId);
+  TieVariant &getSeries(uint32_t seriesId);
+  void disableSeries(unsigned int id);
+  void enableSeries(unsigned int id);
   void timeAdvanced(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 
