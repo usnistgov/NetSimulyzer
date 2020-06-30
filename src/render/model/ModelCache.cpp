@@ -35,6 +35,7 @@
 #include "../shader/Shader.h"
 #include <QDebug>
 #include <QFileInfo>
+#include <algorithm>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -53,21 +54,14 @@ void ModelRenderInfo::updateBounds() {
 
   for (const auto &mesh : meshes) {
     const auto &meshBounds = mesh.getBounds();
+    bounds.max.x = std::max(bounds.max.x, meshBounds.max.x);
+    bounds.min.x = std::min(bounds.min.x, meshBounds.min.x);
 
-    if (meshBounds.max.x > bounds.max.x)
-      bounds.max.x = bounds.max.x;
-    else if (meshBounds.min.x < bounds.min.x)
-      bounds.min.x = meshBounds.min.x;
+    bounds.max.y = std::max(bounds.max.y, meshBounds.max.y);
+    bounds.min.y = std::min(bounds.min.y, meshBounds.min.y);
 
-    if (meshBounds.max.y > bounds.max.y)
-      bounds.max.y = bounds.max.y;
-    else if (meshBounds.min.y < bounds.min.y)
-      bounds.min.y = meshBounds.min.y;
-
-    if (meshBounds.max.z > bounds.max.z)
-      bounds.max.z = bounds.max.z;
-    else if (meshBounds.min.z < bounds.min.z)
-      bounds.min.z = meshBounds.min.z;
+    bounds.max.z = std::max(bounds.max.z, meshBounds.max.z);
+    bounds.min.z = std::min(bounds.min.z, meshBounds.min.z);
   }
 }
 

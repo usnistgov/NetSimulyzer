@@ -33,6 +33,7 @@
 
 #include "Mesh.h"
 #include "Vertex.h"
+#include <algorithm>
 
 namespace visualization {
 
@@ -69,21 +70,15 @@ Mesh::Mesh(const Vertex vertices[], unsigned int indices[], unsigned int vertexC
   }
 
   for (auto i = 0u; i < vertexCount; i++) {
-    const auto &v = vertices[i];
-    if (v.position[0] > bounds.max.x)
-      bounds.max.x = v.position[0];
-    else if (v.position[0] < bounds.min.x)
-      bounds.min.x = v.position[0];
+    const auto &position = vertices[i].position;
+    bounds.max.x = std::max(bounds.max.x, position[0]);
+    bounds.min.x = std::min(bounds.min.x, position[0]);
 
-    if (v.position[1] > bounds.max.y)
-      bounds.max.y = v.position[1];
-    else if (v.position[1] < bounds.min.y)
-      bounds.min.y = v.position[1];
+    bounds.max.y = std::max(bounds.max.y, position[1]);
+    bounds.min.y = std::min(bounds.min.y, position[1]);
 
-    if (v.position[2] > bounds.max.z)
-      bounds.max.z = v.position[2];
-    else if (v.position[2] < bounds.min.z)
-      bounds.min.z = v.position[2];
+    bounds.max.z = std::max(bounds.max.z, position[2]);
+    bounds.min.z = std::min(bounds.min.z, position[2]);
   }
 
   glGenVertexArrays(1, &renderInfo.vao);
