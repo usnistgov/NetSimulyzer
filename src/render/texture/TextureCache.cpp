@@ -76,7 +76,7 @@ void TextureCache::setResourceDirectory(const QDir &value) {
   resourceDirectory = value;
 }
 
-unsigned int TextureCache::loadFallback(QImage &texture) {
+texture_id TextureCache::loadFallback(QImage &texture) {
   Texture t;
   t.width = texture.width();
   t.height = texture.height();
@@ -108,7 +108,7 @@ TextureCache::~TextureCache() {
   clear();
 }
 
-std::size_t TextureCache::load(const std::string &filename) {
+texture_id TextureCache::load(const std::string &filename) {
 
   // If we've already loaded the texture, use that ID
   auto existing = indexMap.find(filename);
@@ -199,7 +199,7 @@ unsigned long TextureCache::load(const CubeMap &cubeMap) {
   return id;
 }
 
-const Texture &TextureCache::get(std::size_t index) {
+const Texture &TextureCache::get(texture_id index) {
   return textures[index];
 }
 
@@ -213,7 +213,7 @@ void TextureCache::clear() {
   fallbackTexture.reset();
 }
 
-void TextureCache::use(std::size_t index) {
+void TextureCache::use(texture_id index) {
   const auto &t = textures[index];
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, t.id);
@@ -224,7 +224,7 @@ void TextureCache::useCubeMap(unsigned int id) {
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 }
 
-const std::optional<unsigned long> &TextureCache::getFallbackTexture() const {
+const std::optional<texture_id> &TextureCache::getFallbackTexture() const {
   return fallbackTexture;
 }
 

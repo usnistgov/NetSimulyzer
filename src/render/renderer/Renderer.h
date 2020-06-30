@@ -72,7 +72,7 @@ public:
 
   Building::RenderInfo allocate(const parser::Building &building);
   Area::RenderInfo allocate(const parser::Area &area);
-  Mesh allocateFloor(float size, unsigned int textureId);
+  Mesh allocateFloor(float size, texture_id textureId);
   void resize(Floor &f, float size);
 
   void use(const Camera &cam);

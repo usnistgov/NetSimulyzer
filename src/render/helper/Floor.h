@@ -62,7 +62,7 @@ public:
   [[nodiscard]] const glm::mat4 &getModelMatrix() const;
 
   [[nodiscard]] const Mesh &getMesh() const;
-  [[nodiscard]] unsigned int getTextureId() const;
+  [[nodiscard]] texture_id getTextureId() const;
 
   void render();
 };

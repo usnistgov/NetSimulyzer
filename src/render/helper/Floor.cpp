@@ -68,7 +68,7 @@ void Floor::render() {
   mesh.render();
 }
 
-unsigned int Floor::getTextureId() const {
+texture_id Floor::getTextureId() const {
   return *mesh.getMaterial().textureId;
 }
 

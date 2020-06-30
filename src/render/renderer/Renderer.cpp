@@ -317,7 +317,7 @@ Area::RenderInfo Renderer::allocate(const parser::Area &area) {
   return info;
 }
 
-Mesh Renderer::allocateFloor(float size, unsigned int textureId) {
+Mesh Renderer::allocateFloor(float size, texture_id textureId) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
 

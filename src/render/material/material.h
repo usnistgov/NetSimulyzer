@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "../texture/TextureCache.h"
 #include <array>
 #include <optional>
 
@@ -41,7 +42,7 @@ namespace visualization {
 struct Material {
   float specularIntensity = 4.0f;
   float shininess = 1.0f;
-  std::optional<unsigned long> textureId;
+  std::optional<texture_id> textureId;
 
   // TODO: Unused
   std::optional<std::array<float, 3>> color;

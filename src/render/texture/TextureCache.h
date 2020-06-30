@@ -46,10 +46,15 @@
 
 namespace visualization {
 
+/**
+ * ID for outside code to access a given texture
+ */
+using texture_id = std::size_t;
+
 class TextureCache : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, std::size_t> indexMap;
   std::vector<Texture> textures;
-  std::optional<unsigned long> fallbackTexture;
+  std::optional<texture_id> fallbackTexture;
   QDir resourceDirectory;
 
 public:
@@ -69,20 +74,22 @@ public:
   }
 
   void setResourceDirectory(const QDir &value);
-  unsigned int loadFallback(QImage &texture);
-  std::size_t load(const std::string &filename);
-  unsigned long load(const CubeMap &cubeMap);
-  [[nodiscard]] const Texture &get(std::size_t index);
+  texture_id loadFallback(QImage &texture);
+  texture_id load(const std::string &filename);
+  texture_id load(const CubeMap &cubeMap);
+  [[nodiscard]] const Texture &get(texture_id index);
 
-  [[nodiscard]] const std::optional<unsigned long> &getFallbackTexture() const;
+  [[nodiscard]] const std::optional<texture_id> &getFallbackTexture() const;
 
-  const Texture &operator[](std::size_t index) {
+  const Texture &operator[](texture_id index) {
     return get(index);
   }
 
   void clear();
 
-  void use(std::size_t index);
+  void use(texture_id index);
+
+  // TODO: Track the same way as normal textures
   void useCubeMap(unsigned int id);
 };
 
