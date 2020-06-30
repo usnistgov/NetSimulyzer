@@ -76,7 +76,7 @@ public:
   void setResourceDirectory(const QDir &value);
   texture_id loadFallback(QImage &texture);
   texture_id load(const std::string &filename);
-  texture_id load(const CubeMap &cubeMap);
+  unsigned int load(const CubeMap &cubeMap);
   [[nodiscard]] const Texture &get(texture_id index);
 
   [[nodiscard]] const std::optional<texture_id> &getFallbackTexture() const;

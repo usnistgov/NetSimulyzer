@@ -170,7 +170,7 @@ texture_id TextureCache::load(const std::string &filename) {
   return newIndex;
 }
 
-unsigned long TextureCache::load(const CubeMap &cubeMap) {
+unsigned int TextureCache::load(const CubeMap &cubeMap) {
   unsigned int id;
   glGenTextures(1, &id);
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
