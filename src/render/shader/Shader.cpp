@@ -39,7 +39,8 @@ void log_uniform(int location, std::string_view name) {
   if (location == -1)
     std::cerr << "Warning Uniform '" << name << "' unused by shader\n";
 #else // Maker sure the variable is 'used' in release builds
-  (void)location(void) name;
+  (void)location;
+  (void) name;
 #endif
 }
 namespace visualization {
