@@ -40,10 +40,15 @@
 
 namespace visualization {
 
+/**
+ * ID used to reference a model with outside code
+ */
+using model_id = std::size_t;
+
 class Model {
 public:
   struct ModelLoadInfo {
-    unsigned long id;
+    model_id id;
     glm::vec3 min;
     glm::vec3 max;
   };
@@ -54,7 +59,7 @@ public:
   };
 
 private:
-  const unsigned long modelId;
+  const model_id modelId;
   const glm::vec3 min;
   const glm::vec3 max;
 
@@ -71,7 +76,7 @@ private:
 
 public:
   Model(const ModelLoadInfo &info);
-  Model(unsigned long modelId, const glm::vec3 &min, const glm::vec3 &max);
+  Model(model_id modelId, const glm::vec3 &min, const glm::vec3 &max);
 
   void setPosition(const glm::vec3 &value);
   [[nodiscard]] const glm::vec3 &getPosition() const;
@@ -84,7 +89,7 @@ public:
 
   void setRotate(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
-  [[nodiscard]] unsigned long getModelId() const;
+  [[nodiscard]] model_id getModelId() const;
 
   [[nodiscard]] const glm::mat4 &getModelMatrix() const;
 

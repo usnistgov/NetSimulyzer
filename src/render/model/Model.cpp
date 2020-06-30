@@ -42,7 +42,7 @@ namespace visualization {
 Model::Model(const Model::ModelLoadInfo &info) : Model(info.id, info.min, info.max) {
 }
 
-Model::Model(unsigned long modelId, const glm::vec3 &min, const glm::vec3 &max) : modelId(modelId), min(min), max(max) {
+Model::Model(model_id modelId, const glm::vec3 &min, const glm::vec3 &max) : modelId(modelId), min(min), max(max) {
 }
 
 void Model::rebuildModelMatrix() {
@@ -96,9 +96,10 @@ void Model::setRotate(float x, float y, float z) {
   rebuildModelMatrix();
 }
 
-unsigned long Model::getModelId() const {
+model_id Model::getModelId() const {
   return modelId;
 }
+
 Model::ModelBounds Model::getBounds() const {
   return {min, max};
 }

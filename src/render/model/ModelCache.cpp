@@ -245,7 +245,7 @@ Model::ModelLoadInfo ModelCache::load(const std::string &path) {
   return {models.size() - 1, bounds.min, bounds.max};
 }
 
-ModelRenderInfo &ModelCache::get(std::size_t index) {
+ModelRenderInfo &ModelCache::get(model_id index) {
   return models[index];
 }
 
@@ -253,7 +253,7 @@ void ModelCache::clear() {
   // TODO: Implement
 }
 
-void ModelCache::render(std::size_t index, Shader &s) {
+void ModelCache::render(model_id index, Shader &s) {
   models[index].render(s);
 }
 

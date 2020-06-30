@@ -98,20 +98,20 @@ class ModelCache : protected QOpenGLFunctions_3_3_Core {
   std::string basePath;
 
 public:
-  const std::size_t fallbackModel = 0u;
+  const model_id fallbackModel = 0u;
   explicit ModelCache(TextureCache &textureCache);
   ~ModelCache() override;
 
   void setBasePath(std::string value);
   void init(const std::string &fallbackModelPath);
   Model::ModelLoadInfo load(const std::string &path);
-  ModelRenderInfo &get(std::size_t index);
+  ModelRenderInfo &get(model_id index);
 
-  ModelRenderInfo &operator[](std::size_t index) {
+  ModelRenderInfo &operator[](model_id index) {
     return get(index);
   }
   void clear();
-  void render(std::size_t index, Shader &s);
+  void render(model_id index, Shader &s);
 };
 
 } // namespace visualization
