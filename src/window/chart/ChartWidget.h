@@ -61,8 +61,8 @@ protected:
   void closeEvent(QCloseEvent *event) override;
 
 public:
-  ChartWidget(QWidget *parent, ChartManager &manager);
-  void addSeries(const std::string &name, unsigned int id);
+  ChartWidget(QWidget *parent, ChartManager &manager, const std::vector<ChartManager::DropdownValue> &initialSeries);
+  void addSeries(const QString &name, unsigned int id);
   void disableSeries(unsigned int id);
   void enableSeries(unsigned int id);
   void reset();

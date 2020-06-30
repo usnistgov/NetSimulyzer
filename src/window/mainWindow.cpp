@@ -193,25 +193,7 @@ void MainWindow::finishLoading(const QString &fileName) {
 
   // Charts
   charts->reset();
-
-  // Keep collections first.
-  // so the widget is aware which child series
-  // are in a collection before they are added
-  // TODO: Replace this behavior with an ns-3 attribute
-  const auto &seriesCollections = parser.getSeriesCollections();
-  for (const auto &series : seriesCollections) {
-    charts->addSeries(series);
-  }
-
-  const auto &xySeries = parser.getXYSeries();
-  for (const auto &series : xySeries) {
-    charts->addSeries(series);
-  }
-
-  const auto &categoryValueSeries = parser.getCategoryValueSeries();
-  for (const auto &series : categoryValueSeries) {
-    charts->addSeries(series);
-  }
+  charts->addSeries(parser.getXYSeries(), parser.getSeriesCollections(), parser.getCategoryValueSeries());
 
   // Log Streams
   logWidget->reset();

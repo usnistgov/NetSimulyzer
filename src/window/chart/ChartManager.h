@@ -38,6 +38,7 @@
 #include <QLayout>
 #include <QMainWindow>
 #include <QObject>
+#include <QString>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChartView>
@@ -58,6 +59,9 @@ class ChartManager : public QObject {
   Q_OBJECT
 
 public:
+  enum class SortOrder { Alphabetical, Type, Id, None };
+  enum class SeriesType : int { XY, CategoryValue, Collection };
+
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
     QtCharts::QAbstractAxis *xAxis;
@@ -78,16 +82,27 @@ public:
     QtCharts::QCategoryAxis *yAxis;
   };
 
+  struct DropdownValue {
+    QString name;
+    SeriesType type;
+    unsigned int id;
+  };
+
   using TieVariant = std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>;
 
 private:
   std::deque<parser::ChartEvent> events;
   std::unordered_map<uint32_t, TieVariant> series;
   std::vector<unsigned int> seriesInCollections;
+  SortOrder sortOrder{SortOrder::Type};
+  std::vector<DropdownValue> dropdownElements;
   std::vector<ChartWidget *> chartWidgets;
 
+  XYSeriesTie makeTie(const parser::XYSeries &model);
+  SeriesCollectionTie makeTie(const parser::SeriesCollection &model);
+  CategoryValueTie makeTie(const parser::CategoryValueSeries &model);
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
-  void addSeriesToChildren(const std::string &name, unsigned int id);
+  void addSeriesToChildren(const DropdownValue &value);
 
 public:
   explicit ChartManager(QWidget *parent);
@@ -97,9 +112,9 @@ public:
    */
   void reset();
   void spawnWidget(QMainWindow *parent);
-  void addSeries(const parser::XYSeries &s);
-  void addSeries(const parser::SeriesCollection &s);
-  void addSeries(const parser::CategoryValueSeries &s);
+  void addSeries(const std::vector<parser::XYSeries> &xySeries,
+                 const std::vector<parser::SeriesCollection> &collections,
+                 const std::vector<parser::CategoryValueSeries> &categoryValueSeries);
   TieVariant &getSeries(uint32_t seriesId);
   void disableSeries(unsigned int id);
   void enableSeries(unsigned int id);

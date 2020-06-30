@@ -78,11 +78,132 @@ void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
 
 namespace visualization {
 
+ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
+  ChartManager::XYSeriesTie tie;
+  tie.model = model;
+  switch (model.connection) {
+  case parser::XYSeries::Connection::None: {
+    auto scatterSeries = new QtCharts::QScatterSeries(this);
+
+    // Hide the borders of points, as they cover up other points
+    scatterSeries->setBorderColor(QColor(Qt::transparent));
+
+    // Cut this down, as the default size (15 at time of writing) is quite large
+    scatterSeries->setMarkerSize(5.0);
+    tie.qtSeries = scatterSeries;
+  } break;
+  case parser::XYSeries::Connection::Line:
+    tie.qtSeries = new QtCharts::QLineSeries(this);
+    break;
+  case parser::XYSeries::Connection::Spline:
+    tie.qtSeries = new QtCharts::QSplineSeries(this);
+    break;
+  }
+
+  switch (model.labelMode) {
+  case parser::XYSeries::LabelMode::Hidden:
+    tie.qtSeries->setPointLabelsVisible(false);
+    break;
+  case parser::XYSeries::LabelMode::Shown:
+    tie.qtSeries->setPointLabelsVisible(true);
+    break;
+  }
+
+  tie.qtSeries->setUseOpenGL(false);
+
+  tie.qtSeries->setColor(QColor::fromRgb(model.red, model.green, model.blue, model.alpha));
+  tie.qtSeries->setName(QString::fromStdString(model.name));
+
+  // X Axis
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+
+  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
+  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+
+  // Y Axis
+  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.yAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.yAxis = new QtCharts::QLogValueAxis(this);
+  tie.yAxis = new QtCharts::QValueAxis(this);
+  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
+  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
+
+  return tie;
+}
+
+ChartManager::SeriesCollectionTie ChartManager::makeTie(const parser::SeriesCollection &model) {
+  ChartManager::SeriesCollectionTie tie;
+  tie.model = model;
+
+  // X Axis
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
+  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+
+  // Y Axis
+  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.yAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.yAxis = new QtCharts::QLogValueAxis(this);
+  tie.yAxis = new QtCharts::QValueAxis(this);
+  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
+  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
+
+  return tie;
+}
+
+ChartManager::CategoryValueTie ChartManager::makeTie(const parser::CategoryValueSeries &model) {
+  CategoryValueTie tie;
+  tie.model = model;
+  tie.qtSeries = new QtCharts::QLineSeries(this);
+
+  tie.qtSeries->setColor(QColor::fromRgb(model.red, model.green, model.blue, model.alpha));
+  tie.qtSeries->setName(QString::fromStdString(model.name));
+
+  // X Axis (values)
+  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
+    tie.xAxis = new QtCharts::QValueAxis(this);
+  else
+    tie.xAxis = new QtCharts::QLogValueAxis(this);
+  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
+  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+
+  // Y axis (categories)
+  auto yAxis = new QtCharts::QCategoryAxis(this);
+  const auto &categories = tie.model.yAxis.values;
+
+  yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
+  // Just to be safe
+  if (!categories.empty()) {
+    // Give slight padding before/after the min/max values
+    yAxis->setMin(static_cast<double>(categories.front().id) - 0.1);
+    yAxis->setMax(static_cast<double>(categories.back().id) + 0.1);
+  }
+  for (const auto &category : categories)
+    yAxis->append(QString::fromStdString(category.name), category.id);
+
+  // Center the label within the range
+  // since we use the ID as the end
+  // of the range, rather than the center
+  yAxis->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
+
+  tie.yAxis = yAxis;
+  return tie;
+}
+
 ChartManager::ChartManager(QWidget *parent) : QObject(parent) {
 }
 
 void ChartManager::reset() {
   seriesInCollections.clear();
+  dropdownElements.clear();
   events.clear();
 
   // Clear the child widgets first
@@ -108,165 +229,15 @@ void ChartManager::reset() {
   series.clear();
 }
 
-void ChartManager::addSeries(const parser::XYSeries &s) {
-  ChartManager::XYSeriesTie tie;
-  tie.model = s;
-  switch (s.connection) {
-  case parser::XYSeries::Connection::None: {
-    auto scatterSeries = new QtCharts::QScatterSeries(this);
-
-    // Hide the borders of points, as they cover up other points
-    scatterSeries->setBorderColor(QColor(Qt::transparent));
-
-    // Cut this down, as the default size (15 at time of writing) is quite large
-    scatterSeries->setMarkerSize(5.0);
-    tie.qtSeries = scatterSeries;
-  } break;
-  case parser::XYSeries::Connection::Line:
-    tie.qtSeries = new QtCharts::QLineSeries(this);
-    break;
-  case parser::XYSeries::Connection::Spline:
-    tie.qtSeries = new QtCharts::QSplineSeries(this);
-    break;
-  }
-
-  switch (s.labelMode) {
-  case parser::XYSeries::LabelMode::Hidden:
-    tie.qtSeries->setPointLabelsVisible(false);
-    break;
-  case parser::XYSeries::LabelMode::Shown:
-    tie.qtSeries->setPointLabelsVisible(true);
-    break;
-  }
-
-  // Qt Charts OpenGL Does not play nice with OSG
-  tie.qtSeries->setUseOpenGL(false);
-
-  tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
-  tie.qtSeries->setName(QString::fromStdString(s.name));
-
-  // X Axis
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
-
-  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
-  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
-
-  // Y Axis
-  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.yAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.yAxis = new QtCharts::QLogValueAxis(this);
-  tie.yAxis = new QtCharts::QValueAxis(this);
-  tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
-  tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
-
-  series.insert({s.id, tie});
-
-  // Only add the series to the combobox if it is not part of a collection
-  // TODO: Replace this behavior with an ns-3 attribute
-  if (std::find(seriesInCollections.begin(), seriesInCollections.end(), s.id) == seriesInCollections.end()) {
-    addSeriesToChildren(s.name, s.id);
-  }
-}
-
-void ChartManager::addSeries(const parser::SeriesCollection &s) {
-  ChartManager::SeriesCollectionTie tie;
-  tie.model = s;
-  seriesInCollections.insert(seriesInCollections.end(), s.series.begin(), s.series.end());
-
-  // X Axis
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
-  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
-  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
-
-  // Y Axis
-  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.yAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.yAxis = new QtCharts::QLogValueAxis(this);
-  tie.yAxis = new QtCharts::QValueAxis(this);
-  tie.yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
-  tie.yAxis->setRange(s.yAxis.min, s.yAxis.max);
-
-  series.insert({s.id, tie});
-  addSeriesToChildren(s.name, s.id);
-}
-
-void ChartManager::addSeries(const parser::CategoryValueSeries &s) {
-  CategoryValueTie tie;
-  tie.model = s;
-  tie.qtSeries = new QtCharts::QLineSeries(this);
-
-  tie.qtSeries->setColor(QColor::fromRgb(s.red, s.green, s.blue, s.alpha));
-  tie.qtSeries->setName(QString::fromStdString(s.name));
-
-  // X Axis (values)
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
-  tie.xAxis->setTitleText(QString::fromStdString(s.xAxis.name));
-  tie.xAxis->setRange(s.xAxis.min, s.xAxis.max);
-
-  // Y axis (categories)
-  auto yAxis = new QtCharts::QCategoryAxis(this);
-  const auto &categories = tie.model.yAxis.values;
-
-  yAxis->setTitleText(QString::fromStdString(s.yAxis.name));
-  // Just to be safe
-  if (!categories.empty()) {
-    // Give slight padding before/after the min/max values
-    yAxis->setMin(static_cast<double>(categories.front().id) - 0.1);
-    yAxis->setMax(static_cast<double>(categories.back().id) + 0.1);
-  }
-  for (const auto &category : categories)
-    yAxis->append(QString::fromStdString(category.name), category.id);
-
-  // Center the label within the range
-  // since we use the ID as the end
-  // of the range, rather than the center
-  yAxis->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
-
-  tie.yAxis = yAxis;
-
-  series.insert({s.id, tie});
-  addSeriesToChildren(s.name, s.id);
-}
-
-void ChartManager::addSeriesToChildren(const std::string &name, unsigned int id) {
+void ChartManager::addSeriesToChildren(const DropdownValue &value) {
   for (auto chartWidget : chartWidgets) {
-    chartWidget->addSeries(name, id);
+    chartWidget->addSeries(value.name, value.id);
   }
 }
 
 void ChartManager::spawnWidget(QMainWindow *parent) {
-  auto newWidget = new ChartWidget{parent, *this};
+  auto newWidget = new ChartWidget{parent, *this, dropdownElements};
   parent->addDockWidget(Qt::RightDockWidgetArea, newWidget);
-
-  // Add existing series to the dropdown
-  for (const auto &[key, value] : series) {
-    std::visit(
-        [this, newWidget](auto &&tie) {
-          // XYSeries is the only one which may be in a collection
-          // so we conditionally add it
-          if constexpr (std::is_same_v<std::decay_t<decltype(tie)>, XYSeriesTie>) {
-            if (std::find(seriesInCollections.begin(), seriesInCollections.end(), tie.model.id) ==
-                seriesInCollections.end()) {
-              newWidget->addSeries(tie.model.name, tie.model.id);
-            }
-            return;
-          }
-
-          newWidget->addSeries(tie.model.name, tie.model.id);
-        },
-        value);
-  }
 
   chartWidgets.emplace_back(newWidget);
 }
@@ -372,6 +343,75 @@ void ChartManager::timeAdvanced(double time) {
 }
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
+}
+
+void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
+                             const std::vector<parser::SeriesCollection> &collections,
+                             const std::vector<parser::CategoryValueSeries> &categoryValueSeries) {
+
+  for (const auto &collection : collections) {
+    series.emplace(collection.id, makeTie(collection));
+    seriesInCollections.insert(seriesInCollections.end(), collection.series.begin(), collection.series.end());
+    dropdownElements.emplace_back(
+        DropdownValue{QString::fromStdString(collection.name), SeriesType::Collection, collection.id});
+  }
+
+  for (const auto &xy : xySeries) {
+    series.emplace(xy.id, makeTie(xy));
+
+    // Only add the series to the combobox if it is not part of a collection
+    // TODO: Replace this behavior with an ns-3 attribute
+    if (std::find(seriesInCollections.begin(), seriesInCollections.end(), xy.id) == seriesInCollections.end()) {
+      dropdownElements.emplace_back(DropdownValue{QString::fromStdString(xy.name), SeriesType::XY, xy.id});
+    }
+  }
+
+  for (const auto &category : categoryValueSeries) {
+    series.emplace(category.id, makeTie(category));
+    dropdownElements.emplace_back(
+        DropdownValue{QString::fromStdString(category.name), SeriesType::CategoryValue, category.id});
+  }
+
+  switch (sortOrder) {
+  case SortOrder::Alphabetical:
+    std::sort(dropdownElements.begin(), dropdownElements.end(),
+              [](const DropdownValue &left, const DropdownValue &right) {
+                return QString::localeAwareCompare(left.name, right.name) < 0;
+              });
+    break;
+  case SortOrder::Type:
+    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
+      return static_cast<int>(left.type) < static_cast<int>(right.type);
+    });
+
+    // Sort Alphabetically within types
+    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
+      // Do not reorder along type boundaries
+      // since we know the elements are in type order
+      // should hold the boundaries in place
+      if (left.type != right.type) {
+        return false;
+      }
+      return QString::localeAwareCompare(left.name, right.name) < 0;
+    });
+
+    break;
+  case SortOrder::Id:
+    std::sort(dropdownElements.begin(), dropdownElements.end(),
+              [](const auto &left, const auto &right) -> bool { return left.id < right.id; });
+    break;
+  case SortOrder::None:
+    // Intentionally Blank
+    break;
+  default:
+    std::cerr << "Unrecognised SortOrder: " << static_cast<int>(sortOrder) << '\n';
+    std::abort();
+    break;
+  }
+
+  for (const auto &dropdownElement : dropdownElements) {
+    addSeriesToChildren(dropdownElement);
+  }
 }
 
 } // namespace visualization

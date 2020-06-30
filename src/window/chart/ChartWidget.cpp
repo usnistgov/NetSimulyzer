@@ -153,7 +153,9 @@ void ChartWidget::closeEvent(QCloseEvent *event) {
   QDockWidget::closeEvent(event);
 }
 
-ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager) : QDockWidget(parent), manager(manager) {
+ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager,
+                         const std::vector<ChartManager::DropdownValue> &initialSeries)
+    : QDockWidget(parent), manager(manager) {
   ui.setupUi(this);
   ui.comboBoxSeries->addItem("Select Series", 0u);
 
@@ -166,6 +168,11 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager) : QDockWidget(p
 
   ui.chartView->setChart(&chart);
 
+  // Should already be in proper order
+  for (const auto &series : initialSeries) {
+    addSeries(series.name, series.id);
+  }
+
   QObject::connect(ui.comboBoxSeries, qOverload<int>(&QComboBox::currentIndexChanged), this,
                    &ChartWidget::seriesSelected);
 
@@ -173,8 +180,8 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager) : QDockWidget(p
   setVisible(true);
 }
 
-void ChartWidget::addSeries(const std::string &name, unsigned int id) {
-  ui.comboBoxSeries->addItem(QString::fromStdString(name), id);
+void ChartWidget::addSeries(const QString &name, unsigned int id) {
+  ui.comboBoxSeries->addItem(name, id);
 }
 
 void ChartWidget::disableSeries(unsigned int id) {
