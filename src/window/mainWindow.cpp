@@ -48,7 +48,7 @@
 
 namespace visualization {
 
-MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags) : QMainWindow(parent, flags), ui(new Ui::MainWindow) {
+MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
   ui->setupUi(this);
   setCentralWidget(&render);
 

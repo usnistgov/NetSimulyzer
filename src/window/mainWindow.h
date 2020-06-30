@@ -55,7 +55,7 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr);
+  MainWindow();
   ~MainWindow() override;
 
 public slots:
