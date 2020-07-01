@@ -222,7 +222,7 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
     building.color.green = object["color"]["green"].get<uint8_t>();
     building.color.blue = object["color"]["blue"].get<uint8_t>();
   } else {
-    // TODO: Remove later
+    // TODO: Remove later (v0.2.0)
     std::cerr << "Warning: Building ID " << building.id
               << " does not define a color! "
                  "'color' is a new, required attribute. "
@@ -396,6 +396,19 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
 
   series.id = object["id"].get<uint32_t>();
   series.name = object["name"].get<std::string>();
+
+  // TODO: Remove later (v0.2.0)
+  if (!object.contains("legend")) {
+    std::cerr << "XY Series ID: " << series.id
+              << " Missing required attribute 'legend'.\n"
+                 "This message will be replaced with a "
+                 "parse error in the future\n";
+    series.legend = series.name;
+  } else {
+    series.legend = object["legend"].get<std::string>();
+  }
+
+  series.legend = object["legend"].get<std::string>();
   series.alpha = object["color"]["alpha"].get<uint8_t>();
   series.blue = object["color"]["blue"].get<uint8_t>();
   series.green = object["color"]["green"].get<uint8_t>();
@@ -430,6 +443,17 @@ void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
 
   series.id = object["id"].get<uint32_t>();
   series.name = object["name"].get<std::string>();
+
+  // TODO: Remove later (v0.2.0)
+  if (!object.contains("legend")) {
+    std::cerr << "Category Value Series ID: " << series.id
+              << " Missing required attribute 'legend'.\n"
+                 "This message will be replaced with a "
+                 "parse error in the future\n";
+    series.legend = series.name;
+  } else {
+    series.legend = object["legend"].get<std::string>();
+  }
 
   series.alpha = object["color"]["alpha"].get<uint8_t>();
   series.blue = object["color"]["blue"].get<uint8_t>();

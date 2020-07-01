@@ -139,6 +139,7 @@ struct XYSeries {
 
   unsigned int id = 0u;
   std::string name;
+  std::string legend;
   Connection connection = Connection::Line;
   LabelMode labelMode = LabelMode::Shown;
   uint8_t red = 0u;
@@ -154,6 +155,7 @@ struct CategoryValueSeries {
 
   unsigned int id = 0u;
   std::string name;
+  std::string legend;
   ConnectionMode connectionMode = ConnectionMode::InCategory;
   uint8_t red = 0u;
   uint8_t green = 0u;
