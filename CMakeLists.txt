@@ -30,7 +30,7 @@
 # Author: Evan Black <evan.black@nist.gov>
 
 cmake_minimum_required(VERSION 3.13)
-project(visualization
+project(Visualizer
         VERSION 0.1.1
         LANGUAGES C CXX)
 
