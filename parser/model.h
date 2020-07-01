@@ -138,6 +138,7 @@ struct XYSeries {
   enum class LabelMode { Hidden, Shown };
 
   unsigned int id = 0u;
+  bool visible;
   std::string name;
   std::string legend;
   Connection connection = Connection::Line;
@@ -154,6 +155,7 @@ struct CategoryValueSeries {
   enum class ConnectionMode { All, InCategory };
 
   unsigned int id = 0u;
+  bool visible;
   std::string name;
   std::string legend;
   ConnectionMode connectionMode = ConnectionMode::InCategory;

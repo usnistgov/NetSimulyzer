@@ -359,17 +359,18 @@ void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
   for (const auto &xy : xySeries) {
     series.emplace(xy.id, makeTie(xy));
 
-    // Only add the series to the combobox if it is not part of a collection
-    // TODO: Replace this behavior with an ns-3 attribute
-    if (std::find(seriesInCollections.begin(), seriesInCollections.end(), xy.id) == seriesInCollections.end()) {
+    if (xy.visible) {
       dropdownElements.emplace_back(DropdownValue{QString::fromStdString(xy.name), SeriesType::XY, xy.id});
     }
   }
 
   for (const auto &category : categoryValueSeries) {
     series.emplace(category.id, makeTie(category));
-    dropdownElements.emplace_back(
-        DropdownValue{QString::fromStdString(category.name), SeriesType::CategoryValue, category.id});
+
+    if (category.visible) {
+      dropdownElements.emplace_back(
+          DropdownValue{QString::fromStdString(category.name), SeriesType::CategoryValue, category.id});
+    }
   }
 
   switch (sortOrder) {

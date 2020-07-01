@@ -408,6 +408,17 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
     series.legend = object["legend"].get<std::string>();
   }
 
+  // TODO: Remove later (v0.2.0)
+  if (!object.contains("visible")) {
+    std::cerr << "XY Series ID: " << series.id
+              << " Missing required attribute 'visible'.\n"
+                 "This message will be replaced with a "
+                 "parse error in the future\n";
+    series.visible = true;
+  } else {
+    series.visible = object["visible"].get<bool>();
+  }
+
   series.legend = object["legend"].get<std::string>();
   series.alpha = object["color"]["alpha"].get<uint8_t>();
   series.blue = object["color"]["blue"].get<uint8_t>();
@@ -453,6 +464,17 @@ void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
     series.legend = series.name;
   } else {
     series.legend = object["legend"].get<std::string>();
+  }
+
+  // TODO: Remove later (v0.2.0)
+  if (!object.contains("visible")) {
+    std::cerr << "Category Value Series ID: " << series.id
+              << " Missing required attribute 'visible'.\n"
+                 "This message will be replaced with a "
+                 "parse error in the future\n";
+    series.visible = true;
+  } else {
+    series.visible = object["visible"].get<bool>();
   }
 
   series.alpha = object["color"]["alpha"].get<uint8_t>();
