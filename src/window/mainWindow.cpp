@@ -36,6 +36,7 @@
 #include "../group/decoration/Decoration.h"
 #include "../group/node/Node.h"
 #include "LoadWorker.h"
+#include "about/AboutDialog.h"
 #include <QAction>
 #include <QDebug>
 #include <QFileDialog>
@@ -112,6 +113,11 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
                    [this]() { render.showCameraConfigurationDialogue(); });
 
   QObject::connect(ui->actionResetCameraPosition, &QAction::triggered, &render, &RenderWidget::resetCamera);
+
+  QObject::connect(ui->actionAbout, &QAction::triggered, [this]() {
+    AboutDialog dialog{this};
+    dialog.exec();
+  });
 }
 
 MainWindow::~MainWindow() {

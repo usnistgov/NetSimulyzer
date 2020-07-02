@@ -33,6 +33,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionAbout"/>
     <addaction name="actionLoad"/>
    </widget>
    <widget class="QMenu" name="menuWidget">
@@ -151,6 +152,11 @@
   <action name="actionAddChart">
    <property name="text">
     <string>&amp;Add Chart</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
    </property>
   </action>
  </widget>
