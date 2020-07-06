@@ -131,3 +131,16 @@ The camera controls may be changed from the 'Camera Settings' option in the 'Cam
 The simulation starts in a paused state, the scene will still render, but time will not advance until it is unpaused.
 
 `P`: Pause/Resume scenario playback.
+
+### Chart
+`Left Mouse` + Move: Move the chart view
+
+`+` or `=`: Zoom In
+
+`-`: Zoom Out
+
+`R`: Reset Zoom
+
+`Arrow Keys`: Scroll Chart
+
+Currently, these keys cannot be configured.
