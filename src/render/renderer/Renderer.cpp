@@ -451,6 +451,7 @@ void Renderer::render(const Model &m) {
 void Renderer::render(Floor &f) {
   modelShader.bind();
   modelShader.uniform("model", f.getModelMatrix());
+  modelShader.uniform("useTexture", true);
   textureCache.use(f.getTextureId());
   f.render();
 }

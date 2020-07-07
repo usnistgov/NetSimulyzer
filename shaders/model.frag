@@ -47,9 +47,12 @@ uniform DirectionalLight directional_light;
 uniform PointLight pointLights[maxPointLights];
 uniform SpotLight spotLights[maxSpotLights];
 
+uniform bool useTexture;
 uniform sampler2D texture_sampler;
 uniform Material material;
 uniform vec3 eye_position;
+
+uniform vec3 material_color;
 
 vec4 lightByDirection(Light base, vec3 direction) {
     vec4 ambient_color = vec4(base.color, 1.0) * base.ambient_intensity;
@@ -112,7 +115,7 @@ vec4 calculateSpotLight(SpotLight light) {
 vec4 calculatePointLights() {
     vec4 total = vec4(0, 0, 0, 0);
 
-    for (uint i = 0u; i < pointLightCount; i++) {;
+    for (uint i = 0u; i < pointLightCount; i++) {
         total += calculatePointLight(pointLights[i]);
     }
 
@@ -122,7 +125,7 @@ vec4 calculatePointLights() {
 vec4 calculateSpotLights() {
     vec4 total = vec4(0, 0, 0, 0);
 
-    for (uint i = 0u; i < spotLightCount; i++) {;
+    for (uint i = 0u; i < spotLightCount; i++) {
         total += calculateSpotLight(spotLights[i]);
     }
 
@@ -132,5 +135,9 @@ vec4 calculateSpotLights() {
 void main()
 {
     vec4 lights = calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
-    final_color = texture(texture_sampler, texture_coordinates) * lights;
+    if (useTexture) {
+        final_color = texture(texture_sampler, texture_coordinates) * lights;
+    } else {
+        final_color = vec4(material_color, 1) * lights;
+    }
 }

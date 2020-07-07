@@ -40,7 +40,7 @@ void log_uniform(int location, std::string_view name) {
     std::cerr << "Warning Uniform '" << name << "' unused by shader\n";
 #else // Maker sure the variable is 'used' in release builds
   (void)location;
-  (void) name;
+  (void)name;
 #endif
 }
 namespace visualization {
@@ -184,6 +184,26 @@ void Shader::uniform(const std::string &name, unsigned int value) {
   log_uniform(location, name);
   uniform_cache.emplace(name, location);
   glUniform1ui(location, value);
+}
+
+void Shader::uniform(const std::string &name, bool value) {
+  bind();
+  // Sort of like C, values >= 1 are true, the rest are false.
+  // thankfully the C++ standard guarantees
+  // `true` == 1 and `false` == 0
+
+  auto cached_location = uniform_cache.find(name);
+  if (cached_location != uniform_cache.end()) {
+    log_uniform(cached_location->second, name);
+    glUniform1i(cached_location->second, static_cast<int>(value));
+    return;
+  }
+
+  auto location = glGetUniformLocation(glId, name.c_str());
+  log_uniform(location, name);
+  uniform_cache.emplace(name, location);
+  // No direct way to set a bool uniform
+  glUniform1i(location, static_cast<int>(value));
 }
 
 void Shader::bind() {

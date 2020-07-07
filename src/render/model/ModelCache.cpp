@@ -134,6 +134,7 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
   for (auto i = 0u; i < scene->mNumMaterials; i++) {
     auto const *material = scene->mMaterials[i];
     Material m;
+    aiColor3D color;
 
     if (material->GetTextureCount(aiTextureType_DIFFUSE)) {
       aiString path;
@@ -149,6 +150,8 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
         std::cerr << "No fallback texture defined!\n";
         abort();
       }
+    } else if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS) {
+      m.color = {color.r, color.g, color.b};
     } else if (fallbackTexture.has_value()) {
       m.textureId = *fallbackTexture;
     } else {
@@ -166,13 +169,17 @@ const ModelRenderInfo::ModelRenderBounds &ModelRenderInfo::getBounds() const {
   return bounds;
 }
 
-void ModelRenderInfo::render(Shader &) {
+void ModelRenderInfo::render(Shader &s) {
   for (auto &m : meshes) {
     // Operator [] for unordered map is not const...
     const auto &material = m.getMaterial();
 
-    if (material.textureId)
+    s.uniform("useTexture", material.textureId.has_value());
+    if (material.textureId) {
       textureCache.use(*material.textureId);
+    } else if (material.color) {
+      s.uniform("material_color", *material.color);
+    }
 
     //    s.set_uniform_vector_1f("material.specularIntensity", material.specular_intensity);
     //    s.set_uniform_vector_1f("material.shininess", material.shininess);

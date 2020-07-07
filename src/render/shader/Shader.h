@@ -59,6 +59,7 @@ public:
   void uniform(const std::string &name, const glm::mat4 &value);
   void uniform(const std::string &name, int value);
   void uniform(const std::string &name, unsigned int value);
+  void uniform(const std::string &name, bool value);
 
   void bind();
   void unbind();

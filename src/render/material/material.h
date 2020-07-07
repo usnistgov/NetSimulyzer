@@ -35,6 +35,7 @@
 
 #include "../texture/TextureCache.h"
 #include <array>
+#include <glm/vec3.hpp>
 #include <optional>
 
 namespace visualization {
@@ -44,8 +45,8 @@ struct Material {
   float shininess = 1.0f;
   std::optional<texture_id> textureId;
 
-  // TODO: Unused
-  std::optional<std::array<float, 3>> color;
+  // Potentially used if texture is not defined
+  std::optional<glm::vec3> color;
 };
 
 } // namespace visualization
