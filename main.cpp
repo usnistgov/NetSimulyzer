@@ -48,16 +48,39 @@
 #include <string>
 #include <project.h>
 
+struct ParsedSettingsVersion {
+  unsigned int major;
+  unsigned int minor;
+  unsigned int patch;
+};
+
+ParsedSettingsVersion parseVersion(const std::string &s) {
+  ParsedSettingsVersion result;
+  std::size_t position = 0u;
+  for (auto i = 0; i < 3; i++) {
+    auto next = s.find('.', position);
+    const auto &str = s.substr(position, next);
+
+    switch (i) {
+    case 0:
+      result.major = std::stoi(str);
+      break;
+    case 1:
+      result.minor = std::stoi(str);
+      break;
+    case 2:
+      result.patch = std::stoi(str);
+      break;
+    }
+
+    // +1 to move past the '.' character
+    position = next + 1;
+  }
+
+  return result;
+}
+
 int main(int argc, char *argv[]) {
-  QSurfaceFormat format;
-  format.setVersion(3, 3);
-  format.setProfile(QSurfaceFormat::CoreProfile);
-  QSurfaceFormat::setDefaultFormat(format);
-
-  // Default QSurfaceFormat must be set before QApplication
-  // on some platforms
-  QApplication application(argc, argv);
-
   // Necessary for QSettings to save information
   // Setting these here will save us
   // rewriting them every time we construct
@@ -76,15 +99,25 @@ int main(int argc, char *argv[]) {
   }
 
   using Key = visualization::SettingsManager::Key;
+  using RetrieveMode = visualization::SettingsManager::RetrieveMode;
   visualization::SettingsManager settings;
 
   if (settings.isDefined(Key::SettingsVersion)) {
     auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
 
     if (settingsVersion != std::string{VISUALIZER_VERSION}) {
-      // TODO: Settings Migration
       std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
                 << VISUALIZER_VERSION << '\n';
+
+      auto version = parseVersion(settingsVersion);
+      if (version.major == 0 && version.minor <= 1 && version.patch <= 3) {
+        std::cout << "Migrating: 0.1.3\n";
+        if (!settings.isDefined(Key::NumberSamples)) {
+          settings.setDefault(Key::NumberSamples);
+          std::cout << "Adding numberSamples\n";
+        }
+      }
+
       settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
     }
   } else
@@ -128,6 +161,17 @@ int main(int argc, char *argv[]) {
   }
 
   std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
+
+  QSurfaceFormat format;
+  format.setVersion(3, 3);
+  auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
+  format.setSamples(samples);
+  format.setProfile(QSurfaceFormat::CoreProfile);
+  QSurfaceFormat::setDefaultFormat(format);
+
+  // Default QSurfaceFormat must be set before QApplication
+  // on some platforms
+  QApplication application(argc, argv);
 
   visualization::MainWindow mainWindow;
   mainWindow.show();

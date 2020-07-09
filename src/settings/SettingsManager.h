@@ -36,7 +36,8 @@ public:
     CameraKeyRightTurn,
     CameraKeyUp,
     CameraKeyDown,
-    MainWindowState
+    MainWindowState,
+    NumberSamples
   };
 
   /**
@@ -76,7 +77,8 @@ private:
       {Key::CameraKeyRightTurn, {"camera/keyRightTurn", Qt::Key_E}},
       {Key::CameraKeyUp, {"camera/keyUp", Qt::Key_Z}},
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
-      {Key::MainWindowState, {"mainWindow/state", {}}}};
+      {Key::MainWindowState, {"mainWindow/state", {}}},
+      {Key::NumberSamples, {"renderer/numberSamples", 2}}};
 
   /**
    * Get the Qt key for the corresponding enum value.
