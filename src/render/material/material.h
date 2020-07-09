@@ -43,6 +43,7 @@ namespace visualization {
 struct Material {
   float specularIntensity = 4.0f;
   float shininess = 1.0f;
+  float opacity = 1.0f;
   std::optional<texture_id> textureId;
 
   // Potentially used if texture is not defined

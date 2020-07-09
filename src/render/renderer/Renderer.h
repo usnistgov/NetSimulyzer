@@ -75,6 +75,9 @@ public:
   Mesh allocateFloor(float size, texture_id textureId);
   void resize(Floor &f, float size);
 
+  void startTransparent();
+  void endTransparent();
+
   void use(const Camera &cam);
   void render(const DirectionalLight &light);
   void render(const PointLight &light);
@@ -82,6 +85,7 @@ public:
   void render(const std::vector<Area> &areas);
   void render(std::vector<Building> &buildings);
   void render(const Model &m);
+  void renderTransparent(const Model &m);
   void render(Floor &f);
   void render(SkyBox &skyBox);
 };

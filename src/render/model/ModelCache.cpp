@@ -105,8 +105,12 @@ void ModelRenderInfo::loadMesh(aiMesh const *m, aiScene const *) {
     }
   }
 
-  meshes.emplace_back(vertices.data(), indices.data(), vertices.size(), indices.size())
-      .setMaterial(materials[m->mMaterialIndex]);
+  const auto &material = materials[m->mMaterialIndex];
+  if (material.opacity < 1.0f)
+    transparentMeshes.emplace_back(vertices.data(), indices.data(), vertices.size(), indices.size())
+        .setMaterial(material);
+  else
+    meshes.emplace_back(vertices.data(), indices.data(), vertices.size(), indices.size()).setMaterial(material);
 }
 
 ModelRenderInfo::ModelRenderInfo(aiScene const *scene, TextureCache &textureCache) : textureCache(textureCache) {
@@ -134,7 +138,8 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
   for (auto i = 0u; i < scene->mNumMaterials; i++) {
     auto const *material = scene->mMaterials[i];
     Material m;
-    aiColor3D color;
+
+    material->Get(AI_MATKEY_OPACITY, m.opacity);
 
     if (material->GetTextureCount(aiTextureType_DIFFUSE)) {
       aiString path;
@@ -150,12 +155,16 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
         std::cerr << "No fallback texture defined!\n";
         abort();
       }
-    } else if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS) {
-      m.color = {color.r, color.g, color.b};
-    } else if (fallbackTexture.has_value()) {
-      m.textureId = *fallbackTexture;
     } else {
-      std::cerr << "No fallback texture defined!\n";
+      aiColor3D color;
+
+      // Diffuse diffuse & transparent color are separate for some reason...
+      if (m.opacity < 1.0f)
+        material->Get(AI_MATKEY_COLOR_TRANSPARENT, color);
+      else
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+
+      m.color = {color.r, color.g, color.b};
     }
 
     material->Get(AI_MATKEY_SHININESS, m.shininess);                  // Errors Ignored
@@ -167,6 +176,10 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
 
 const ModelRenderInfo::ModelRenderBounds &ModelRenderInfo::getBounds() const {
   return bounds;
+}
+
+bool ModelRenderInfo::hasTransparentMeshes() const {
+  return !transparentMeshes.empty();
 }
 
 void ModelRenderInfo::render(Shader &s) {
@@ -187,6 +200,25 @@ void ModelRenderInfo::render(Shader &s) {
     m.render();
   }
 }
+
+void ModelRenderInfo::renderTransparent(Shader &s) {
+  for (auto &m : transparentMeshes) {
+    const auto &material = m.getMaterial();
+
+    s.uniform("useTexture", material.textureId.has_value());
+    if (material.textureId) {
+      textureCache.use(*material.textureId);
+    } else if (material.color) {
+      s.uniform("material_color", *material.color);
+    }
+
+    //    s.set_uniform_vector_1f("material.specularIntensity", material.specular_intensity);
+    //    s.set_uniform_vector_1f("material.shininess", material.shininess);
+
+    m.render();
+  }
+}
+
 void ModelRenderInfo::clear() {
   meshes.clear();
 }
@@ -245,10 +277,10 @@ Model::ModelLoadInfo ModelCache::load(const std::string &path) {
     return {fallbackModel, bounds.min, bounds.max};
   }
 
-  models.emplace_back(scene, textureCache);
+  const auto &newModel = models.emplace_back(scene, textureCache);
   indexMap.emplace(fullPath, models.size() - 1);
 
-  auto bounds = models.back().getBounds();
+  const auto bounds = newModel.getBounds();
   return {models.size() - 1, bounds.min, bounds.max};
 }
 

@@ -353,6 +353,19 @@ void Renderer::resize(Floor &f, float size) {
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floorVertices), reinterpret_cast<const void *>(floorVertices));
 }
 
+void Renderer::startTransparent() {
+  glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+  glBlendEquation(GL_FUNC_ADD);
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+}
+
+void Renderer::endTransparent() {
+  glDisable(GL_BLEND);
+  glDepthMask(GL_TRUE);
+}
+
 void Renderer::use(const Camera &cam) {
   areaShader.uniform("view", cam.view_matrix());
 
@@ -423,11 +436,6 @@ void Renderer::render(const std::vector<Area> &areas) {
 
 void Renderer::render(std::vector<Building> &buildings) {
   buildingShader.bind();
-  glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-  glBlendEquation(GL_FUNC_ADD);
-
-  glDepthMask(GL_FALSE);
-  glEnable(GL_BLEND);
 
   for (const auto &building : buildings) {
     const auto &renderInfo = building.getRenderInfo();
@@ -437,15 +445,23 @@ void Renderer::render(std::vector<Building> &buildings) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
     glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
   }
-
-  glDisable(GL_BLEND);
-  glDepthMask(GL_TRUE);
 }
 
 void Renderer::render(const Model &m) {
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
   modelCache.get(m.getModelId()).render(modelShader);
+}
+
+void Renderer::renderTransparent(const Model &m) {
+  auto &renderInfo = modelCache.get(m.getModelId());
+
+  if (!renderInfo.hasTransparentMeshes())
+    return;
+
+  modelShader.bind();
+  modelShader.uniform("model", m.getModelMatrix());
+  renderInfo.renderTransparent(modelShader);
 }
 
 void Renderer::render(Floor &f) {

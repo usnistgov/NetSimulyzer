@@ -57,6 +57,7 @@ public:
 
 private:
   std::vector<Mesh> meshes;
+  std::vector<Mesh> transparentMeshes;
   TextureCache &textureCache;
   std::vector<Material> materials;
   ModelRenderBounds bounds;
@@ -74,7 +75,8 @@ public:
 
   // Allow Moves
   ModelRenderInfo(ModelRenderInfo &&other) noexcept
-      : meshes(std::move(other.meshes)), textureCache(other.textureCache), materials(std::move(other.materials)) {
+      : meshes(std::move(other.meshes)), transparentMeshes(std::move(other.transparentMeshes)),
+        textureCache(other.textureCache), materials(std::move(other.materials)) {
     bounds = other.bounds;
   };
 
@@ -86,8 +88,10 @@ public:
   ModelRenderInfo &operator=(const ModelRenderInfo &) = delete;
 
   [[nodiscard]] const ModelRenderBounds &getBounds() const;
+  [[nodiscard]] bool hasTransparentMeshes() const;
 
   void render(Shader &s);
+  void renderTransparent(Shader &s);
   void clear();
 };
 

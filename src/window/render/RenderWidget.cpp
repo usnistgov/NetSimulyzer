@@ -165,7 +165,16 @@ void RenderWidget::paintGL() {
   renderer.render(areas);
 
   // Keep this last
+  renderer.startTransparent();
   renderer.render(buildings);
+  for (auto &[key, node] : nodes) {
+    renderer.renderTransparent(node.getModel());
+  }
+
+  for (auto &[key, decoration] : decorations) {
+    renderer.renderTransparent(decoration.getModel());
+  }
+  renderer.endTransparent();
   frameTimer.restart();
   if (!paused) {
     simulationTime += config.millisecondsPerFrame;
