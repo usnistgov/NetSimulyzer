@@ -46,11 +46,13 @@
 #include <file-parser.h>
 #include <unordered_map>
 #include <variant>
+#include <project.h>
 
 namespace visualization {
 
 MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
   ui->setupUi(this);
+  setWindowTitle(VISUALIZER_APPLICATION_NAME);
   setCentralWidget(&render);
 
   charts = new ChartManager{this};
