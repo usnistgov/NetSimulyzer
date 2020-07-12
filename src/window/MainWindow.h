@@ -40,15 +40,9 @@
 #include "node/NodeWidget.h"
 #include "render/RenderWidget.h"
 #include "ui_MainWindow.h"
-#include <QDockWidget>
 #include <QLabel>
 #include <QMainWindow>
 #include <QThread>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
-#include <deque>
-#include <file-parser.h>
 
 namespace visualization {
 class MainWindow : public QMainWindow {
@@ -65,20 +59,22 @@ signals:
   void startLoading(const QString &fileName);
 
 private:
-  const int stateVersion = 2;
+  const int stateVersion = 3;
   SettingsManager settings;
 
-  ChartManager *charts;
-  NodeWidget *nodeWidget;
-  ScenarioLogWidget *logWidget;
-  Ui::MainWindow *ui;
+  ChartManager charts{this};
+  NodeWidget nodeWidget{this};
+  ScenarioLogWidget logWidget{this};
+  RenderWidget render{this};
+  Ui::MainWindow ui{};
+
   /**
    * Label inside the Status Bar. Used for 'Normal' Messages
    *
    * @see: https://doc.qt.io/qt-5/qstatusbar.html
    */
   QLabel statusLabel{"Load Scenario", this};
-  RenderWidget render{this};
+
   bool chartEventsComplete = true;
   bool logEventsComplete = true;
   bool renderEventsComplete = true;

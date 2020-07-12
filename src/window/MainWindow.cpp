@@ -32,37 +32,27 @@
  */
 
 #include "MainWindow.h"
-#include "../group/building/Building.h"
-#include "../group/decoration/Decoration.h"
-#include "../group/node/Node.h"
 #include "LoadWorker.h"
 #include "about/AboutDialog.h"
 #include <QAction>
 #include <QDebug>
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QObject>
 #include <cstdlib>
-#include <deque>
-#include <file-parser.h>
-#include <unordered_map>
-#include <variant>
+#include <parser/file-parser.h>
+#include <parser/model.h>
 #include <project.h>
 
 namespace visualization {
 
-MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
-  ui->setupUi(this);
+MainWindow::MainWindow() : QMainWindow() {
+  ui.setupUi(this);
   setWindowTitle(VISUALIZER_APPLICATION_NAME);
   setCentralWidget(&render);
 
-  charts = new ChartManager{this};
-  QObject::connect(ui->actionAddChart, &QAction::triggered, [this]() { charts->spawnWidget(this); });
-
-  nodeWidget = new NodeWidget{ui->nodesDock};
-  ui->nodesDock->setWidget(nodeWidget);
-
-  logWidget = new ScenarioLogWidget{ui->logDock};
-  ui->logDock->setWidget(logWidget);
+  ui.nodesDock->setWidget(&nodeWidget);
+  ui.logDock->setWidget(&logWidget);
 
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
@@ -73,23 +63,23 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
   QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
   loadThread.start();
 
-  ui->menuWidget->addAction(ui->nodesDock->toggleViewAction());
-  ui->menuWidget->addAction(ui->logDock->toggleViewAction());
+  ui.menuWidget->addAction(ui.nodesDock->toggleViewAction());
+  ui.menuWidget->addAction(ui.logDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
   // Note: This message can still be temporarily overwritten,
   // should we choose to do so
-  ui->statusbar->insertWidget(0, &statusLabel);
+  ui.statusbar->insertWidget(0, &statusLabel);
 
-  QObject::connect(&render, &RenderWidget::timeAdvanced, charts, &ChartManager::timeAdvanced);
-  QObject::connect(&render, &RenderWidget::timeAdvanced, logWidget, &ScenarioLogWidget::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
   QObject::connect(&render, &RenderWidget::pauseToggled, [this](bool paused) {
     // clears any temporary messages when playback is started/resumed
     // so the time is visible
     if (!paused)
-      ui->statusbar->clearMessage();
+      ui.statusbar->clearMessage();
   });
 
   QObject::connect(&render, &RenderWidget::eventsComplete, [this]() {
@@ -97,33 +87,34 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow) {
     checkPause();
   });
 
-  QObject::connect(logWidget, &ScenarioLogWidget::eventsComplete, [this]() {
+  QObject::connect(&logWidget, &ScenarioLogWidget::eventsComplete, [this]() {
     logEventsComplete = true;
     checkPause();
   });
 
-  QObject::connect(charts, &ChartManager::eventsComplete, [this]() {
+  QObject::connect(&charts, &ChartManager::eventsComplete, [this]() {
     chartEventsComplete = true;
     checkPause();
   });
 
-  QObject::connect(nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
 
-  QObject::connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::load);
+  QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
-  QObject::connect(ui->actionCameraSettings, &QAction::triggered,
+  QObject::connect(ui.actionCameraSettings, &QAction::triggered,
                    [this]() { render.showCameraConfigurationDialogue(); });
 
-  QObject::connect(ui->actionResetCameraPosition, &QAction::triggered, &render, &RenderWidget::resetCamera);
+  QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &RenderWidget::resetCamera);
 
-  QObject::connect(ui->actionAbout, &QAction::triggered, [this]() {
+  QObject::connect(ui.actionAbout, &QAction::triggered, [this]() {
     AboutDialog dialog{this};
     dialog.exec();
   });
+
+  QObject::connect(ui.actionAddChart, &QAction::triggered, [this]() { charts.spawnWidget(this); });
 }
 
 MainWindow::~MainWindow() {
-  delete ui;
   loadThread.quit();
   // Make sure the thread has time to close before trying to destroy it
   loadThread.wait();
@@ -177,13 +168,13 @@ void MainWindow::load() {
   if (fileName.isEmpty())
     return;
   if (loading) {
-    ui->statusbar->showMessage("Already loading scenario!", 10000);
+    ui.statusbar->showMessage("Already loading scenario!", 10000);
   }
   loading = true;
-  ui->actionLoad->setEnabled(false);
+  ui.actionLoad->setEnabled(false);
   statusLabel.setText("Loading scenario: " + fileName);
   render.reset();
-  nodeWidget->reset();
+  nodeWidget.reset();
   emit startLoading(fileName);
 }
 
@@ -196,18 +187,18 @@ void MainWindow::finishLoading(const QString &fileName) {
   render.add(parser.getAreas(), parser.getBuildings(), parser.getDecorations(), parser.getNodes());
 
   for (const auto &node : nodes) {
-    nodeWidget->addNode(node);
+    nodeWidget.addNode(node);
   }
 
   // Charts
-  charts->reset();
-  charts->addSeries(parser.getXYSeries(), parser.getSeriesCollections(), parser.getCategoryValueSeries());
+  charts.reset();
+  charts.addSeries(parser.getXYSeries(), parser.getSeriesCollections(), parser.getCategoryValueSeries());
 
   // Log Streams
-  logWidget->reset();
+  logWidget.reset();
   const auto &logStreams = parser.getLogStreams();
   for (const auto &logStream : logStreams) {
-    logWidget->addStream(logStream);
+    logWidget.addStream(logStream);
   }
 
   // Events
@@ -217,17 +208,17 @@ void MainWindow::finishLoading(const QString &fileName) {
 
   const auto &chartEvents = parser.getChartsEvents();
   chartEventsComplete = chartEvents.empty();
-  charts->enqueueEvents(chartEvents);
+  charts.enqueueEvents(chartEvents);
 
   const auto &logEvents = parser.getLogEvents();
   logEventsComplete = logEvents.empty();
-  logWidget->enqueueEvents(logEvents);
+  logWidget.enqueueEvents(logEvents);
   checkPause();
 
-  ui->statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
+  ui.statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
   statusLabel.setText("Ready");
   loading = false;
-  ui->actionLoad->setEnabled(true);
+  ui.actionLoad->setEnabled(true);
 }
 
 void MainWindow::checkPause() {
