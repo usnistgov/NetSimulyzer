@@ -39,7 +39,7 @@
 #include "log/ScenarioLogWidget.h"
 #include "node/NodeWidget.h"
 #include "render/RenderWidget.h"
-#include "ui_mainWindow.h"
+#include "ui_MainWindow.h"
 #include <QDockWidget>
 #include <QLabel>
 #include <QMainWindow>

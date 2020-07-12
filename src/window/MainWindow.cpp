@@ -31,7 +31,7 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "mainWindow.h"
+#include "MainWindow.h"
 #include "../group/building/Building.h"
 #include "../group/decoration/Decoration.h"
 #include "../group/node/Node.h"

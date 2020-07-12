@@ -35,7 +35,7 @@
 #include <QOpenGLContext>
 // clang-format on
 
-#include "src/window/mainWindow.h"
+#include "src/window/MainWindow.h"
 #include "src/settings/SettingsManager.h"
 #include <QApplication>
 #include <QCoreApplication>
