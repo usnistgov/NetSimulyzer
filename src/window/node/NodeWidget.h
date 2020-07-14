@@ -71,6 +71,11 @@ class NodeWidget : public QWidget {
      * The Node to add to the table
      */
     void append(const parser::Node &node);
+
+    /**
+     * Clear all Nodes from the model
+     */
+    void reset();
   };
 
   Ui::NodeWidget *ui = new Ui::NodeWidget;

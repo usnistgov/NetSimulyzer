@@ -92,6 +92,15 @@ Qt::ItemFlags NodeWidget::NodeModel::flags(const QModelIndex &index) const {
   return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
 }
 
+void NodeWidget::NodeModel::reset() {
+  if (nodes.empty())
+    return;
+
+  beginResetModel();
+  nodes.clear();
+  endResetModel();
+}
+
 NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
   ui->setupUi(this);
 
@@ -112,6 +121,7 @@ void NodeWidget::addNode(const parser::Node &node) {
 }
 
 void NodeWidget::reset() {
+  model.reset();
 }
 
 } // namespace visualization
