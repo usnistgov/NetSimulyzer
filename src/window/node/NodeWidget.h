@@ -47,9 +47,12 @@ class NodeWidget : public QWidget {
   Q_OBJECT
 
   /**
-   * Representation of a single row in the table
+   * Provides the data for the nodeTable
    */
   class NodeModel : public QAbstractTableModel {
+    /**
+     * Each individual row in the table
+     */
     std::vector<parser::Node> nodes;
 
   public:
@@ -61,6 +64,12 @@ class NodeWidget : public QWidget {
     [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
 
+    /**
+     * Add a Node to the table
+     *
+     * @param node
+     * The Node to add to the table
+     */
     void append(const parser::Node &node);
   };
 
