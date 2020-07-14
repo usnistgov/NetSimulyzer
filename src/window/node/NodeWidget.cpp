@@ -99,6 +99,7 @@ NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
                    [this](const QModelIndex &index) { emit nodeSelected(index.data(Qt::UserRole).toUInt()); });
 
   ui->nodeTable->setModel(&model);
+  ui->nodeTable->resizeColumnsToContents();
   ui->nodeTable->horizontalHeader()->setStretchLastSection(true);
 }
 
