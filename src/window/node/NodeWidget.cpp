@@ -65,6 +65,15 @@ QVariant NodeWidget::NodeModel::data(const QModelIndex &index, int role) const {
       return {};
     }
   }
+  case Qt::TextAlignmentRole:
+    switch (index.column()) {
+    case 0:
+      return {Qt::AlignRight | Qt::AlignVCenter};
+    case 1:
+      return {Qt::AlignLeft | Qt::AlignVCenter};
+    default:
+      return {};
+    }
   default:
     return {};
   }
