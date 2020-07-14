@@ -33,6 +33,9 @@
 
 #pragma once
 #include "ui_NodeWidget.h"
+#include <QAbstractTableModel>
+#include <QStandardItemModel>
+#include <QVariant>
 #include <QWidget>
 #include <cstdint>
 #include <model.h>
@@ -42,8 +45,27 @@ namespace visualization {
 
 class NodeWidget : public QWidget {
   Q_OBJECT
+
+  /**
+   * Representation of a single row in the table
+   */
+  class NodeModel : public QAbstractTableModel {
+    std::vector<parser::Node> nodes;
+
+  public:
+    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent){};
+
+    [[nodiscard]] int rowCount(const QModelIndex &) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    void append(const parser::Node &node);
+  };
+
   Ui::NodeWidget *ui = new Ui::NodeWidget;
-  std::vector<parser::Node> nodes;
+  NodeModel model;
 
 public:
   explicit NodeWidget(QWidget *parent = nullptr);

@@ -34,18 +34,72 @@
 #include "NodeWidget.h"
 #include <QListWidget>
 #include <QObject>
+#include <QStandardItemModel>
 #include <QString>
 #include <string>
 
 namespace visualization {
 
+int NodeWidget::NodeModel::rowCount(const QModelIndex &) const {
+  return static_cast<int>(nodes.size());
+}
+
+int NodeWidget::NodeModel::columnCount(const QModelIndex &) const {
+  return 2;
+}
+
+QVariant NodeWidget::NodeModel::data(const QModelIndex &index, int role) const {
+
+  switch (role) {
+  case Qt::UserRole:
+    // Used for QTableView::doubleClicked signal for focusing on a Node
+    return {nodes[index.row()].id};
+  case Qt::DisplayRole: {
+    const auto &node = nodes[index.row()];
+    switch (index.column()) {
+    case 0:
+      return {node.id};
+    case 1:
+      return {QString::fromStdString(node.name)};
+    default:
+      return {};
+    }
+  }
+  default:
+    return {};
+  }
+}
+QVariant NodeWidget::NodeModel::headerData(int section, Qt::Orientation orientation, int role) const {
+  if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
+    return {};
+  switch (section) {
+  case 0:
+    return "ID";
+  case 1:
+    return "Name";
+  default:
+    return {};
+  }
+}
+void NodeWidget::NodeModel::append(const parser::Node &node) {
+  beginInsertRows({}, static_cast<int>(nodes.size()), static_cast<int>(nodes.size()));
+  nodes.emplace_back(node);
+  endInsertRows();
+}
+
+Qt::ItemFlags NodeWidget::NodeModel::flags(const QModelIndex &index) const {
+  // Disallow editing on all items
+  return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
+}
+
 NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
   ui->setupUi(this);
 
-  QObject::connect(ui->nodeList, &QListWidget::itemActivated, [this](const QListWidgetItem *item) {
-    auto id = item->data(Qt::UserRole).toUInt();
-    emit nodeSelected(id);
-  });
+  QObject::connect(ui->nodeTable, &QTableView::doubleClicked,
+                   [this](const QModelIndex &index) { emit nodeSelected(index.data(Qt::UserRole).toUInt()); });
+
+  ui->nodeTable->setModel(&model);
+  ui->nodeTable->horizontalHeader()->setStretchLastSection(true);
 }
 
 NodeWidget::~NodeWidget() {
@@ -53,16 +107,10 @@ NodeWidget::~NodeWidget() {
 }
 
 void NodeWidget::addNode(const parser::Node &node) {
-  nodes.emplace_back(node);
-
-  auto listItem = new QListWidgetItem{QString::fromStdString (node.name) + " (" + QString::number(node.id) + ")", ui->nodeList};
-  listItem->setData(Qt::UserRole, node.id);
-
-  ui->nodeList->addItem(listItem);
+  model.append(node);
 }
 
 void NodeWidget::reset() {
-  ui->nodeList->clear();
 }
 
 } // namespace visualization
