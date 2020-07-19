@@ -419,7 +419,6 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
     series.visible = object["visible"].get<bool>();
   }
 
-  series.legend = object["legend"].get<std::string>();
   series.alpha = object["color"]["alpha"].get<uint8_t>();
   series.blue = object["color"]["blue"].get<uint8_t>();
   series.green = object["color"]["green"].get<uint8_t>();
