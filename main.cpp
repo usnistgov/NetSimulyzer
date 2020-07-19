@@ -123,6 +123,19 @@ int main(int argc, char *argv[]) {
   } else
     settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
 
+  QSurfaceFormat format;
+  format.setVersion(3, 3);
+  auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
+  format.setSamples(samples);
+  format.setProfile(QSurfaceFormat::CoreProfile);
+  QSurfaceFormat::setDefaultFormat(format);
+
+  // Default QSurfaceFormat must be set before QApplication
+  // on some platforms
+  QApplication application(argc, argv);
+
+  // Must me checked after the QApplication is constructed
+  // since this may create dialogs 
   if (!settings.isDefined(Key::ResourcePath)) {
 
     QDir dir{QCoreApplication::applicationDirPath(), "resources"};
@@ -161,17 +174,6 @@ int main(int argc, char *argv[]) {
   }
 
   std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
-
-  QSurfaceFormat format;
-  format.setVersion(3, 3);
-  auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
-  format.setSamples(samples);
-  format.setProfile(QSurfaceFormat::CoreProfile);
-  QSurfaceFormat::setDefaultFormat(format);
-
-  // Default QSurfaceFormat must be set before QApplication
-  // on some platforms
-  QApplication application(argc, argv);
 
   visualization::MainWindow mainWindow;
   mainWindow.show();
