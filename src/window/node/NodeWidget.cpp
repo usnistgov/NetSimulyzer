@@ -116,7 +116,12 @@ NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
   QObject::connect(ui->nodeTable, &QTableView::doubleClicked,
                    [this](const QModelIndex &index) { emit nodeSelected(index.data(Qt::UserRole).toUInt()); });
 
-  ui->nodeTable->setModel(&model);
+  proxyModel.setSourceModel(&model);
+  ui->nodeTable->setModel(&proxyModel);
+
+  // Sort by Node ID, ascending by default
+  proxyModel.sort(0, Qt::AscendingOrder);
+
   ui->nodeTable->resizeColumnsToContents();
   ui->nodeTable->horizontalHeader()->setStretchLastSection(true);
 }

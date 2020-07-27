@@ -34,6 +34,7 @@
 #pragma once
 #include "ui_NodeWidget.h"
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QVariant>
 #include <QWidget>
@@ -80,6 +81,7 @@ class NodeWidget : public QWidget {
 
   Ui::NodeWidget *ui = new Ui::NodeWidget;
   NodeModel model;
+  QSortFilterProxyModel proxyModel;
 
 public:
   explicit NodeWidget(QWidget *parent = nullptr);
