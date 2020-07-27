@@ -33,6 +33,10 @@
 
 #pragma once
 #include "ui_NodeWidget.h"
+#include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
+#include <QStandardItemModel>
+#include <QVariant>
 #include <QWidget>
 #include <cstdint>
 #include <model.h>
@@ -42,8 +46,42 @@ namespace visualization {
 
 class NodeWidget : public QWidget {
   Q_OBJECT
+
+  /**
+   * Provides the data for the nodeTable
+   */
+  class NodeModel : public QAbstractTableModel {
+    /**
+     * Each individual row in the table
+     */
+    std::vector<parser::Node> nodes;
+
+  public:
+    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent){};
+
+    [[nodiscard]] int rowCount(const QModelIndex &) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    /**
+     * Add a Node to the table
+     *
+     * @param node
+     * The Node to add to the table
+     */
+    void append(const parser::Node &node);
+
+    /**
+     * Clear all Nodes from the model
+     */
+    void reset();
+  };
+
   Ui::NodeWidget *ui = new Ui::NodeWidget;
-  std::vector<parser::Node> nodes;
+  NodeModel model;
+  QSortFilterProxyModel proxyModel;
 
 public:
   explicit NodeWidget(QWidget *parent = nullptr);

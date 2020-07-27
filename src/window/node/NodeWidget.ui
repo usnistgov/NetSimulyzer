@@ -29,7 +29,14 @@
    <item>
     <layout class="QVBoxLayout" name="layout">
      <item>
-      <widget class="QListWidget" name="nodeList"/>
+      <widget class="QTableView" name="nodeTable">
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+      </widget>
      </item>
     </layout>
    </item>
