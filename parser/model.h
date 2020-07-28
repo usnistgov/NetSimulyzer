@@ -179,6 +179,7 @@ struct SeriesCollection {
 
 struct LogStream {
   unsigned int id = 0u;
+  bool visible = true;
   std::string name;
   std::optional<Ns3Color3> color;
 };

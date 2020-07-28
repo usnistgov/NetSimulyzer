@@ -524,6 +524,17 @@ void JsonHandler::parseLogStream(const nlohmann::json &object) {
     stream.color = color;
   }
 
+  // TODO: Remove later (v0.2.0)
+  if (!object.contains("visible")) {
+    std::cerr << "Log Stream ID: " << stream.id << " "
+              << "Missing required attribute 'visible'.\n"
+                 "This message will be replaced with a "
+                 "parse error in the future\n";
+    stream.visible = true;
+  } else {
+    stream.visible = object["visible"].get<bool>();
+  }
+
   fileParser.logStreams.emplace_back(stream);
 }
 

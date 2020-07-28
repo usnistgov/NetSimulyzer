@@ -130,7 +130,9 @@ ScenarioLogWidget::ScenarioLogWidget(QWidget *parent) : QWidget(parent) {
 
 void ScenarioLogWidget::addStream(const parser::LogStream &stream) {
   streams.try_emplace(stream.id, stream);
-  ui.comboBoxLogName->addItem(QString::fromStdString(stream.name), stream.id);
+
+  if (stream.visible)
+    ui.comboBoxLogName->addItem(QString::fromStdString(stream.name), stream.id);
 }
 
 void ScenarioLogWidget::enqueueEvents(const std::vector<parser::LogEvent> &e) {
