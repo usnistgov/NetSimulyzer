@@ -571,37 +571,47 @@ void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) 
 JsonHandler::JsonHandler(parser::FileParser &parser) : fileParser(parser) {
 }
 
-bool JsonHandler::null() {
+bool JsonHandler::Null() {
   handle(nullptr);
   return true;
 }
 
-bool JsonHandler::boolean(bool value) {
+bool JsonHandler::Bool(bool value) {
   handle(value);
   return true;
 }
 
-bool JsonHandler::number_integer(nlohmann::json::number_integer_t value) {
-  handle(static_cast<int>(value));
-  return true;
-}
-
-bool JsonHandler::number_unsigned(nlohmann::json::number_unsigned_t value) {
-  handle(static_cast<int>(value));
-  return true;
-}
-
-bool JsonHandler::number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw) {
-  handle(static_cast<double>(value));
-  return true;
-}
-
-bool JsonHandler::string(nlohmann::json::string_t &value) {
+bool JsonHandler::Int(int value) {
   handle(value);
   return true;
 }
 
-bool JsonHandler::start_object(std::size_t elements) {
+bool JsonHandler::Uint(unsigned int value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::Int64(std::int64_t value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::Uint64(std::uint64_t value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::Double(double value) {
+  handle(value);
+  return true;
+}
+
+bool JsonHandler::String(const char *value, rapidjson::SizeType length, bool) {
+  handle(std::string(value, length));
+  return true;
+}
+
+bool JsonHandler::StartObject() {
   // Root object case
   if (jsonStack.empty()) {
     jsonStack.push({"root", util::json::JsonObject()});
@@ -621,7 +631,7 @@ bool JsonHandler::start_object(std::size_t elements) {
   return true;
 }
 
-bool JsonHandler::end_object() {
+bool JsonHandler::EndObject(rapidjson::SizeType) {
   // TODO: Error
   if (jsonStack.empty()) {
     return false;
@@ -663,7 +673,7 @@ bool JsonHandler::end_object() {
   return false;
 }
 
-bool JsonHandler::start_array(std::size_t elements) {
+bool JsonHandler::StartArray() {
   if (jsonStack.empty()) {
     return false;
   }
@@ -672,7 +682,7 @@ bool JsonHandler::start_array(std::size_t elements) {
   return true;
 }
 
-bool JsonHandler::end_array() {
+bool JsonHandler::EndArray(rapidjson::SizeType) {
   auto oldTop = jsonStack.top();
   jsonStack.pop();
 
@@ -689,8 +699,8 @@ bool JsonHandler::end_array() {
   return true;
 }
 
-bool JsonHandler::key(nlohmann::json::string_t &value) {
-  jsonStack.push({value});
+bool JsonHandler::Key(const char *value, rapidjson::SizeType length, bool) {
+  jsonStack.push({std::string(value, length)});
 
   auto possibleSection = isSection(value);
   if (possibleSection != Section::None) {
@@ -698,8 +708,4 @@ bool JsonHandler::key(nlohmann::json::string_t &value) {
     sectionDepth = 0;
   }
   return true;
-}
-bool JsonHandler::parse_error(std::size_t position, const std::string &last_token,
-                              const nlohmann::detail::exception &ex) {
-  throw ex;
 }

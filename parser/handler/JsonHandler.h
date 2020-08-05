@@ -38,14 +38,14 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <json.hpp>
 #include <memory>
 #include <optional>
+#include <rapidjson/reader.h>
 #include <stack>
 #include <string>
 #include <vector>
 
-class JsonHandler {
+class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonHandler> {
   /**
    * The possible section in the document
    */
@@ -288,6 +288,11 @@ class JsonHandler {
 public:
   explicit JsonHandler(parser::FileParser &parser);
 
+  // Note: do not make the below functions `virtual`
+  // or mark them with `override
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+
   /**
    * Called when the event parser encounters a null value.
    * Used by the parser. Should not be called by user code.
@@ -295,7 +300,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool null();
+  bool Null();
 
   /**
    * Called when the event parser encounters a boolean value.
@@ -307,7 +312,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool boolean(bool value);
+  bool Bool(bool value);
 
   /**
    * Called when the event parser encounters an integer value.
@@ -319,7 +324,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_integer(nlohmann::json::number_integer_t value);
+  bool Int(int value);
 
   /**
    * Called when the event parser encounters a unsigned integer value.
@@ -331,7 +336,33 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_unsigned(nlohmann::json::number_unsigned_t value);
+  bool Uint(unsigned int value);
+
+  /**
+   * Called when the event parser encounters an integer value
+   * 64 bits in width.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool Int64(std::int64_t value);
+
+  /**
+   * Called when the event parser encounters an unsigned integer value
+   * 64 bits in width.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool Uint64(std::uint64_t value);
 
   /**
    * Called when the event parser encounters a floating point value.
@@ -340,13 +371,10 @@ public:
    * @param value
    * The value encountered by the parser
    *
-   * @param raw
-   * The raw string consumed by the parser
-   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw);
+  bool Double(double value);
 
   /**
    * Called when the event parser encounters a string value.
@@ -355,52 +383,27 @@ public:
    * @param value
    * The value encountered by the parser
    *
+   * @param length
+   * Length of the passed string
+   *
+   * @param copy
+   * flag indicating the string should be copied.
+   * Will probably always be true for our parsing method.
+   * We'll copy anyway...
+   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool string(nlohmann::json::string_t &value);
+  bool String(const char *value, rapidjson::SizeType length, bool copy);
 
   /**
    * Called when the parser encounters the beginning of an object.
    * Used by the parser. Should not be called by user code.
    *
-   * @param elements
-   * The size of the object. -1 if unknown.
-   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool start_object(std::size_t elements);
-
-  /**
-   * Called when the parser encounters the end of an object.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool end_object();
-
-  /**
-   * Called when the parser encounters the beginning of an array.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @param elements
-   * The size of the array. -1 if unknown.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool start_array(std::size_t elements);
-
-  /**
-   * Called when the parser encounters the end of an array.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool end_array();
+  bool StartObject();
 
   /**
    * Called when the parser reads a key for a value.
@@ -409,26 +412,50 @@ public:
    * @param value
    * The value of the encountered key.
    *
+   * @param length
+   * Length of the passed string
+   *
+   * @param copy
+   * flag indicating the string should be copied.
+   * Will probably always be true for our parsing method.
+   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool key(nlohmann::json::string_t &value);
+  bool Key(const char *value, rapidjson::SizeType length, bool copy);
 
   /**
-   * Called when the parser encounters an error.
+   * Called when the parser encounters the end of an object.
    * Used by the parser. Should not be called by user code.
    *
-   * @param position
-   * The position in the document
-   *
-   * @param last_token
-   * The last read token
-   *
-   * @param ex
-   * The exception from the parser
+   * @param memberCount
+   * Number of members in the object
    *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool parse_error(std::size_t position, const std::string &last_token, const nlohmann::detail::exception &ex);
+  bool EndObject(rapidjson::SizeType memberCount);
+
+  /**
+   * Called when the parser encounters the beginning of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool StartArray();
+
+  /**
+   * Called when the parser encounters the end of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param elementCount
+   * Number of elements in the array
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool EndArray(rapidjson::SizeType elementCount);
+
+#pragma clang diagnostic pop
 };
