@@ -33,6 +33,7 @@
 
 #pragma once
 #include "../file-parser.h"
+#include "Json.h"
 #include "model.h"
 #include <cassert>
 #include <fstream>
@@ -74,7 +75,7 @@ class JsonHandler {
    */
   struct JsonFrame {
     std::string key;
-    nlohmann::json value;
+    util::json::JsonValue value;
   };
 
   /**
@@ -110,8 +111,8 @@ class JsonHandler {
 
     // Special case, array of primitives
     // ex: [1, 2, 3]
-    if (jsonStack.top().value.is_array()) {
-      jsonStack.top().value.emplace_back(value);
+    if (jsonStack.top().value.isArray()) {
+      jsonStack.top().value.array().emplace_back(value);
       return;
     }
 
@@ -120,16 +121,16 @@ class JsonHandler {
     // since `handle()` is for primitives
     auto oldTop = jsonStack.top();
 
-    if (!oldTop.value.is_null()) {
-      std::cerr << oldTop.value << '\n';
+    if (!oldTop.value.isNull()) {
+      std::cerr << oldTop.key << '\n';
       std::abort();
     }
 
     jsonStack.pop();
     auto &currentTop = jsonStack.top();
 
-    if (currentTop.value.is_object()) {
-      currentTop.value[oldTop.key] = value;
+    if (currentTop.value.isObject()) {
+      currentTop.value.object().insert(oldTop.key, value);
       return;
     }
 
@@ -146,7 +147,7 @@ class JsonHandler {
    * @param object
    * The JSON object to parse.
    */
-  void do_parse(Section section, const nlohmann::json &object);
+  void do_parse(Section section, const util::json::JsonObject &object);
 
   /**
    * Parse and set the configuration.
@@ -154,7 +155,7 @@ class JsonHandler {
    * @param object
    * The object from the 'configuration' section
    */
-  void parseConfiguration(const nlohmann::json &object);
+  void parseConfiguration(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a node.
@@ -162,7 +163,7 @@ class JsonHandler {
    * @param object
    * The object from the 'nodes' section
    */
-  void parseNode(const nlohmann::json &object);
+  void parseNode(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a building
@@ -170,7 +171,7 @@ class JsonHandler {
    * @param object
    * The object from the 'buildings' section
    */
-  void parseBuilding(const nlohmann::json &object);
+  void parseBuilding(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a decoration
@@ -178,7 +179,7 @@ class JsonHandler {
    * @param object
    * The object from the 'decoration' section
    */
-  void parseDecoration(const nlohmann::json &object);
+  void parseDecoration(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace an area
@@ -186,7 +187,7 @@ class JsonHandler {
    * @param object
    * The object from the 'areas' section
    */
-  void parseArea(const nlohmann::json &object);
+  void parseArea(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a move event
@@ -194,7 +195,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'node-position' type
    */
-  void parseMoveEvent(const nlohmann::json &object);
+  void parseMoveEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a DecorationMoveEvent
@@ -202,7 +203,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationMoveEvent(const nlohmann::json &object);
+  void parseDecorationMoveEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a NodeOrientationEvent
@@ -210,7 +211,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'node-orientation' type
    */
-  void parseNodeOrientationEvent(const nlohmann::json &object);
+  void parseNodeOrientationEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a DecorationOrientationEvent
@@ -218,7 +219,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationOrientationEvent(const nlohmann::json &object);
+  void parseDecorationOrientationEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a series append event
@@ -226,7 +227,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'xy-series-append' type
    */
-  void parseSeriesAppend(const nlohmann::json &object);
+  void parseSeriesAppend(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a category value append event
@@ -234,7 +235,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'category-series-append' type
    */
-  void parseCategorySeriesAppend(const nlohmann::json &object);
+  void parseCategorySeriesAppend(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a linear series
@@ -242,7 +243,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'xy-series' type
    */
-  void parseXYSeries(const nlohmann::json &object);
+  void parseXYSeries(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a category value series.
@@ -250,7 +251,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'category-value-series' type
    */
-  void parseCategoryValueSeries(const nlohmann::json &object);
+  void parseCategoryValueSeries(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a series collection
@@ -258,7 +259,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'xy-series' type
    */
-  void parseSeriesCollection(const nlohmann::json &object);
+  void parseSeriesCollection(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a Stream for the Scenario Log
@@ -266,7 +267,7 @@ class JsonHandler {
    * @param object
    * The object from the 'streams' section
    */
-  void parseLogStream(const nlohmann::json &object);
+  void parseLogStream(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a stream append event
@@ -274,7 +275,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'stream-append' type
    */
-  void parseStreamAppend(const nlohmann::json &object);
+  void parseStreamAppend(const util::json::JsonObject &object);
 
   /**
    * Check the min/max bounds against `coordinate` and update accordingly

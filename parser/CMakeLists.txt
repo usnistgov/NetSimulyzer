@@ -31,6 +31,7 @@
 
 add_library(parser
         handler/JsonHandler.cpp handler/JsonHandler.h
+        handler/Json.h
         file-parser.cpp file-parser.h
         model.h
         )

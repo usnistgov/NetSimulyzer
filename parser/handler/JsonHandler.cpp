@@ -32,6 +32,8 @@
  */
 
 #include "JsonHandler.h"
+#include "Json.h"
+#include "iostream"
 #include <algorithm>
 #include <cmath>
 
@@ -53,7 +55,7 @@ parser::ValueAxis::Scale scaleFromString(const std::string &mode) {
     assert(!"Unhandled ValueAxis::Scale mode");
 }
 
-parser::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
+parser::ValueAxis valueAxisFromObject(const util::json::JsonObject &object) {
   parser::ValueAxis axis;
   axis.boundMode = boundModeFromString(object["bound-mode"].get<std::string>());
   axis.max = object["max"].get<double>();
@@ -64,16 +66,16 @@ parser::ValueAxis valueAxisFromObject(const nlohmann::json &object) {
   return axis;
 }
 
-parser::CategoryAxis categoryAxisFromObject(const nlohmann::json &object) {
+parser::CategoryAxis categoryAxisFromObject(const util::json::JsonObject &object) {
   parser::CategoryAxis axis;
   axis.name = object["name"].get<std::string>();
 
-  const auto &values = object["values"];
-  for (const auto &value : values) {
+  auto &values = object["values"].array();
+  for (auto &value : values) {
     parser::CategoryAxis::Category category;
 
-    category.id = value["id"].get<unsigned int>();
-    category.name = value["value"].get<std::string>();
+    category.id = value.object()["id"].get<unsigned int>();
+    category.name = value.object()["value"].get<std::string>();
 
     axis.values.emplace_back(category);
   }
@@ -118,7 +120,7 @@ constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
   }
 }
 
-void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &object) {
+void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonObject &object) {
   switch (section) {
   case Section::Areas:
     parseArea(object);
@@ -169,42 +171,42 @@ void JsonHandler::do_parse(JsonHandler::Section section, const nlohmann::json &o
     parseLogStream(object);
     break;
   default:
-    std::cerr << "Unidentified key passed to do_parse with object:" << object << '\n';
+    std::cerr << "Unidentified Section key passed to do_parse: " << static_cast<int>(section) << '\n';
     break;
   }
 }
 
-void JsonHandler::parseConfiguration(const nlohmann::json &object) {
+void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
   fileParser.globalConfiguration.millisecondsPerFrame = object["ms-per-frame"].get<double>();
 }
 
-void JsonHandler::parseNode(const nlohmann::json &object) {
+void JsonHandler::parseNode(const util::json::JsonObject &object) {
   parser::Node node;
 
-  node.id = object["id"].get<uint32_t>();
+  node.id = object["id"].get<unsigned int>();
   node.name = object["name"].get<std::string>();
   node.model = object["model"].get<std::string>();
-  node.scale = object["scale"].get<float>();
+  node.scale = object["scale"].get<double>();
   node.opacity = object["opacity"].get<double>();
 
   if (object.contains("height")) {
-    node.height = object["height"].get<float>();
+    node.height = object["height"].get<double>();
   }
 
-  node.orientation[0] = object["orientation"]["x"].get<double>();
-  node.orientation[1] = object["orientation"]["y"].get<double>();
-  node.orientation[2] = object["orientation"]["z"].get<double>();
+  node.orientation[0] = object["orientation"].object()["x"].get<double>();
+  node.orientation[1] = object["orientation"].object()["y"].get<double>();
+  node.orientation[2] = object["orientation"].object()["z"].get<double>();
 
   node.visible = object["visible"].get<bool>();
 
-  node.position.x = object["position"]["x"].get<float>();
-  node.position.y = object["position"]["y"].get<float>();
-  node.position.z = object["position"]["z"].get<float>();
+  node.position.x = object["position"].object()["x"].get<double>();
+  node.position.y = object["position"].object()["y"].get<double>();
+  node.position.z = object["position"].object()["z"].get<double>();
 
   if (object.contains("offset")) {
-    node.offset.x = object["offset"]["x"].get<float>();
-    node.offset.y = object["offset"]["y"].get<float>();
-    node.offset.z = object["offset"]["z"].get<float>();
+    node.offset.x = object["offset"].object()["x"].get<double>();
+    node.offset.y = object["offset"].object()["y"].get<double>();
+    node.offset.z = object["offset"].object()["z"].get<double>();
   }
 
   updateLocationBounds(node.position);
@@ -212,15 +214,15 @@ void JsonHandler::parseNode(const nlohmann::json &object) {
   fileParser.nodes.emplace_back(node);
 }
 
-void JsonHandler::parseBuilding(const nlohmann::json &object) {
+void JsonHandler::parseBuilding(const util::json::JsonObject &object) {
   parser::Building building;
 
-  building.id = object["id"].get<uint32_t>();
+  building.id = object["id"].get<int>();
 
   if (object.contains("color")) {
-    building.color.red = object["color"]["red"].get<uint8_t>();
-    building.color.green = object["color"]["green"].get<uint8_t>();
-    building.color.blue = object["color"]["blue"].get<uint8_t>();
+    building.color.red = object["color"].object()["red"].get<int>();
+    building.color.green = object["color"].object()["green"].get<int>();
+    building.color.blue = object["color"].object()["blue"].get<int>();
   } else {
     // TODO: Remove later (v0.2.0)
     std::cerr << "Warning: Building ID " << building.id
@@ -236,18 +238,18 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
   }
 
   building.visible = object["visible"].get<bool>();
-  building.floors = object["floors"].get<uint16_t>();
+  building.floors = object["floors"].get<int>();
 
-  building.roomsX = object["rooms"]["x"].get<uint16_t>();
-  building.roomsY = object["rooms"]["y"].get<uint16_t>();
+  building.roomsX = object["rooms"].object()["x"].get<int>();
+  building.roomsY = object["rooms"].object()["y"].get<int>();
 
-  building.min.x = object["bounds"]["x"]["min"].get<float>();
-  building.min.y = object["bounds"]["y"]["min"].get<float>();
-  building.min.z = object["bounds"]["z"]["min"].get<float>();
+  building.min.x = object["bounds"].object()["x"].object()["min"].get<double>();
+  building.min.y = object["bounds"].object()["y"].object()["min"].get<double>();
+  building.min.z = object["bounds"].object()["z"].object()["min"].get<double>();
 
-  building.max.x = object["bounds"]["x"]["max"].get<float>();
-  building.max.y = object["bounds"]["y"]["max"].get<float>();
-  building.max.z = object["bounds"]["z"]["max"].get<float>();
+  building.max.x = object["bounds"].object()["x"].object()["max"].get<double>();
+  building.max.y = object["bounds"].object()["y"].object()["max"].get<double>();
+  building.max.z = object["bounds"].object()["z"].object()["max"].get<double>();
 
   updateLocationBounds(building.min);
   updateLocationBounds(building.max);
@@ -255,44 +257,44 @@ void JsonHandler::parseBuilding(const nlohmann::json &object) {
   fileParser.buildings.emplace_back(building);
 }
 
-void JsonHandler::parseDecoration(const nlohmann::json &object) {
+void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
   parser::Decoration decoration;
 
-  decoration.id = object["id"].get<uint32_t>();
+  decoration.id = object["id"].get<unsigned int>();
   decoration.model = object["model"].get<std::string>();
 
-  decoration.position.x = object["position"]["x"].get<float>();
-  decoration.position.y = object["position"]["y"].get<float>();
-  decoration.position.z = object["position"]["z"].get<float>();
+  decoration.position.x = object["position"].object()["x"].get<double>();
+  decoration.position.y = object["position"].object()["y"].get<double>();
+  decoration.position.z = object["position"].object()["z"].get<double>();
 
   if (object.contains("height")) {
-    decoration.height = object["height"].get<float>();
+    decoration.height = object["height"].get<double>();
   }
 
   updateLocationBounds(decoration.position);
 
-  decoration.orientation[0] = object["orientation"]["x"].get<double>();
-  decoration.orientation[1] = object["orientation"]["y"].get<double>();
-  decoration.orientation[2] = object["orientation"]["z"].get<double>();
+  decoration.orientation[0] = object["orientation"].object()["x"].get<double>();
+  decoration.orientation[1] = object["orientation"].object()["y"].get<double>();
+  decoration.orientation[2] = object["orientation"].object()["z"].get<double>();
 
   decoration.opacity = object["opacity"].get<double>();
-  decoration.scale = object["scale"].get<float>();
+  decoration.scale = object["scale"].get<double>();
 
   fileParser.decorations.emplace_back(decoration);
 }
 
-void JsonHandler::parseArea(const nlohmann::json &object) {
+void JsonHandler::parseArea(const util::json::JsonObject &object) {
   parser::Area area;
 
-  area.id = object["id"].get<unsigned int>();
+  area.id = object["id"].get<int>();
   area.name = object["name"].get<std::string>();
-  area.height = object["height"].get<float>();
+  area.height = object["height"].get<double>();
 
-  for (const auto &point : object["points"]) {
+  for (auto &point : object["points"].array()) {
     parser::Ns3Coordinate coordinate;
 
-    coordinate.x = point["x"].get<float>();
-    coordinate.y = point["y"].get<float>();
+    coordinate.x = point.object()["x"].get<double>();
+    coordinate.y = point.object()["y"].get<double>();
 
     // An area is 2D, so each point shares the same
     // height, included with the coordinates for
@@ -304,51 +306,51 @@ void JsonHandler::parseArea(const nlohmann::json &object) {
 
   area.fillMode = drawModeFromString(object["fill-mode"].get<std::string>());
 
-  area.fillColor.red = object["fill-color"]["red"].get<uint8_t>();
-  area.fillColor.green = object["fill-color"]["green"].get<uint8_t>();
-  area.fillColor.blue = object["fill-color"]["blue"].get<uint8_t>();
+  area.fillColor.red = object["fill-color"].object()["red"].get<int>();
+  area.fillColor.green = object["fill-color"].object()["green"].get<int>();
+  area.fillColor.blue = object["fill-color"].object()["blue"].get<int>();
 
   area.borderMode = drawModeFromString(object["border-mode"].get<std::string>());
 
-  area.borderColor.red = object["border-color"]["red"].get<uint8_t>();
-  area.borderColor.green = object["border-color"]["green"].get<uint8_t>();
-  area.borderColor.blue = object["border-color"]["blue"].get<uint8_t>();
+  area.borderColor.red = object["border-color"].object()["red"].get<int>();
+  area.borderColor.green = object["border-color"].object()["green"].get<int>();
+  area.borderColor.blue = object["border-color"].object()["blue"].get<int>();
 
   fileParser.areas.emplace_back(area);
 }
 
-void JsonHandler::parseMoveEvent(const nlohmann::json &object) {
+void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
   parser::MoveEvent event;
 
-  event.nodeId = object["id"].get<uint32_t>();
+  event.nodeId = object["id"].get<int>();
   event.time = object["milliseconds"].get<double>();
-  event.targetPosition.x = object["x"].get<float>();
-  event.targetPosition.y = object["y"].get<float>();
-  event.targetPosition.z = object["z"].get<float>();
+  event.targetPosition.x = object["x"].get<double>();
+  event.targetPosition.y = object["y"].get<double>();
+  event.targetPosition.z = object["z"].get<double>();
 
   updateLocationBounds(event.targetPosition);
 
   fileParser.sceneEvents.emplace_back(event);
 }
 
-void JsonHandler::parseDecorationMoveEvent(const nlohmann::json &object) {
+void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object) {
   parser::DecorationMoveEvent event;
 
-  event.decorationId = object["id"].get<uint32_t>();
+  event.decorationId = object["id"].get<int>();
   event.time = object["milliseconds"].get<double>();
-  event.targetPosition.x = object["x"].get<float>();
-  event.targetPosition.y = object["y"].get<float>();
-  event.targetPosition.z = object["z"].get<float>();
+  event.targetPosition.x = object["x"].get<double>();
+  event.targetPosition.y = object["y"].get<double>();
+  event.targetPosition.z = object["z"].get<double>();
 
   updateLocationBounds(event.targetPosition);
 
   fileParser.sceneEvents.emplace_back(event);
 }
 
-void JsonHandler::parseNodeOrientationEvent(const nlohmann::json &object) {
+void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object) {
   parser::NodeOrientationChangeEvent event;
 
-  event.nodeId = object["id"].get<uint32_t>();
+  event.nodeId = object["id"].get<int>();
   event.time = object["milliseconds"].get<double>();
   event.targetOrientation[0] = object["x"].get<double>();
   event.targetOrientation[1] = object["y"].get<double>();
@@ -357,10 +359,10 @@ void JsonHandler::parseNodeOrientationEvent(const nlohmann::json &object) {
   fileParser.sceneEvents.emplace_back(event);
 }
 
-void JsonHandler::parseDecorationOrientationEvent(const nlohmann::json &object) {
+void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &object) {
   parser::DecorationOrientationChangeEvent event;
 
-  event.decorationId = object["id"].get<uint32_t>();
+  event.decorationId = object["id"].get<int>();
   event.time = object["milliseconds"].get<double>();
   event.targetOrientation[0] = object["x"].get<double>();
   event.targetOrientation[1] = object["y"].get<double>();
@@ -369,32 +371,32 @@ void JsonHandler::parseDecorationOrientationEvent(const nlohmann::json &object) 
   fileParser.sceneEvents.emplace_back(event);
 }
 
-void JsonHandler::parseSeriesAppend(const nlohmann::json &object) {
+void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
   parser::XYSeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
-  event.seriesId = object["series-id"].get<uint32_t>();
+  event.seriesId = object["series-id"].get<int>();
   event.x = object["x"].get<double>();
   event.y = object["y"].get<double>();
 
   fileParser.chartEvents.emplace_back(event);
 }
 
-void JsonHandler::parseCategorySeriesAppend(const nlohmann::json &object) {
+void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object) {
   parser::CategorySeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
-  event.seriesId = object["series-id"].get<uint32_t>();
-  event.category = object["category"].get<unsigned int>();
+  event.seriesId = object["series-id"].get<int>();
+  event.category = object["category"].get<int>();
   event.value = object["value"].get<double>();
 
   fileParser.chartEvents.emplace_back(event);
 }
 
-void JsonHandler::parseXYSeries(const nlohmann::json &object) {
+void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
   parser::XYSeries series;
 
-  series.id = object["id"].get<uint32_t>();
+  series.id = object["id"].get<int>();
   series.name = object["name"].get<std::string>();
 
   // TODO: Remove later (v0.2.0)
@@ -419,10 +421,10 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
     series.visible = object["visible"].get<bool>();
   }
 
-  series.alpha = object["color"]["alpha"].get<uint8_t>();
-  series.blue = object["color"]["blue"].get<uint8_t>();
-  series.green = object["color"]["green"].get<uint8_t>();
-  series.red = object["color"]["red"].get<uint8_t>();
+  series.alpha = object["color"].object()["alpha"].get<int>();
+  series.blue = object["color"].object()["blue"].get<int>();
+  series.green = object["color"].object()["green"].get<int>();
+  series.red = object["color"].object()["red"].get<int>();
 
   auto connection = object["connection"].get<std::string>();
   if (connection == "none")
@@ -442,16 +444,16 @@ void JsonHandler::parseXYSeries(const nlohmann::json &object) {
   else
     std::cerr << "Unrecognized labels type: " << labelMode << '\n';
 
-  series.xAxis = valueAxisFromObject(object["x-axis"]);
-  series.yAxis = valueAxisFromObject(object["y-axis"]);
+  series.xAxis = valueAxisFromObject(object["x-axis"].object());
+  series.yAxis = valueAxisFromObject(object["y-axis"].object());
 
   fileParser.xySeries.emplace_back(series);
 }
 
-void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
+void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object) {
   parser::CategoryValueSeries series;
 
-  series.id = object["id"].get<uint32_t>();
+  series.id = object["id"].get<int>();
   series.name = object["name"].get<std::string>();
 
   // TODO: Remove later (v0.2.0)
@@ -476,10 +478,10 @@ void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
     series.visible = object["visible"].get<bool>();
   }
 
-  series.alpha = object["color"]["alpha"].get<uint8_t>();
-  series.blue = object["color"]["blue"].get<uint8_t>();
-  series.green = object["color"]["green"].get<uint8_t>();
-  series.red = object["color"]["red"].get<uint8_t>();
+  series.alpha = object["color"].object()["alpha"].get<int>();
+  series.blue = object["color"].object()["blue"].get<int>();
+  series.green = object["color"].object()["green"].get<int>();
+  series.red = object["color"].object()["red"].get<int>();
 
   auto connectionMode = object["connection-mode"].get<std::string>();
   if (connectionMode == "all")
@@ -489,37 +491,37 @@ void JsonHandler::parseCategoryValueSeries(const nlohmann::json &object) {
   else
     std::cerr << "Unrecognized connection mode: " << connectionMode << '\n';
 
-  series.xAxis = valueAxisFromObject(object["x-axis"]);
-  series.yAxis = categoryAxisFromObject(object["y-axis"]);
+  series.xAxis = valueAxisFromObject(object["x-axis"].object());
+  series.yAxis = categoryAxisFromObject(object["y-axis"].object());
 
   fileParser.categoryValueSeries.emplace_back(series);
 }
 
-void JsonHandler::parseSeriesCollection(const nlohmann::json &object) {
+void JsonHandler::parseSeriesCollection(const util::json::JsonObject &object) {
   parser::SeriesCollection collection;
-  collection.id = object["id"].get<uint32_t>();
+  collection.id = object["id"].get<int>();
   collection.name = object["name"].get<std::string>();
 
   auto childSeries = object["child-series"];
-  for (const auto &child : childSeries) {
-    collection.series.emplace_back(child.get<uint32_t>());
+  for (const auto &child : childSeries.array()) {
+    collection.series.emplace_back(child.get<int>());
   }
 
-  collection.xAxis = valueAxisFromObject(object["x-axis"]);
-  collection.yAxis = valueAxisFromObject(object["y-axis"]);
+  collection.xAxis = valueAxisFromObject(object["x-axis"].object());
+  collection.yAxis = valueAxisFromObject(object["y-axis"].object());
   fileParser.seriesCollections.emplace_back(collection);
 }
 
-void JsonHandler::parseLogStream(const nlohmann::json &object) {
+void JsonHandler::parseLogStream(const util::json::JsonObject &object) {
   parser::LogStream stream;
-  stream.id = object["id"].get<unsigned int>();
+  stream.id = object["id"].get<int>();
   stream.name = object["name"].get<std::string>();
 
   if (object.contains("color")) {
     parser::Ns3Color3 color{};
-    color.blue = object["color"]["blue"].get<uint8_t>();
-    color.green = object["color"]["green"].get<uint8_t>();
-    color.red = object["color"]["red"].get<uint8_t>();
+    color.blue = object["color"].object()["blue"].get<uint8_t>();
+    color.green = object["color"].object()["green"].get<uint8_t>();
+    color.red = object["color"].object()["red"].get<uint8_t>();
 
     stream.color = color;
   }
@@ -538,10 +540,10 @@ void JsonHandler::parseLogStream(const nlohmann::json &object) {
   fileParser.logStreams.emplace_back(stream);
 }
 
-void JsonHandler::parseStreamAppend(const nlohmann::json &object) {
+void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
   parser::StreamAppendEvent event;
   event.time = object["milliseconds"].get<double>();
-  event.streamId = object["stream-id"].get<unsigned int>();
+  event.streamId = object["stream-id"].get<int>();
   event.value = object["data"].get<std::string>();
 
   fileParser.logEvents.emplace_back(event);
@@ -580,17 +582,17 @@ bool JsonHandler::boolean(bool value) {
 }
 
 bool JsonHandler::number_integer(nlohmann::json::number_integer_t value) {
-  handle(value);
+  handle(static_cast<int>(value));
   return true;
 }
 
 bool JsonHandler::number_unsigned(nlohmann::json::number_unsigned_t value) {
-  handle(value);
+  handle(static_cast<int>(value));
   return true;
 }
 
 bool JsonHandler::number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw) {
-  handle(value);
+  handle(static_cast<double>(value));
   return true;
 }
 
@@ -602,19 +604,19 @@ bool JsonHandler::string(nlohmann::json::string_t &value) {
 bool JsonHandler::start_object(std::size_t elements) {
   // Root object case
   if (jsonStack.empty()) {
-    jsonStack.push({"root", nlohmann::json::object()});
+    jsonStack.push({"root", util::json::JsonObject()});
     return true;
   }
 
   auto &top = jsonStack.top();
 
   // Do not overwrite existing values
-  if (top.value.is_array()) {
-    jsonStack.push({"", nlohmann::json::object()});
+  if (top.value.isArray()) {
+    jsonStack.push({"", util::json::JsonObject()});
     return true;
   }
 
-  top.value = nlohmann::json::object();
+  top.value = util::json::JsonObject();
   sectionDepth++;
   return true;
 }
@@ -638,23 +640,23 @@ bool JsonHandler::end_object() {
   // Special case, "configuration" is parsed
   // as a normal unit
   if (currentSection == Section::Configuration && oldTop.key == "configuration") {
-    parseConfiguration(oldTop.value);
+    parseConfiguration(oldTop.value.object());
     return true;
   }
 
   // All other sections have one parse call per item
   if (isSection(jsonStack.top().key) != Section::None) {
-    do_parse(currentSection, oldTop.value);
+    do_parse(currentSection, oldTop.value.object());
     return true;
   }
 
-  if (currentTop.value.is_array()) {
-    currentTop.value.emplace_back(oldTop.value);
+  if (currentTop.value.isArray()) {
+    currentTop.value.array().emplace_back(oldTop.value);
     return true;
   }
 
-  if (currentTop.value.is_object()) {
-    currentTop.value[oldTop.key] = oldTop.value;
+  if (currentTop.value.isObject()) {
+    currentTop.value.object().insert(oldTop.key, oldTop.value);
     return true;
   }
 
@@ -666,7 +668,7 @@ bool JsonHandler::start_array(std::size_t elements) {
     return false;
   }
 
-  jsonStack.top().value = nlohmann::json::array();
+  jsonStack.top().value = util::json::JsonArray();
   return true;
 }
 
@@ -675,12 +677,12 @@ bool JsonHandler::end_array() {
   jsonStack.pop();
 
   auto &currentTop = jsonStack.top();
-  if (currentTop.value.is_object())
-    currentTop.value[oldTop.key] = oldTop.value;
-  else if (currentTop.value.is_array())
-    currentTop.value.emplace_back(oldTop.value);
+  if (currentTop.value.isObject())
+    currentTop.value.object().insert(oldTop.key, oldTop.value);
+  else if (currentTop.value.isArray())
+    currentTop.value.array().emplace_back(oldTop.value);
   else {
-    std::cerr << currentTop.value << '\n';
+    std::cerr << currentTop.key << " is not of a root type\n";
     std::abort();
   }
 
