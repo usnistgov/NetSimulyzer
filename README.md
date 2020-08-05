@@ -34,9 +34,9 @@ mkdir build
 cd build
 ```
 
-Run `cmake` and specify the source directory. Then run the build tool
+Run `cmake` and specify the source directory and build type. Then run the build tool
 ```shell
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --parallel
 ```
 
