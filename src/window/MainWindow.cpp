@@ -40,6 +40,7 @@
 #include <QFileDialog>
 #include <QObject>
 #include <cstdlib>
+#include <iostream>
 #include <parser/file-parser.h>
 #include <parser/model.h>
 #include <project.h>
@@ -178,7 +179,7 @@ void MainWindow::load() {
   emit startLoading(fileName);
 }
 
-void MainWindow::finishLoading(const QString &fileName) {
+void MainWindow::finishLoading(const QString &fileName, long milliseconds) {
   auto parser = loadWorker.getParser();
   render.setConfiguration(parser.getConfiguration());
 
@@ -215,7 +216,9 @@ void MainWindow::finishLoading(const QString &fileName) {
   logWidget.enqueueEvents(logEvents);
   checkPause();
 
-  ui.statusbar->showMessage("Successfully loaded scenario: " + fileName, 10000);
+  std::clog << "Scenario loaded in " << milliseconds << "ms\n";
+  ui.statusbar->showMessage("Successfully loaded scenario: " + fileName + " in " + QString::number(milliseconds) + "ms",
+                            10000);
   statusLabel.setText("Ready");
   loading = false;
   ui.actionLoad->setEnabled(true);
