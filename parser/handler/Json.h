@@ -116,10 +116,12 @@ public:
  */
 class JsonValue {
   /**
-   * Actual contained value. Integer types are boxed to `long long`
+   * Actual contained value.
+   * signed Integer types are boxed to `long long`
+   * unsigned Integer types are boxed to `unsigned long long`
    * and floating point types are boxed to `double`.
    */
-  std::variant<std::nullptr_t, bool, long long, double, std::string, JsonArray, JsonObject> value;
+  std::variant<std::nullptr_t, bool, long long, unsigned long long, double, std::string, JsonArray, JsonObject> value;
 
 public:
   /**
@@ -161,7 +163,7 @@ public:
    * @param value
    * The unsigned int value to store
    */
-  JsonValue(unsigned int value) : value(static_cast<long long>(value)) {
+  JsonValue(unsigned int value) : value(static_cast<unsigned long long>(value)) {
   }
 
   /**
@@ -179,7 +181,7 @@ public:
    * @param value
    * The unsigned long value to store
    */
-  JsonValue(unsigned long value) : value(static_cast<long long>(value)) {
+  JsonValue(unsigned long value) : value(static_cast<unsigned long long>(value)) {
   }
 
   /**
@@ -189,6 +191,14 @@ public:
    * The long long value to store
    */
   JsonValue(long long value) : value(value){};
+
+  /**
+   * Constructs an unsigned long long value
+   *
+   * @param value
+   * The long long value to store
+   */
+  JsonValue(unsigned long long value) : value(value){};
 
   // No unsigned long long
 
@@ -298,16 +308,10 @@ public:
    * This method _will_ perform conversions for
    * arithmetic types. (numbers).
    *
-   * A value may not be retrieved as an `unsigned long long`.
-   * If `unsigned long long` is specified the program will fail to
-   * compile
-   *
    * @tparam T
    * The type of value to retrieve.
    * Must exactly match the contained type,
    * or be arithmetic.
-   *
-   * May not be `unsigned long long`
    *
    * @return
    * The contained value as type `T`
@@ -321,12 +325,12 @@ public:
    */
   template <class T>
   [[nodiscard]] T get() const {
-    static_assert(!std::is_same_v<T, unsigned long long>, "Cannot convert to `unsigned long long`");
-
     if constexpr (std::is_arithmetic_v<T>) {
 
       if (std::holds_alternative<long long>(value))
         return static_cast<T>(std::get<long long>(value));
+      else if (std::holds_alternative<unsigned long long>(value))
+        return static_cast<T>(std::get<unsigned long long>(value));
       else if (std::holds_alternative<double>(value))
         return static_cast<T>(std::get<double>(value));
 
