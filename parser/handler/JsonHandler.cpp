@@ -627,7 +627,6 @@ bool JsonHandler::StartObject() {
   }
 
   top.value = util::json::JsonObject();
-  sectionDepth++;
   return true;
 }
 
@@ -705,7 +704,6 @@ bool JsonHandler::Key(const char *value, rapidjson::SizeType length, bool) {
   auto possibleSection = isSection(value);
   if (possibleSection != Section::None) {
     currentSection = possibleSection;
-    sectionDepth = 0;
   }
   return true;
 }

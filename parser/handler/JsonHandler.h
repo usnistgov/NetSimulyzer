@@ -84,24 +84,13 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   std::stack<JsonFrame> jsonStack;
 
   /**
-   * The current key we're processing.
-   * Not set if we have not encountered a key
-   */
-  std::optional<std::string> currentKey;
-
-  /**
-   * How many levels into a given section we're in.
-   */
-  int sectionDepth = 0;
-
-  /**
    * Handle a given single value for a key.
    *
    * @tparam T
-   * The type of value to store in the currentKey
+   * They type of value to store
    *
    * @param value
-   * The value to store in currentKey
+   * The value to store
    */
   template <typename T>
   void handle(T &&value) {
