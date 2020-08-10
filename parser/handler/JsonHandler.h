@@ -33,18 +33,19 @@
 
 #pragma once
 #include "../file-parser.h"
+#include "Json.h"
 #include "model.h"
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <json.hpp>
 #include <memory>
 #include <optional>
+#include <rapidjson/reader.h>
 #include <stack>
 #include <string>
 #include <vector>
 
-class JsonHandler {
+class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonHandler> {
   /**
    * The possible section in the document
    */
@@ -74,7 +75,7 @@ class JsonHandler {
    */
   struct JsonFrame {
     std::string key;
-    nlohmann::json value;
+    util::json::JsonValue value;
   };
 
   /**
@@ -110,8 +111,8 @@ class JsonHandler {
 
     // Special case, array of primitives
     // ex: [1, 2, 3]
-    if (jsonStack.top().value.is_array()) {
-      jsonStack.top().value.emplace_back(value);
+    if (jsonStack.top().value.isArray()) {
+      jsonStack.top().value.array().emplace_back(value);
       return;
     }
 
@@ -120,16 +121,16 @@ class JsonHandler {
     // since `handle()` is for primitives
     auto oldTop = jsonStack.top();
 
-    if (!oldTop.value.is_null()) {
-      std::cerr << oldTop.value << '\n';
+    if (!oldTop.value.isNull()) {
+      std::cerr << oldTop.key << '\n';
       std::abort();
     }
 
     jsonStack.pop();
     auto &currentTop = jsonStack.top();
 
-    if (currentTop.value.is_object()) {
-      currentTop.value[oldTop.key] = value;
+    if (currentTop.value.isObject()) {
+      currentTop.value.object().insert(oldTop.key, value);
       return;
     }
 
@@ -146,7 +147,7 @@ class JsonHandler {
    * @param object
    * The JSON object to parse.
    */
-  void do_parse(Section section, const nlohmann::json &object);
+  void do_parse(Section section, const util::json::JsonObject &object);
 
   /**
    * Parse and set the configuration.
@@ -154,7 +155,7 @@ class JsonHandler {
    * @param object
    * The object from the 'configuration' section
    */
-  void parseConfiguration(const nlohmann::json &object);
+  void parseConfiguration(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a node.
@@ -162,7 +163,7 @@ class JsonHandler {
    * @param object
    * The object from the 'nodes' section
    */
-  void parseNode(const nlohmann::json &object);
+  void parseNode(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a building
@@ -170,7 +171,7 @@ class JsonHandler {
    * @param object
    * The object from the 'buildings' section
    */
-  void parseBuilding(const nlohmann::json &object);
+  void parseBuilding(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a decoration
@@ -178,7 +179,7 @@ class JsonHandler {
    * @param object
    * The object from the 'decoration' section
    */
-  void parseDecoration(const nlohmann::json &object);
+  void parseDecoration(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace an area
@@ -186,7 +187,7 @@ class JsonHandler {
    * @param object
    * The object from the 'areas' section
    */
-  void parseArea(const nlohmann::json &object);
+  void parseArea(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a move event
@@ -194,7 +195,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'node-position' type
    */
-  void parseMoveEvent(const nlohmann::json &object);
+  void parseMoveEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a DecorationMoveEvent
@@ -202,7 +203,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationMoveEvent(const nlohmann::json &object);
+  void parseDecorationMoveEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a NodeOrientationEvent
@@ -210,7 +211,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'node-orientation' type
    */
-  void parseNodeOrientationEvent(const nlohmann::json &object);
+  void parseNodeOrientationEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a DecorationOrientationEvent
@@ -218,7 +219,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'decoration-position' type
    */
-  void parseDecorationOrientationEvent(const nlohmann::json &object);
+  void parseDecorationOrientationEvent(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a series append event
@@ -226,7 +227,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'xy-series-append' type
    */
-  void parseSeriesAppend(const nlohmann::json &object);
+  void parseSeriesAppend(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a category value append event
@@ -234,7 +235,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'category-series-append' type
    */
-  void parseCategorySeriesAppend(const nlohmann::json &object);
+  void parseCategorySeriesAppend(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a linear series
@@ -242,7 +243,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'xy-series' type
    */
-  void parseXYSeries(const nlohmann::json &object);
+  void parseXYSeries(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a category value series.
@@ -250,7 +251,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'category-value-series' type
    */
-  void parseCategoryValueSeries(const nlohmann::json &object);
+  void parseCategoryValueSeries(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a series collection
@@ -258,7 +259,7 @@ class JsonHandler {
    * @param object
    * The object from the 'series' section with the 'xy-series' type
    */
-  void parseSeriesCollection(const nlohmann::json &object);
+  void parseSeriesCollection(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a Stream for the Scenario Log
@@ -266,7 +267,7 @@ class JsonHandler {
    * @param object
    * The object from the 'streams' section
    */
-  void parseLogStream(const nlohmann::json &object);
+  void parseLogStream(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a stream append event
@@ -274,7 +275,7 @@ class JsonHandler {
    * @param object
    * The object from the 'events' section with the 'stream-append' type
    */
-  void parseStreamAppend(const nlohmann::json &object);
+  void parseStreamAppend(const util::json::JsonObject &object);
 
   /**
    * Check the min/max bounds against `coordinate` and update accordingly
@@ -287,6 +288,11 @@ class JsonHandler {
 public:
   explicit JsonHandler(parser::FileParser &parser);
 
+  // Note: do not make the below functions `virtual`
+  // or mark them with `override
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+
   /**
    * Called when the event parser encounters a null value.
    * Used by the parser. Should not be called by user code.
@@ -294,7 +300,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool null();
+  bool Null();
 
   /**
    * Called when the event parser encounters a boolean value.
@@ -306,7 +312,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool boolean(bool value);
+  bool Bool(bool value);
 
   /**
    * Called when the event parser encounters an integer value.
@@ -318,7 +324,7 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_integer(nlohmann::json::number_integer_t value);
+  bool Int(int value);
 
   /**
    * Called when the event parser encounters a unsigned integer value.
@@ -330,7 +336,33 @@ public:
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_unsigned(nlohmann::json::number_unsigned_t value);
+  bool Uint(unsigned int value);
+
+  /**
+   * Called when the event parser encounters an integer value
+   * 64 bits in width.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool Int64(std::int64_t value);
+
+  /**
+   * Called when the event parser encounters an unsigned integer value
+   * 64 bits in width.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param value
+   * The value encountered by the parser
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool Uint64(std::uint64_t value);
 
   /**
    * Called when the event parser encounters a floating point value.
@@ -339,13 +371,10 @@ public:
    * @param value
    * The value encountered by the parser
    *
-   * @param raw
-   * The raw string consumed by the parser
-   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool number_float(nlohmann::json::number_float_t value, const nlohmann::json::string_t &raw);
+  bool Double(double value);
 
   /**
    * Called when the event parser encounters a string value.
@@ -354,52 +383,27 @@ public:
    * @param value
    * The value encountered by the parser
    *
+   * @param length
+   * Length of the passed string
+   *
+   * @param copy
+   * flag indicating the string should be copied.
+   * Will probably always be true for our parsing method.
+   * We'll copy anyway...
+   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool string(nlohmann::json::string_t &value);
+  bool String(const char *value, rapidjson::SizeType length, bool copy);
 
   /**
    * Called when the parser encounters the beginning of an object.
    * Used by the parser. Should not be called by user code.
    *
-   * @param elements
-   * The size of the object. -1 if unknown.
-   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool start_object(std::size_t elements);
-
-  /**
-   * Called when the parser encounters the end of an object.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool end_object();
-
-  /**
-   * Called when the parser encounters the beginning of an array.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @param elements
-   * The size of the array. -1 if unknown.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool start_array(std::size_t elements);
-
-  /**
-   * Called when the parser encounters the end of an array.
-   * Used by the parser. Should not be called by user code.
-   *
-   * @return
-   * True if the parse result should be used. False otherwise
-   */
-  bool end_array();
+  bool StartObject();
 
   /**
    * Called when the parser reads a key for a value.
@@ -408,26 +412,50 @@ public:
    * @param value
    * The value of the encountered key.
    *
+   * @param length
+   * Length of the passed string
+   *
+   * @param copy
+   * flag indicating the string should be copied.
+   * Will probably always be true for our parsing method.
+   *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool key(nlohmann::json::string_t &value);
+  bool Key(const char *value, rapidjson::SizeType length, bool copy);
 
   /**
-   * Called when the parser encounters an error.
+   * Called when the parser encounters the end of an object.
    * Used by the parser. Should not be called by user code.
    *
-   * @param position
-   * The position in the document
-   *
-   * @param last_token
-   * The last read token
-   *
-   * @param ex
-   * The exception from the parser
+   * @param memberCount
+   * Number of members in the object
    *
    * @return
    * True if the parse result should be used. False otherwise
    */
-  bool parse_error(std::size_t position, const std::string &last_token, const nlohmann::detail::exception &ex);
+  bool EndObject(rapidjson::SizeType memberCount);
+
+  /**
+   * Called when the parser encounters the beginning of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool StartArray();
+
+  /**
+   * Called when the parser encounters the end of an array.
+   * Used by the parser. Should not be called by user code.
+   *
+   * @param elementCount
+   * Number of elements in the array
+   *
+   * @return
+   * True if the parse result should be used. False otherwise
+   */
+  bool EndArray(rapidjson::SizeType elementCount);
+
+#pragma clang diagnostic pop
 };

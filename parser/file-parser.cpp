@@ -33,19 +33,34 @@
 #include "file-parser.h"
 #include "handler/JsonHandler.h"
 #include <algorithm>
+#include <cstdio>
 #include <iostream>
-#include <json.hpp>
+#include <memory>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/reader.h>
 
 namespace parser {
 
 void FileParser::parse(const char *path) {
-  std::ifstream infile{path};
 
-  if (!infile)
-    std::cerr << "Failed to open " << path << '\n';
+  // RapidJSON prefers FILE*, so this is a safe wrapper for that
+  // Add a 'b' in the mode flags to keep Windows from stupid handling of newlines
+  std::unique_ptr<FILE, decltype(&std::fclose)> file{std::fopen(path, "rb"), std::fclose};
+
+  // TODO: Use return with message or something
+  if (!file) {
+    std::cerr << "Failed to open file: " << path << '\n';
+    std::abort();
+  }
+
+  // Mostly arbitrary buffer size
+  char buffer[65536];
+  rapidjson::FileReadStream stream{file.get(), buffer, sizeof(buffer)};
 
   JsonHandler handler{*this};
-  nlohmann::json::sax_parse(infile, &handler);
+  rapidjson::Reader reader;
+
+  reader.Parse(stream, handler);
   std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) { return left.id < right.id; });
 
   std::sort(buildings.begin(), buildings.end(),

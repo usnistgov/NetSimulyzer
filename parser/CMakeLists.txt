@@ -31,10 +31,11 @@
 
 add_library(parser
         handler/JsonHandler.cpp handler/JsonHandler.h
+        handler/Json.h
         file-parser.cpp file-parser.h
         model.h
         )
 
 target_include_directories(parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(parser PRIVATE json)
+target_link_libraries(parser PRIVATE rapidjson)

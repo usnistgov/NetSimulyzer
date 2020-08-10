@@ -44,6 +44,7 @@ add_subdirectory(lib/assimp)
 target_compile_options(assimp PRIVATE -w)
 
 add_subdirectory(lib/json)
+add_subdirectory(lib/rapidjson)
 add_subdirectory(lib/stb)
 add_subdirectory(parser)
 
