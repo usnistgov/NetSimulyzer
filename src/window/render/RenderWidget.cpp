@@ -258,7 +258,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
     if (playMode == PlayMode::Rewind)
       playMode = PlayMode::Paused;
     else
-      playMode = PlayMode::Play;
+      playMode = PlayMode::Rewind;
 
     emit pauseToggled(playMode == PlayMode::Paused);
   }
