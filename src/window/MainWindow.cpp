@@ -77,6 +77,7 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&render, &RenderWidget::timeRewound, &charts, &ChartManager::timeRewound);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeRewound, &logWidget, &ScenarioLogWidget::timeRewound);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeChanged);
   QObject::connect(&render, &RenderWidget::timeRewound, this, &MainWindow::timeChanged);

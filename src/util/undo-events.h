@@ -130,6 +130,17 @@ struct CategorySeriesAddValue {
 
 struct StreamAppendEvent {
   /**
+   * Number of characters to erase from the unified log
+   * Includes the size of the prompt for every newline
+   */
+  int unifiedLogEraseCount{0};
+
+  /**
+   * Original ID of the last writer to the unified log
+   */
+  unsigned int lastUnifiedWriter{0u};
+
+  /**
    * The event which generated this undo event
    */
   parser::StreamAppendEvent event;
