@@ -127,10 +127,12 @@ The camera may be moved by horizontally with `W`, `A`, `S`, & `D`,
 
 The camera controls may be changed from the 'Camera Settings' option in the 'Camera' menu
 
-### Play/Pause
+### Playback
 The simulation starts in a paused state, the scene will still render, but time will not advance until it is unpaused.
 
 `P`: Pause/Resume scenario playback.
+
+`R`: Rewind/Pause scenario playback. 
 
 ### Chart
 `Left Mouse` + Move: Move the chart view
