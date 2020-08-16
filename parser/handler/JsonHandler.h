@@ -274,6 +274,16 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    */
   void updateLocationBounds(const parser::Ns3Coordinate &coordinate);
 
+  /**
+   * Update the end of simulation time to `milliseconds`
+   * given `milliseconds` is the larger value
+   *
+   * @param milliseconds
+   * The time for the currently being parsed event
+   * in milliseconds
+   */
+  void updateEndTime(double milliseconds);
+
 public:
   explicit JsonHandler(parser::FileParser &parser);
 

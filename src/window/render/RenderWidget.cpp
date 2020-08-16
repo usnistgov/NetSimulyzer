@@ -89,9 +89,6 @@ void RenderWidget::handleEvents() {
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     events.pop_front();
   }
-
-  if (events.empty())
-    emit eventsComplete();
 }
 
 void RenderWidget::handleUndoEvents() {
@@ -224,6 +221,11 @@ void RenderWidget::paintGL() {
   if (playMode == PlayMode::Play) {
     simulationTime += config.millisecondsPerFrame;
     emit timeAdvanced(simulationTime);
+
+    if (simulationTime >= config.endTime && playMode != PlayMode::Paused) {
+      playMode = PlayMode::Paused;
+      emit pauseToggled(true);
+    }
   } else if (playMode == PlayMode::Rewind) {
     simulationTime -= config.millisecondsPerFrame;
     emit timeRewound(simulationTime);
@@ -245,14 +247,14 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
 
-  if (event->key() == pauseKey && canPauseToggle) {
+  if (event->key() == pauseKey && config.endTime >= simulationTime) {
     if (playMode == PlayMode::Play)
       playMode = PlayMode::Paused;
     else
       playMode = PlayMode::Play;
 
     emit pauseToggled(playMode == PlayMode::Paused);
-  } else if (event->key() == rewindKey) {
+  } else if (event->key() == rewindKey && simulationTime > 0.0) {
     if (playMode == PlayMode::Rewind)
       playMode = PlayMode::Paused;
     else
@@ -427,13 +429,10 @@ void RenderWidget::resetCamera() {
   camera.setPosition({0.0f, 0.0f, 0.0f});
   camera.resetRotation();
 }
+
 void RenderWidget::pause() {
   playMode = PlayMode::Paused;
   emit pauseToggled(true);
-}
-
-void RenderWidget::allowPauseToggle(bool value) {
-  canPauseToggle = value;
 }
 
 } // namespace visualization

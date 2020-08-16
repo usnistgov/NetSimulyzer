@@ -120,9 +120,6 @@ public:
   void enableSeries(unsigned int id);
   void timeAdvanced(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
-
-signals:
-  void eventsComplete();
 };
 
 } // namespace visualization
