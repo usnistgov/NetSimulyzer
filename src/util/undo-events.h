@@ -125,7 +125,7 @@ struct CategorySeriesAddValue {
   /**
    * The event which generated this undo event
    */
-  parser::CategoryValueSeries event;
+  parser::CategorySeriesAddValue event;
 };
 
 struct StreamAppendEvent {
