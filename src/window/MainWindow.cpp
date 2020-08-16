@@ -74,6 +74,8 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.statusbar->insertWidget(0, &statusLabel);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeRewound, &charts, &ChartManager::timeRewound);
+
   QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeChanged);

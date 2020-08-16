@@ -313,6 +313,7 @@ void ChartManager::timeAdvanced(double time) {
       updateCollectionRanges(e.seriesId, e.x, e.y);
       s.qtSeries->append(e.x, e.y);
       events.pop_front();
+      undoEvents.emplace_back(undo::XYSeriesAddValue{e});
       return true;
     }
 
@@ -327,6 +328,7 @@ void ChartManager::timeAdvanced(double time) {
       s.qtSeries->append(e.value, e.category);
       updateCollectionRanges(e.seriesId, e.value, e.category);
       events.pop_front();
+      undoEvents.emplace_back(undo::CategorySeriesAddValue{e});
       return true;
     }
 
@@ -338,6 +340,46 @@ void ChartManager::timeAdvanced(double time) {
     // Intentionally Blank
   }
 }
+
+void ChartManager::timeRewound(double time) {
+  auto handleUndoEvent = [time, this](auto &&e) -> bool {
+    // Strip off qualifiers, etc
+    // so T holds just the type
+    // so we can more easily match it
+    using T = std::decay_t<decltype(e)>;
+
+    // All events have a time
+    // Make sure we don't handle one
+    // Before it was originally applied
+    if (time > e.event.time)
+      return false;
+
+    if constexpr (std::is_same_v<T, undo::XYSeriesAddValue>) {
+      auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
+
+      s.qtSeries->remove(s.qtSeries->count() - 1);
+
+      events.emplace_front(e.event);
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, undo::CategorySeriesAddValue>) {
+      auto &s = std::get<CategoryValueTie>(series[e.event.seriesId]);
+
+      s.qtSeries->remove(s.qtSeries->count() - 1);
+
+      events.emplace_front(e.event);
+      return true;
+    }
+
+    return false;
+  };
+
+  while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
+    undoEvents.pop_back();
+  }
+}
+
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }

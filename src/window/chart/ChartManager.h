@@ -93,7 +93,7 @@ public:
 
 private:
   std::deque<parser::ChartEvent> events;
-  std::deque<undo::SceneUndoEvent> undoEvents;
+  std::deque<undo::ChartUndoEvent> undoEvents;
 
   std::unordered_map<uint32_t, TieVariant> series;
   std::vector<unsigned int> seriesInCollections;
@@ -122,6 +122,7 @@ public:
   void disableSeries(unsigned int id);
   void enableSeries(unsigned int id);
   void timeAdvanced(double time);
+  void timeRewound(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 };
 
