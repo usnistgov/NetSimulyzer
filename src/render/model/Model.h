@@ -88,6 +88,7 @@ public:
   [[nodiscard]] float getScale() const;
 
   void setRotate(float x = 0.0f, float y = 0.0f, float z = 0.0f);
+  [[nodiscard]] std::array<float, 3> getRotate() const;
 
   [[nodiscard]] model_id getModelId() const;
 

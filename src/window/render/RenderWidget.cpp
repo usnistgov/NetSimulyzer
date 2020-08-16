@@ -35,7 +35,6 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
-#include <QFile>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QObject>
@@ -50,6 +49,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <model.h>
 #include <qopengl.h>
 #include <vector>
@@ -74,14 +74,14 @@ void RenderWidget::handleEvents() {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
-      node->second.handle(arg);
+      undoEvents.emplace_back(node->second.handle(arg));
       return true;
     } else if constexpr (std::is_same_v<T, parser::DecorationMoveEvent> ||
                          std::is_same_v<T, parser::DecorationOrientationChangeEvent>) {
       auto decoration = decorations.find(arg.decorationId);
       if (decoration == decorations.end())
         return false;
-      decoration->second.handle(arg);
+      undoEvents.emplace_back(decoration->second.handle(arg));
       return true;
     }
   };
@@ -92,6 +92,49 @@ void RenderWidget::handleEvents() {
 
   if (events.empty())
     emit eventsComplete();
+}
+
+void RenderWidget::handleUndoEvents() {
+
+  auto handleUndoEvent = [this](auto &&arg) -> bool {
+    // Strip off qualifiers, etc
+    // so T holds just the type
+    // so we can more easily match it
+    using T = std::decay_t<decltype(arg)>;
+
+    // All events have a time
+    // Make sure we don't handle one
+    // Before it was originally applied
+    if (simulationTime > arg.event.time)
+      return false;
+
+    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent>) {
+      auto node = nodes.find(arg.event.nodeId);
+      if (node == nodes.end())
+        return false;
+      node->second.handle(arg);
+
+      events.emplace_front(arg.event);
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, undo::DecorationMoveEvent> ||
+                  std::is_same_v<T, undo::DecorationOrientationChangeEvent>) {
+      auto decoration = decorations.find(arg.event.decorationId);
+      if (decoration == decorations.end())
+        return false;
+      decoration->second.handle(arg);
+
+      events.emplace_front(arg.event);
+      return true;
+    }
+
+    return false;
+  };
+
+  while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
+    undoEvents.pop_back();
+  }
 }
 
 void RenderWidget::initializeGL() {
@@ -145,8 +188,10 @@ void RenderWidget::initializeGL() {
 }
 
 void RenderWidget::paintGL() {
-  if (!paused)
+  if (playMode == PlayMode::Play)
     handleEvents();
+  else if (playMode == PlayMode::Rewind)
+    handleUndoEvents();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
   camera.move(static_cast<float>(frameTimer.elapsed()));
@@ -176,9 +221,17 @@ void RenderWidget::paintGL() {
   }
   renderer.endTransparent();
   frameTimer.restart();
-  if (!paused) {
+  if (playMode == PlayMode::Play) {
     simulationTime += config.millisecondsPerFrame;
     emit timeAdvanced(simulationTime);
+  } else if (playMode == PlayMode::Rewind) {
+    simulationTime -= config.millisecondsPerFrame;
+    emit timeRewound(simulationTime);
+
+    if (simulationTime <= 0 && playMode != PlayMode::Paused) {
+      playMode = PlayMode::Paused;
+      emit pauseToggled(true);
+    }
   }
 }
 
@@ -193,8 +246,19 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
   camera.handle_keypress(event->key());
 
   if (event->key() == pauseKey && canPauseToggle) {
-    paused = !paused;
-    emit pauseToggled(paused);
+    if (playMode == PlayMode::Play)
+      playMode = PlayMode::Paused;
+    else
+      playMode = PlayMode::Play;
+
+    emit pauseToggled(playMode == PlayMode::Paused);
+  } else if (event->key() == rewindKey) {
+    if (playMode == PlayMode::Rewind)
+      playMode = PlayMode::Paused;
+    else
+      playMode = PlayMode::Play;
+
+    emit pauseToggled(playMode == PlayMode::Paused);
   }
 }
 
@@ -364,8 +428,8 @@ void RenderWidget::resetCamera() {
   camera.resetRotation();
 }
 void RenderWidget::pause() {
-  paused = true;
-  emit pauseToggled(paused);
+  playMode = PlayMode::Paused;
+  emit pauseToggled(true);
 }
 
 void RenderWidget::allowPauseToggle(bool value) {

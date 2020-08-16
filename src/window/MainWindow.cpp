@@ -75,7 +75,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
   QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
-  QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
+
+  QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeChanged);
+  QObject::connect(&render, &RenderWidget::timeRewound, this, &MainWindow::timeChanged);
+
   QObject::connect(&render, &RenderWidget::pauseToggled, [this](bool paused) {
     // clears any temporary messages when playback is started/resumed
     // so the time is visible
@@ -120,7 +123,7 @@ MainWindow::~MainWindow() {
   // Make sure the thread has time to close before trying to destroy it
   loadThread.wait();
 }
-void MainWindow::timeAdvanced(double time) {
+void MainWindow::timeChanged(double time) {
   auto convertedTime = static_cast<long>(time);
 
   // combine / and %

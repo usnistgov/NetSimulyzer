@@ -33,6 +33,7 @@
 
 #include "Node.h"
 #include "../../conversion.h"
+#include "../../window/render/undo-events.h"
 #include <cmath>
 #include <glm/glm.hpp>
 #include <utility>
@@ -58,12 +59,32 @@ const Model &Node::getModel() const {
   return model;
 }
 
-void Node::handle(const parser::MoveEvent &e) {
+undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
+  undo::MoveEvent undo;
+  undo.position = model.getPosition();
+  undo.event = e;
+
   this->model.setPosition(toRenderCoordinate(e.targetPosition) + offset);
+
+  return undo;
 }
 
-void Node::handle(const parser::NodeOrientationChangeEvent &e) {
+undo::NodeOrientationChangeEvent Node::handle(const parser::NodeOrientationChangeEvent &e) {
+  undo::NodeOrientationChangeEvent undo;
+  undo.orientation = model.getRotate();
+  undo.event = e;
+
   this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], e.targetOrientation[1]);
+
+  return undo;
+}
+
+void Node::handle(const undo::MoveEvent &e) {
+  model.setPosition(e.position);
+}
+
+void Node::handle(const undo::NodeOrientationChangeEvent &e) {
+  model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }
 
 } // namespace visualization

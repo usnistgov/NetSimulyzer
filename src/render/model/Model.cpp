@@ -96,6 +96,10 @@ void Model::setRotate(float x, float y, float z) {
   rebuildModelMatrix();
 }
 
+std::array<float, 3> Model::getRotate() const {
+  return rotate;
+}
+
 model_id Model::getModelId() const {
   return modelId;
 }

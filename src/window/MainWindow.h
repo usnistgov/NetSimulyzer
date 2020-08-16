@@ -82,7 +82,7 @@ private:
   LoadWorker loadWorker;
   QThread loadThread;
 
-  void timeAdvanced(double time);
+  void timeChanged(double time);
   void load();
   void checkPause();
 

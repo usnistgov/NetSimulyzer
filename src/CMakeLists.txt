@@ -52,6 +52,7 @@ target_sources(visualization PRIVATE
         window/LoadWorker.h window/LoadWorker.cpp
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
+        window/render/undo-events.h
         window/chart/ChartManager.cpp window/chart/ChartManager.h
         window/chart/ChartWidget.cpp window/chart/ChartWidget.h window/chart/ChartWidget.ui
         window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h
