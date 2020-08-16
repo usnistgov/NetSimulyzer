@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "src/util/undo-events.h"
 #include <QComboBox>
 #include <QFrame>
 #include <QGraphicsItem>
@@ -92,6 +93,8 @@ public:
 
 private:
   std::deque<parser::ChartEvent> events;
+  std::deque<undo::SceneUndoEvent> undoEvents;
+
   std::unordered_map<uint32_t, TieVariant> series;
   std::vector<unsigned int> seriesInCollections;
   SortOrder sortOrder{SortOrder::Type};

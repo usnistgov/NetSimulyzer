@@ -33,7 +33,7 @@
 
 #include "Decoration.h"
 #include "../../conversion.h"
-#include "../../window/render/undo-events.h"
+#include "../../util/undo-events.h"
 
 namespace visualization {
 

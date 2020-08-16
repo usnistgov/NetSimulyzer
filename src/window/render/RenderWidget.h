@@ -49,7 +49,7 @@
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../camera/CameraConfigurationDialogue.h"
-#include "undo-events.h"
+#include "../../util/undo-events.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>

@@ -34,7 +34,7 @@
 #pragma once
 
 #include "../../render/model/Model.h"
-#include "../../window/render/undo-events.h"
+#include "../../util/undo-events.h"
 #include <model.h>
 
 namespace visualization {

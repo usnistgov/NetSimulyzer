@@ -48,11 +48,11 @@ target_sources(visualization PRIVATE
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         settings/SettingsManager.h settings/SettingsManager.cpp
+        util/undo-events.h
         window/about/AboutDialog.cpp window/about/AboutDialog.h window/about/AboutDialog.ui
         window/LoadWorker.h window/LoadWorker.cpp
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui
         window/render/RenderWidget.h window/render/RenderWidget.cpp
-        window/render/undo-events.h
         window/chart/ChartManager.cpp window/chart/ChartManager.h
         window/chart/ChartWidget.cpp window/chart/ChartWidget.h window/chart/ChartWidget.ui
         window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h
