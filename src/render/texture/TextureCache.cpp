@@ -32,12 +32,11 @@
  */
 
 #include "TextureCache.h"
-#include "../mesh/Mesh.h"
+#include <QDebug>
 #include <QDir>
 #include <QImage>
 #include <QString>
 #include <iostream>
-#include <stb_image.h>
 #include <utility>
 
 namespace {
@@ -124,18 +123,40 @@ texture_id TextureCache::load(const std::string &filename) {
     std::abort();
   }
 
-  auto fullPath = result->canonicalFilePath().toStdString();
-
-  Texture t;
-  int depth;
-  auto *data = stbi_load(fullPath.c_str(), &t.width, &t.height, &depth, 0);
-  if (!data) {
-    std::cerr << "Failed to load " << fullPath << '\n';
+  QImage image{result->canonicalFilePath()};
+  if (image.isNull()) {
     if (fallbackTexture)
       return *fallbackTexture;
-    std::cerr << "No fallback texture loaded! Nothing to fallback on\n";
+
+    std::cerr << "No fallback texture found!\n";
     std::abort();
   }
+
+  unsigned int glFormat;
+  switch (image.format()) {
+  case QImage::Format::Format_RGB32:
+    glFormat = GL_RGB;
+    break;
+  case QImage::Format::Format_ARGB32:
+    glFormat = GL_RGBA;
+    break;
+  default:
+    qDebug() << "Unsupported format: " << image.format() << "\nAttempting conversion...";
+    image = image.convertToFormat(QImage::Format_ARGB32);
+    glFormat = GL_RGBA;
+
+    if (image.isNull()) {
+      if (fallbackTexture)
+        return *fallbackTexture;
+
+      std::cerr << "No fallback texture found!\n";
+      std::abort();
+    }
+  }
+
+  Texture t;
+  t.height = image.height();
+  t.width = image.width();
 
   glGenTextures(1, &t.id);
   glBindTexture(GL_TEXTURE_2D, t.id);
@@ -145,28 +166,16 @@ texture_id TextureCache::load(const std::string &filename) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  unsigned int format;
-  if (depth == 4)
-    format = GL_RGBA;
-  else if (depth == 3)
-    format = GL_RGB;
-  else {
-    std::cerr << "Unsupported texture depth in texture: " << fullPath << '\n' << "Depth: " << depth << '\n';
-    if (fallbackTexture)
-      return *fallbackTexture;
-    std::cerr << "No fallback texture!\n";
-    std::abort();
-  }
-  glTexImage2D(GL_TEXTURE_2D, 0, format, t.width, t.height, 0, format, GL_UNSIGNED_BYTE, data);
+  // QImage keeps BGRA format, event without an alpha channel
+  glTexImage2D(GL_TEXTURE_2D, 0, glFormat, t.width, t.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, image.constBits());
 
   glGenerateMipmap(GL_TEXTURE_2D);
 
   glBindTexture(GL_TEXTURE_2D, 0u);
-  stbi_image_free(data);
 
   textures.emplace_back(t);
   const auto newIndex = textures.size() - 1;
-  indexMap.emplace(fullPath, newIndex);
+  indexMap.emplace(result->canonicalFilePath().toStdString(), newIndex);
   return newIndex;
 }
 

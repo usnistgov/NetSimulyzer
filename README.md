@@ -53,20 +53,9 @@ cd ../
 For the list of supported formats, see the [assimp wiki](https://github.com/assimp/assimp#supported-file-formats)
 
 ### Supported Texture Formats
-Anything supported by [stb-image](https://github.com/nothings/stb/blob/master/stb_image.h).
-The following is an excerpt from `stb_image.h` on support:
-
-```
-JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib)
-PNG 1/2/4/8/16-bit-per-channel
-TGA (not sure what subset, if a subset)
-BMP non-1bpp, non-RLE
-PSD (composited view only, no extra channels, 8/16 bit-per-channel)
-GIF (*comp always reports as 4-channel)
-HDR (radiance rgbE format)
-PIC (Softimage PIC)
-PNM (PPM and PGM binary only)
-```
+Anything supported by [QImage](https://doc.qt.io/qt-5/qimage.html) should work.
+Some more exotic formats may undergo conversion at load time.
+Build in debug mode to check compatibility
 
 ### Resource Paths
 When the Visualizer is first launched it well search the directory the application is

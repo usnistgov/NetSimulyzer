@@ -45,7 +45,6 @@ target_compile_options(assimp PRIVATE -w)
 
 add_subdirectory(lib/json)
 add_subdirectory(lib/rapidjson)
-add_subdirectory(lib/stb)
 add_subdirectory(parser)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -73,7 +72,6 @@ target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-
 
 target_link_libraries(visualization PRIVATE parser)
 target_link_libraries(visualization PRIVATE assimp)
-target_link_libraries(visualization PRIVATE stb)
 target_include_directories(visualization PRIVATE lib/glm)
 target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
 target_link_libraries(visualization PRIVATE Threads::Threads)
