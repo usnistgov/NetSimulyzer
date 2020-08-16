@@ -34,6 +34,7 @@
 #pragma once
 
 #include "../../render/model/Model.h"
+#include "../../util/undo-events.h"
 #include <model.h>
 
 namespace visualization {
@@ -45,8 +46,11 @@ class Decoration {
 public:
   Decoration(const Model &model, const parser::Decoration &ns3Model);
   [[nodiscard]] const Model &getModel() const;
-  void handle(const parser::DecorationMoveEvent &e);
-  void handle(const parser::DecorationOrientationChangeEvent &e);
+  undo::DecorationMoveEvent handle(const parser::DecorationMoveEvent &e);
+  undo::DecorationOrientationChangeEvent handle(const parser::DecorationOrientationChangeEvent &e);
+
+  void handle(const undo::DecorationMoveEvent &e);
+  void handle(const undo::DecorationOrientationChangeEvent &e);
 };
 
 } // namespace visualization

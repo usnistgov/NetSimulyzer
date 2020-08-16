@@ -74,28 +74,19 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.statusbar->insertWidget(0, &statusLabel);
 
   QObject::connect(&render, &RenderWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeRewound, &charts, &ChartManager::timeRewound);
+
   QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
-  QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeAdvanced);
+  QObject::connect(&render, &RenderWidget::timeRewound, &logWidget, &ScenarioLogWidget::timeRewound);
+
+  QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeChanged);
+  QObject::connect(&render, &RenderWidget::timeRewound, this, &MainWindow::timeChanged);
+
   QObject::connect(&render, &RenderWidget::pauseToggled, [this](bool paused) {
     // clears any temporary messages when playback is started/resumed
     // so the time is visible
     if (!paused)
       ui.statusbar->clearMessage();
-  });
-
-  QObject::connect(&render, &RenderWidget::eventsComplete, [this]() {
-    renderEventsComplete = true;
-    checkPause();
-  });
-
-  QObject::connect(&logWidget, &ScenarioLogWidget::eventsComplete, [this]() {
-    logEventsComplete = true;
-    checkPause();
-  });
-
-  QObject::connect(&charts, &ChartManager::eventsComplete, [this]() {
-    chartEventsComplete = true;
-    checkPause();
   });
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
@@ -120,7 +111,7 @@ MainWindow::~MainWindow() {
   // Make sure the thread has time to close before trying to destroy it
   loadThread.wait();
 }
-void MainWindow::timeAdvanced(double time) {
+void MainWindow::timeChanged(double time) {
   auto convertedTime = static_cast<long>(time);
 
   // combine / and %
@@ -204,17 +195,13 @@ void MainWindow::finishLoading(const QString &fileName, long milliseconds) {
 
   // Events
   const auto &sceneEvents = parser.getSceneEvents();
-  renderEventsComplete = sceneEvents.empty();
   render.enqueueEvents(sceneEvents);
 
   const auto &chartEvents = parser.getChartsEvents();
-  chartEventsComplete = chartEvents.empty();
   charts.enqueueEvents(chartEvents);
 
   const auto &logEvents = parser.getLogEvents();
-  logEventsComplete = logEvents.empty();
   logWidget.enqueueEvents(logEvents);
-  checkPause();
 
   std::clog << "Scenario loaded in " << milliseconds << "ms\n";
   ui.statusbar->showMessage("Successfully loaded scenario: " + fileName + " in " + QString::number(milliseconds) + "ms",
@@ -222,14 +209,6 @@ void MainWindow::finishLoading(const QString &fileName, long milliseconds) {
   statusLabel.setText("Ready");
   loading = false;
   ui.actionLoad->setEnabled(true);
-}
-
-void MainWindow::checkPause() {
-  if (chartEventsComplete && logEventsComplete && renderEventsComplete) {
-    render.pause();
-    render.allowPauseToggle(false);
-  } else
-    render.allowPauseToggle(true);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

@@ -49,6 +49,7 @@
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../camera/CameraConfigurationDialogue.h"
+#include "../../util/undo-events.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -71,6 +72,9 @@ namespace visualization {
 
 class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
+
+  enum class PlayMode { Paused, Play, Rewind };
+
   SettingsManager settings;
   Camera camera;
   QPoint initialCursorPosition{width() / 2, height() / 2};
@@ -85,6 +89,7 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   QTimer timer{this};
   QElapsedTimer frameTimer;
   Qt::Key pauseKey = Qt::Key::Key_P;
+  Qt::Key rewindKey = Qt::Key::Key_R;
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -98,11 +103,12 @@ class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Node> nodes;
   std::unordered_map<unsigned int, Decoration> decorations;
 
-  bool paused = true;
-  bool canPauseToggle = false;
+  PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
+  std::deque<undo::SceneUndoEvent> undoEvents;
 
   void handleEvents();
+  void handleUndoEvents();
 
 protected:
   void initializeGL() override;
@@ -136,11 +142,10 @@ public:
   void resetCamera();
 
   void pause();
-  void allowPauseToggle(bool value);
 
 signals:
   void timeAdvanced(double simulationTime);
-  void eventsComplete();
+  void timeRewound(double simulationTime);
   void pauseToggled(bool paused);
 };
 } // namespace visualization

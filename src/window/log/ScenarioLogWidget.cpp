@@ -55,11 +55,17 @@ void ScenarioLogWidget::handleEvent(const parser::StreamAppendEvent &e) {
   if (iter == streams.end())
     return;
 
+  undo::StreamAppendEvent undo;
+  undo.event = e;
+  undo.lastUnifiedWriter = lastUnifiedWriter;
+
   auto &pair = iter->second;
   auto value = QString::fromStdString(e.value);
   pair.print(value);
 
-  printToUnifiedLog(pair, value);
+  undo.unifiedLogEraseCount = printToUnifiedLog(pair, value);
+
+  undoEvents.emplace_back(undo);
 
   // Scroll the document to the bottom (where the cursor is now)
   // after every append, keeping the newest info visible
@@ -67,28 +73,56 @@ void ScenarioLogWidget::handleEvent(const parser::StreamAppendEvent &e) {
   ui.plainTextLog->ensureCursorVisible();
 }
 
-void ScenarioLogWidget::printToUnifiedLog(LogStreamPair &pair, const QString &value) {
+void ScenarioLogWidget::handleEvent(const undo::StreamAppendEvent &e) {
+  const auto &iter = streams.find(e.event.streamId);
+  if (iter == streams.end())
+    return;
+
+  auto &pair = iter->second;
+  // TODO: Maybe check this cast?
+  pair.erase(static_cast<int>(e.event.value.size()));
+
+  unifiedStreamCursor.movePosition(QTextCursor::MoveOperation::Left, QTextCursor::MoveMode::KeepAnchor,
+                                   e.unifiedLogEraseCount);
+  unifiedStreamCursor.removeSelectedText();
+  lastUnifiedWriter = e.lastUnifiedWriter;
+
+  events.emplace_front(e.event);
+}
+
+int ScenarioLogWidget::printToUnifiedLog(LogStreamPair &pair, const QString &value) {
   // File us down to single line prints
   if (value.count('\n') > 1) {
     auto lines = value.split('\n');
+    int accumulator = 0;
     for (const auto &line : lines)
-      printToUnifiedLog(pair, line + '\n');
+      accumulator += printToUnifiedLog(pair, line + '\n');
 
-    return;
+    return accumulator;
   }
 
-  auto id = pair.getModel().id;
+  int characterTotal = 0;
+
+  const auto id = pair.getModel().id;
   const auto &format = pair.getFormat();
-  QString prompt = '[' + pair.getName() + "]: ";
 
-  if (id != lastUnifiedWriter && !unifiedStreamCursor.atBlockStart())
+  if (id != lastUnifiedWriter && !unifiedStreamCursor.atBlockStart()) {
     unifiedStreamCursor.insertText("\n", format);
+    characterTotal++;
+  }
 
-  if (unifiedStreamCursor.atBlockStart())
+  if (unifiedStreamCursor.atBlockStart()) {
+    const QString prompt = '[' + pair.getName() + "]: ";
     unifiedStreamCursor.insertText(prompt, format);
+    characterTotal += prompt.size();
+  }
 
   unifiedStreamCursor.insertText(value);
+  characterTotal += value.size();
+
   lastUnifiedWriter = id;
+
+  return characterTotal;
 }
 
 void ScenarioLogWidget::streamSelected(unsigned int id) {
@@ -151,9 +185,23 @@ void ScenarioLogWidget::timeAdvanced(double time) {
   while (!events.empty() && std::visit(handle, events.front())) {
     // Intentionally Blank
   }
+}
 
-  if (events.empty())
-    emit eventsComplete();
+void ScenarioLogWidget::timeRewound(double time) {
+  auto handleUndoEvent = [time, this](auto &&e) -> bool {
+    // All events have a time
+    // Make sure we don't handle one
+    // Before it was originally applied
+    if (time > e.event.time)
+      return false;
+
+    handleEvent(e);
+    return true;
+  };
+
+  while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
+    undoEvents.pop_back();
+  }
 }
 
 void ScenarioLogWidget::reset() {

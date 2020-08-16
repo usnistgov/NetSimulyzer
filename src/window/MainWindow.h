@@ -75,16 +75,12 @@ private:
    */
   QLabel statusLabel{"Load Scenario", this};
 
-  bool chartEventsComplete = true;
-  bool logEventsComplete = true;
-  bool renderEventsComplete = true;
   bool loading = false;
   LoadWorker loadWorker;
   QThread loadThread;
 
-  void timeAdvanced(double time);
+  void timeChanged(double time);
   void load();
-  void checkPause();
 
 protected:
   void closeEvent(QCloseEvent *event) override;

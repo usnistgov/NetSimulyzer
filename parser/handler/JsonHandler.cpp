@@ -330,6 +330,7 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
 
   updateLocationBounds(event.targetPosition);
 
+  updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -344,6 +345,7 @@ void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object)
 
   updateLocationBounds(event.targetPosition);
 
+  updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -356,6 +358,7 @@ void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object
   event.targetOrientation[1] = object["y"].get<double>();
   event.targetOrientation[2] = object["z"].get<double>();
 
+  updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -368,6 +371,7 @@ void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &
   event.targetOrientation[1] = object["y"].get<double>();
   event.targetOrientation[2] = object["z"].get<double>();
 
+  updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -379,6 +383,7 @@ void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
   event.x = object["x"].get<double>();
   event.y = object["y"].get<double>();
 
+  updateEndTime(event.time);
   fileParser.chartEvents.emplace_back(event);
 }
 
@@ -390,6 +395,7 @@ void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object
   event.category = object["category"].get<int>();
   event.value = object["value"].get<double>();
 
+  updateEndTime(event.time);
   fileParser.chartEvents.emplace_back(event);
 }
 
@@ -546,6 +552,7 @@ void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
   event.streamId = object["stream-id"].get<int>();
   event.value = object["data"].get<std::string>();
 
+  updateEndTime(event.time);
   fileParser.logEvents.emplace_back(event);
 }
 
@@ -566,6 +573,11 @@ void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) 
     config.minLocation.z = coordinate.z;
   else if (coordinate.z > config.maxLocation.z)
     config.maxLocation.z = coordinate.z;
+}
+
+void JsonHandler::updateEndTime(double milliseconds) {
+  if (milliseconds > fileParser.globalConfiguration.endTime)
+    fileParser.globalConfiguration.endTime = milliseconds;
 }
 
 JsonHandler::JsonHandler(parser::FileParser &parser) : fileParser(parser) {

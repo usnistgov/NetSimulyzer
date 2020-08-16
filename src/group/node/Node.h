@@ -34,6 +34,7 @@
 #pragma once
 
 #include "../../render/model/Model.h"
+#include "../../util/undo-events.h"
 #include <glm/glm.hpp>
 #include <model.h>
 
@@ -47,8 +48,11 @@ class Node {
 public:
   Node(const Model &model, parser::Node ns3Node);
   [[nodiscard]] const Model &getModel() const;
-  void handle(const parser::MoveEvent &e);
-  void handle(const parser::NodeOrientationChangeEvent &e);
+  undo::MoveEvent handle(const parser::MoveEvent &e);
+  undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
+
+  void handle(const undo::MoveEvent &e);
+  void handle(const undo::NodeOrientationChangeEvent &e);
 };
 
 } // namespace visualization

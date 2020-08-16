@@ -48,6 +48,7 @@ target_sources(visualization PRIVATE
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         settings/SettingsManager.h settings/SettingsManager.cpp
+        util/undo-events.h
         window/about/AboutDialog.cpp window/about/AboutDialog.h window/about/AboutDialog.ui
         window/LoadWorker.h window/LoadWorker.cpp
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui

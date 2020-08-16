@@ -33,6 +33,7 @@
 
 #include "Decoration.h"
 #include "../../conversion.h"
+#include "../../util/undo-events.h"
 
 namespace visualization {
 
@@ -54,12 +55,32 @@ const Model &Decoration::getModel() const {
   return model;
 }
 
-void Decoration::handle(const parser::DecorationMoveEvent &e) {
+undo::DecorationMoveEvent Decoration::handle(const parser::DecorationMoveEvent &e) {
+  undo::DecorationMoveEvent undo;
+  undo.position = model.getPosition();
+  undo.event = e;
+
   this->model.setPosition(toRenderCoordinate(e.targetPosition));
+
+  return undo;
 }
 
-void Decoration::handle(const parser::DecorationOrientationChangeEvent &e) {
+undo::DecorationOrientationChangeEvent Decoration::handle(const parser::DecorationOrientationChangeEvent &e) {
+  undo::DecorationOrientationChangeEvent undo;
+  undo.orientation = model.getRotate();
+  undo.event = e;
+
   this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], e.targetOrientation[1]);
+
+  return undo;
+}
+
+void Decoration::handle(const undo::DecorationMoveEvent &e) {
+  model.setPosition(e.position);
+}
+
+void Decoration::handle(const undo::DecorationOrientationChangeEvent &e) {
+  model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }
 
 } // namespace visualization

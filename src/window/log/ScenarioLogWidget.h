@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "../../util/undo-events.h"
 #include "ui_ScenarioLogWidget.h"
 #include <QColor>
 #include <QString>
@@ -80,6 +81,11 @@ class ScenarioLogWidget : public QWidget {
       cursor->insertText(value, textFormat);
     }
 
+    void erase(int characters) {
+      cursor->movePosition(QTextCursor::MoveOperation::Left, QTextCursor::MoveMode::KeepAnchor, characters);
+      cursor->removeSelectedText();
+    }
+
     [[nodiscard]] QTextDocument &getData() {
       return *data;
     };
@@ -100,10 +106,12 @@ class ScenarioLogWidget : public QWidget {
   unsigned int lastUnifiedWriter = 0u;
   std::unordered_map<unsigned int, LogStreamPair> streams;
   std::deque<parser::LogEvent> events;
+  std::deque<undo::LogUndoEvent> undoEvents;
 
   void handleEvent(const parser::StreamAppendEvent &e);
+  void handleEvent(const undo::StreamAppendEvent &e);
   void streamSelected(unsigned int id);
-  void printToUnifiedLog(LogStreamPair &pair, const QString &value);
+  int printToUnifiedLog(LogStreamPair &pair, const QString &value);
 
 public:
   explicit ScenarioLogWidget(QWidget *parent = nullptr);
@@ -111,10 +119,8 @@ public:
   void addStream(const parser::LogStream &stream);
   void enqueueEvents(const std::vector<parser::LogEvent> &e);
   void timeAdvanced(double time);
+  void timeRewound(double time);
   void reset();
-
-signals:
-  void eventsComplete();
 };
 
 } // namespace visualization
