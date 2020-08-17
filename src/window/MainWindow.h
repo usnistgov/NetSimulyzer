@@ -38,7 +38,7 @@
 #include "chart/ChartManager.h"
 #include "log/ScenarioLogWidget.h"
 #include "node/NodeWidget.h"
-#include "render/RenderWidget.h"
+#include "scene/SceneWidget.h"
 #include "ui_MainWindow.h"
 #include <QLabel>
 #include <QMainWindow>
@@ -65,7 +65,7 @@ private:
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
   ScenarioLogWidget logWidget{this};
-  RenderWidget render{this};
+  SceneWidget render{this};
   Ui::MainWindow ui{};
 
   /**

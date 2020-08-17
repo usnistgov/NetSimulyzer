@@ -48,8 +48,8 @@
 #include "../../render/texture/SkyBox.h"
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
-#include "../camera/CameraConfigurationDialogue.h"
 #include "../../util/undo-events.h"
+#include "../camera/CameraConfigurationDialogue.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -70,7 +70,7 @@
 
 namespace visualization {
 
-class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
+class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
 
   enum class PlayMode { Paused, Play, Rewind };
@@ -121,7 +121,7 @@ protected:
   void mouseMoveEvent(QMouseEvent *event) override;
 
 public:
-  explicit RenderWidget(QWidget *parent = nullptr, const Qt::WindowFlags &f = Qt::WindowFlags());
+  explicit SceneWidget(QWidget *parent = nullptr, const Qt::WindowFlags &f = Qt::WindowFlags());
   void setConfiguration(parser::GlobalConfiguration configuration);
   void reset();
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,

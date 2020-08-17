@@ -31,7 +31,7 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#include "RenderWidget.h"
+#include "SceneWidget.h"
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
@@ -56,7 +56,7 @@
 
 namespace visualization {
 
-void RenderWidget::handleEvents() {
+void SceneWidget::handleEvents() {
   // Returns true after handling an event
   // false otherwise
   auto handleEvent = [this](auto &&arg) -> bool {
@@ -91,7 +91,7 @@ void RenderWidget::handleEvents() {
   }
 }
 
-void RenderWidget::handleUndoEvents() {
+void SceneWidget::handleUndoEvents() {
 
   auto handleUndoEvent = [this](auto &&arg) -> bool {
     // Strip off qualifiers, etc
@@ -134,7 +134,7 @@ void RenderWidget::handleUndoEvents() {
   }
 }
 
-void RenderWidget::initializeGL() {
+void SceneWidget::initializeGL() {
   if (!initializeOpenGLFunctions()) {
     std::cerr << "Failed OpenGL functions\n";
     std::abort();
@@ -184,7 +184,7 @@ void RenderWidget::initializeGL() {
   frameTimer.start();
 }
 
-void RenderWidget::paintGL() {
+void SceneWidget::paintGL() {
   if (playMode == PlayMode::Play)
     handleEvents();
   else if (playMode == PlayMode::Rewind)
@@ -237,13 +237,13 @@ void RenderWidget::paintGL() {
   }
 }
 
-void RenderWidget::resizeGL(int w, int h) {
+void SceneWidget::resizeGL(int w, int h) {
   renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
                                            static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
   glViewport(0, 0, w, h);
 }
 
-void RenderWidget::keyPressEvent(QKeyEvent *event) {
+void SceneWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
 
@@ -264,12 +264,12 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
   }
 }
 
-void RenderWidget::keyReleaseEvent(QKeyEvent *event) {
+void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
   QWidget::keyReleaseEvent(event);
   camera.handle_keyrelease(event->key());
 }
 
-void RenderWidget::mousePressEvent(QMouseEvent *event) {
+void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
   if (!camera.mouseControlsEnabled())
     return;
@@ -286,7 +286,7 @@ void RenderWidget::mousePressEvent(QMouseEvent *event) {
   }
 }
 
-void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
+void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   QWidget::mouseReleaseEvent(event);
   if (!camera.mouseControlsEnabled())
     return;
@@ -301,7 +301,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
   }
 }
 
-void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
+void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
   if (!(event->buttons() & Qt::LeftButton) || !camera.mouseControlsEnabled())
     return;
@@ -324,7 +324,7 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
   QCursor::setPos(mapToGlobal(widgetCenter));
 }
 
-RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWidget(parent, f) {
+SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWidget(parent, f) {
   // Make sure we get keyboard events
   setFocusPolicy(Qt::StrongFocus);
   setMinimumSize({640, 480});
@@ -353,7 +353,7 @@ RenderWidget::RenderWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLW
   });
 }
 
-void RenderWidget::setConfiguration(parser::GlobalConfiguration configuration) {
+void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
   config = configuration;
 
   // Resize ground plane to the farthest away item/event
@@ -365,7 +365,7 @@ void RenderWidget::setConfiguration(parser::GlobalConfiguration configuration) {
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
 }
 
-void RenderWidget::reset() {
+void SceneWidget::reset() {
   areas.clear();
   buildings.clear();
   nodes.clear();
@@ -374,9 +374,9 @@ void RenderWidget::reset() {
   simulationTime = 0.0;
 }
 
-void RenderWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
-                       const std::vector<parser::Decoration> &decorationModels,
-                       const std::vector<parser::Node> &nodeModels) {
+void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
+                      const std::vector<parser::Decoration> &decorationModels,
+                      const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
@@ -404,7 +404,7 @@ void RenderWidget::add(const std::vector<parser::Area> &areaModels, const std::v
   doneCurrent();
 }
 
-void RenderWidget::focusNode(uint32_t nodeId) {
+void SceneWidget::focusNode(uint32_t nodeId) {
   auto iter = nodes.find(nodeId);
   if (iter == nodes.end()) {
     std::cerr << "Error: Node with ID: " << nodeId << " not found\n";
@@ -417,20 +417,20 @@ void RenderWidget::focusNode(uint32_t nodeId) {
   camera.resetRotation();
 }
 
-void RenderWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
+void SceneWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
 
-void RenderWidget::showCameraConfigurationDialogue() {
+void SceneWidget::showCameraConfigurationDialogue() {
   cameraConfigurationDialogue.show();
 }
 
-void RenderWidget::resetCamera() {
+void SceneWidget::resetCamera() {
   camera.setPosition({0.0f, 0.0f, 0.0f});
   camera.resetRotation();
 }
 
-void RenderWidget::pause() {
+void SceneWidget::pause() {
   playMode = PlayMode::Paused;
   emit pauseToggled(true);
 }

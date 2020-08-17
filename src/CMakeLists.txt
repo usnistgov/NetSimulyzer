@@ -52,7 +52,7 @@ target_sources(visualization PRIVATE
         window/about/AboutDialog.cpp window/about/AboutDialog.h window/about/AboutDialog.ui
         window/LoadWorker.h window/LoadWorker.cpp
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui
-        window/render/RenderWidget.h window/render/RenderWidget.cpp
+        window/scene/SceneWidget.h window/scene/SceneWidget.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h
         window/chart/ChartWidget.cpp window/chart/ChartWidget.h window/chart/ChartWidget.ui
         window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h

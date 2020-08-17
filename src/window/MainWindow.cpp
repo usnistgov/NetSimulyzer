@@ -73,30 +73,30 @@ MainWindow::MainWindow() : QMainWindow() {
   // should we choose to do so
   ui.statusbar->insertWidget(0, &statusLabel);
 
-  QObject::connect(&render, &RenderWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
-  QObject::connect(&render, &RenderWidget::timeRewound, &charts, &ChartManager::timeRewound);
+  QObject::connect(&render, &SceneWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
+  QObject::connect(&render, &SceneWidget::timeRewound, &charts, &ChartManager::timeRewound);
 
-  QObject::connect(&render, &RenderWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
-  QObject::connect(&render, &RenderWidget::timeRewound, &logWidget, &ScenarioLogWidget::timeRewound);
+  QObject::connect(&render, &SceneWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
+  QObject::connect(&render, &SceneWidget::timeRewound, &logWidget, &ScenarioLogWidget::timeRewound);
 
-  QObject::connect(&render, &RenderWidget::timeAdvanced, this, &MainWindow::timeChanged);
-  QObject::connect(&render, &RenderWidget::timeRewound, this, &MainWindow::timeChanged);
+  QObject::connect(&render, &SceneWidget::timeAdvanced, this, &MainWindow::timeChanged);
+  QObject::connect(&render, &SceneWidget::timeRewound, this, &MainWindow::timeChanged);
 
-  QObject::connect(&render, &RenderWidget::pauseToggled, [this](bool paused) {
+  QObject::connect(&render, &SceneWidget::pauseToggled, [this](bool paused) {
     // clears any temporary messages when playback is started/resumed
     // so the time is visible
     if (!paused)
       ui.statusbar->clearMessage();
   });
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &RenderWidget::focusNode);
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &SceneWidget::focusNode);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
   QObject::connect(ui.actionCameraSettings, &QAction::triggered,
                    [this]() { render.showCameraConfigurationDialogue(); });
 
-  QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &RenderWidget::resetCamera);
+  QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &SceneWidget::resetCamera);
 
   QObject::connect(ui.actionAbout, &QAction::triggered, [this]() {
     AboutDialog dialog{this};
