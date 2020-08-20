@@ -91,12 +91,13 @@ public:
 
   using TieVariant = std::variant<SeriesCollectionTie, XYSeriesTie, CategoryValueTie>;
 
+  const static unsigned int PlaceholderId{0u};
+
 private:
   std::deque<parser::ChartEvent> events;
   std::deque<undo::ChartUndoEvent> undoEvents;
 
   std::unordered_map<uint32_t, TieVariant> series;
-  std::vector<unsigned int> seriesInCollections;
   SortOrder sortOrder{SortOrder::Type};
   std::vector<DropdownValue> dropdownElements;
   std::vector<ChartWidget *> chartWidgets;
@@ -106,6 +107,30 @@ private:
   CategoryValueTie makeTie(const parser::CategoryValueSeries &model);
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
   void addSeriesToChildren(const DropdownValue &value);
+
+  /**
+   * Finds all the collections the series
+   * identified by `id` belongs to
+   *
+   * @param id
+   * The ID of the series to search collections for
+   *
+   * @return
+   * The IDs of all the collections `id` is in
+   */
+  std::vector<unsigned int> inCollections(unsigned int id);
+
+  /**
+   * Clear the series identified by `id` from
+   * all widgets except for `except`
+   *
+   * @param except
+   * The widget to ignore when clearing selections
+   *
+   * @param id
+   * The ID of the series to clear selections of
+   */
+  void clearSeries(const ChartWidget *except, unsigned int id);
 
 public:
   explicit ChartManager(QWidget *parent);
@@ -133,8 +158,8 @@ public:
                  const std::vector<parser::SeriesCollection> &collections,
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);
   TieVariant &getSeries(uint32_t seriesId);
-  void disableSeries(unsigned int id);
-  void enableSeries(unsigned int id);
+
+  void seriesSelected(const ChartWidget *widget, unsigned int selected);
   void timeAdvanced(double time);
   void timeRewound(double time);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);

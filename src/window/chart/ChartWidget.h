@@ -45,7 +45,7 @@ class ChartWidget : public QDockWidget {
   ChartManager &manager;
   QtCharts::QChart chart;
   Ui::ChartWidget ui{};
-  unsigned int currentSeries{0u};
+  unsigned int currentSeries{ChartManager::PlaceholderId};
 
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
@@ -63,9 +63,23 @@ protected:
 public:
   ChartWidget(QWidget *parent, ChartManager &manager, const std::vector<ChartManager::DropdownValue> &initialSeries);
   void addSeries(const QString &name, unsigned int id);
-  void disableSeries(unsigned int id);
-  void enableSeries(unsigned int id);
   void reset();
+
+  /**
+   * Unselects the current series
+   * & resets the chart
+   */
+  void clearSelected();
+
+  /**
+   * Gets the ID of the currently selected series.
+   * 0u is the ID of the placeholder item
+   *
+   * @return
+   * The ID of the currently selected series,
+   * or 0u in no series is selected
+   */
+  [[nodiscard]] unsigned int getCurrentSeries() const;
 };
 
 } // namespace visualization

@@ -202,7 +202,6 @@ ChartManager::ChartManager(QWidget *parent) : QObject(parent) {
 }
 
 void ChartManager::reset() {
-  seriesInCollections.clear();
   dropdownElements.clear();
   events.clear();
 
@@ -232,6 +231,33 @@ void ChartManager::reset() {
 void ChartManager::addSeriesToChildren(const DropdownValue &value) {
   for (auto chartWidget : chartWidgets) {
     chartWidget->addSeries(value.name, value.id);
+  }
+}
+
+std::vector<unsigned int> ChartManager::inCollections(unsigned int id) {
+  std::vector<unsigned int> collections;
+
+  for (const auto &[key, value] : series) {
+    // We're only concerned about collections
+    // so we can skip everything else
+    if (!std::holds_alternative<SeriesCollectionTie>(value))
+      continue;
+
+    const auto &tieModel = std::get<SeriesCollectionTie>(value).model;
+    if (std::find(tieModel.series.begin(), tieModel.series.end(), id) != tieModel.series.end())
+      collections.emplace_back(tieModel.id);
+  }
+
+  return collections;
+}
+
+void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
+  for (auto widget : chartWidgets) {
+    if (widget == except)
+      continue;
+
+    if (widget->getCurrentSeries() == id)
+      widget->clearSelected();
   }
 }
 
@@ -286,23 +312,26 @@ ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
   return seriesIterator->second;
 }
 
-void ChartManager::disableSeries(unsigned int id) {
-  // Do nothing for the placeholder
-  if (id == 0u)
+void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int selected) {
+  if (selected == PlaceholderId)
     return;
 
-  for (auto chartWidget : chartWidgets) {
-    chartWidget->disableSeries(id);
-  }
-}
+  clearSeries(widget, selected);
 
-void ChartManager::enableSeries(unsigned int id) {
-  // Do nothing for the placeholder
-  if (id == 0u)
-    return;
+  // If a collection was selected, clear the child series
+  const auto &tie = series[selected];
+  if (std::holds_alternative<SeriesCollectionTie>(tie)) {
+    const auto &tieValue = std::get<SeriesCollectionTie>(tie);
 
-  for (auto chartWidget : chartWidgets) {
-    chartWidget->enableSeries(id);
+    for (const auto seriesId : tieValue.model.series)
+      clearSeries(widget, seriesId);
+  } else if (std::holds_alternative<XYSeriesTie>(tie)) {
+    // Clear all the collections this series belongs to as well
+    // Only XYSeries may belong to collections
+    const auto &tieModel = std::get<XYSeriesTie>(tie).model;
+    const auto collections = inCollections(tieModel.id);
+    for (const auto id : collections)
+      clearSeries(widget, id);
   }
 }
 
@@ -402,7 +431,6 @@ void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
 
   for (const auto &collection : collections) {
     series.emplace(collection.id, makeTie(collection));
-    seriesInCollections.insert(seriesInCollections.end(), collection.series.begin(), collection.series.end());
     dropdownElements.emplace_back(
         DropdownValue{QString::fromStdString(collection.name), SeriesType::Collection, collection.id});
   }
