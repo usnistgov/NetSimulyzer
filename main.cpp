@@ -46,7 +46,9 @@
 #include <QSurfaceFormat>
 #include <iostream>
 #include <string>
+#include <optional>
 #include <project.h>
+#include <QDebug>
 
 struct ParsedSettingsVersion {
   unsigned int major;
@@ -78,6 +80,76 @@ ParsedSettingsVersion parseVersion(const std::string &s) {
   }
 
   return result;
+}
+
+/**
+ * Checks if a path is a readable directory
+ *
+ * @param path
+ * The path to check
+ *
+ * @return
+ * True if `path` is a readable directory,
+ * False otherwise
+ */
+bool validateResourceDir(const QString &path) {
+  if (path.isEmpty())
+    return false;
+
+  QFileInfo fileInfo{path};
+  return fileInfo.isDir() && fileInfo.isReadable();
+}
+
+/**
+ * Prompt the user for a resource directory.
+ * If the selected directory is invalid, shows an error
+ *
+ * @return
+ * The path from the user. Empty string if nothing was selected
+ */
+std::optional<QFileInfo> promptResourceDir() {
+  auto selected =
+#ifdef __APPLE__
+      QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
+#else
+      QFileDialog::getExistingDirectory(nullptr, "Select a resource Directory", "", QFileDialog::DontUseNativeDialog);
+#endif
+
+  if (!validateResourceDir(selected)) {
+    QMessageBox::critical(nullptr, "Invalid resource directory selected",
+                          "An invalid resources directory was selected. "
+                          "A valid 'resources' directory is necessary to run the application");
+
+    return {};
+  }
+
+  return {QFileInfo{selected}};
+}
+
+/**
+ * Check the application directory and the current working
+ * directory (in that order) for a valid resource directory
+ *
+ * @return
+ * A set optional with the path to the detected directory
+ * if one matches the above criteria, an unset optional
+ * otherwise
+ */
+std::optional<QFileInfo> autodetectResourceDir() {
+  QDir dir{QCoreApplication::applicationDirPath(), "resources"};
+  dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
+
+  if (dir.count() > 0u && validateResourceDir(dir[0])) {
+    return {QFileInfo{dir[0]}};
+  }
+
+  // Try both the application directory & the working directory
+  dir.setPath(QDir::currentPath());
+
+  if (dir.count() > 0u && validateResourceDir(dir[0]))
+    return {QFileInfo{dir[0]}};
+
+  return {};
 }
 
 int main(int argc, char *argv[]) {
@@ -138,65 +210,47 @@ int main(int argc, char *argv[]) {
   // since this may create dialogs
   if (settings.isDefined(Key::ResourcePath)) {
     auto savedResourcePath = *settings.get<QString>(Key::ResourcePath);
-    QFileInfo savedResourceDir{savedResourcePath};
+    if (!validateResourceDir(savedResourcePath)) {
+      // Old resource path is invalid, try detecting one
 
-    if (!savedResourceDir.isDir() || !savedResourceDir.isReadable()) {
-      QMessageBox::warning(nullptr, "Resource Path Not Accessible",
-                           "The resource path :\"" + savedResourcePath + "\" is inaccessible, select a new one");
+      auto detectedResourcePath = autodetectResourceDir();
+      if (detectedResourcePath) {
+        std::clog << "Assuming resource dir: " << detectedResourcePath->absoluteFilePath().toStdString() << '\n';
+        settings.set(Key::ResourcePath, detectedResourcePath->absoluteFilePath());
+      } else {
+        // Auto detected paths also are invalid, we have to prompt
+        QMessageBox::warning(nullptr, "Resource Path Not Accessible",
+                             "The resource path :\"" + savedResourcePath + "\" is inaccessible, select a new one");
 
-      auto newResourcePath =
-#ifdef __APPLE__
-          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
-#else
-          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory", "",
-                                            QFileDialog::DontUseNativeDialog);
-#endif
+        auto newResourcePath = promptResourceDir();
+        if (!newResourcePath)
+          return 1;
 
-      QDir resources{newResourcePath};
-      if (!newResourcePath.isEmpty() && resources.exists() && resources.isReadable())
-        settings.set(Key::ResourcePath, resources.canonicalPath());
-      else {
-        QMessageBox::critical(nullptr, "Invalid 'resources' directory",
-                              "An invalid 'resources' directory was selected. "
-                              "A valid 'resources' directory is necessary to run the application");
-        return 1;
+        settings.set(Key::ResourcePath, newResourcePath->absoluteFilePath());
       }
+
+      // Make sure any changes to the resource directory are committed
+      settings.sync();
     }
   } else {
-
-    QDir dir{QCoreApplication::applicationDirPath(), "resources"};
-    dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
-
-    // Try both the application directory & the working directory
-    if (dir.count() == 0)
-      dir.setPath(QDir::currentPath());
-
-    if (dir.count() > 0) {
-      auto entry = dir.entryInfoList()[0];
-      std::cout << "Assuming resource dir at: " << entry.canonicalFilePath().toStdString() << '\n';
-      settings.set(Key::ResourcePath, entry.canonicalFilePath());
+    // No resource directory defined, try to autodetect one
+    auto detectedResourcePath = autodetectResourceDir();
+    if (detectedResourcePath) {
+      std::clog << "Assuming resource dir: " << detectedResourcePath->absoluteFilePath().toStdString() << '\n';
+      settings.set(Key::ResourcePath, detectedResourcePath->absoluteFilePath());
     } else {
       QMessageBox::warning(nullptr, "Resource Path Not Found",
                            "The 'resources' directory was not found in the application directory. "
-                           "Please set the location of the 'resources' directory in the following dialogue.");
-      auto candidatePath =
-#ifdef __APPLE__
-          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
-#else
-          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory", "",
-                                            QFileDialog::DontUseNativeDialog);
-#endif
+                           "Please set the location of the 'resources' directory.");
 
-      QDir resources{candidatePath};
-      if (!candidatePath.isEmpty() && resources.exists() && resources.isReadable())
-        settings.set(Key::ResourcePath, resources.canonicalPath());
-      else {
-        QMessageBox::critical(nullptr, "Invalid 'resources' directory",
-                              "An invalid 'resources' directory was selected. "
-                              "A valid 'resources' directory is necessary to run the application");
+      auto selected = promptResourceDir();
+      if (!selected)
         return 1;
-      }
+
+      settings.set(Key::ResourcePath, selected->absoluteFilePath());
     }
+    // Make sure any changes to the resource directory are committed
+    settings.sync();
   }
 
   std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
