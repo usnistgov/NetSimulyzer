@@ -34,6 +34,9 @@ project(Visualizer
         VERSION 0.1.4
         LANGUAGES C CXX)
 
+
+set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
+
 set(CMAKE_CXX_STANDARD 17)
 
 SET(ASSIMP_BUILD_TESTS CACHE BOOL OFF)
@@ -77,3 +80,21 @@ target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Q
 target_link_libraries(visualization PRIVATE Threads::Threads)
 
 add_subdirectory(src)
+
+if(ENABLE_DOXYGEN)
+    message(STATUS "Doxygen Enabled")
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
+
+    find_package(Doxygen)
+    doxygen_add_docs(doxygen-docs
+            ${PROJECT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/parser
+            )
+
+    add_custom_target(doc_doxygen ALL
+            COMMAND Doxygen::doxygen Doxyfile.doxygen-docs
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation"
+            VERBATIM
+            )
+endif()

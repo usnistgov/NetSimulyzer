@@ -10,6 +10,7 @@ A 3D visualizer for ns-3 scenarios.
 * CMake 3.13 or greater
 * A graphics card supporting OpenGL 3.3
 * Qt 5.3
+* Optional: Doxygen
 
 ## Initial Setup
 
@@ -34,7 +35,16 @@ mkdir build
 cd build
 ```
 
-Run `cmake` and specify the source directory and build type. Then run the build tool
+#### CMake Options
+To configure the build, any of the below may be passed to CMake with `-D` in the form `cmake -DNAME=VALUE`.
+
+All of the following are optional
+
+* `ENABLE_DOXYGEN`: Default `False`, set to `True` to build the API docs to the `doxygen/` directory in the build directory
+
+##### Running CMake
+
+Run `cmake` and specify the source directory, build type, and and desired build options from above. Then run the build tool.
 ```shell
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --parallel
