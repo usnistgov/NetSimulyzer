@@ -40,6 +40,9 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <addaction name="actionAddChart"/>
+    <addaction name="actionRemovCharts"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuCamera">
     <property name="title">
@@ -48,16 +51,9 @@
     <addaction name="actionCameraSettings"/>
     <addaction name="actionResetCameraPosition"/>
    </widget>
-   <widget class="QMenu" name="menuExperimental">
-    <property name="title">
-     <string>&amp;Experimental</string>
-    </property>
-    <addaction name="actionAddChart"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuWidget"/>
    <addaction name="menuCamera"/>
-   <addaction name="menuExperimental"/>
+   <addaction name="menuWindow"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="nodesDock">
@@ -151,12 +147,17 @@
   </action>
   <action name="actionAddChart">
    <property name="text">
-    <string>&amp;Add Chart</string>
+    <string>Add &amp;Chart</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionRemovCharts">
+   <property name="text">
+    <string>&amp;Remove Charts</string>
    </property>
   </action>
  </widget>

@@ -64,8 +64,8 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
   loadThread.start();
 
-  ui.menuWidget->addAction(ui.nodesDock->toggleViewAction());
-  ui.menuWidget->addAction(ui.logDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.logDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -104,6 +104,7 @@ MainWindow::MainWindow() : QMainWindow() {
   });
 
   QObject::connect(ui.actionAddChart, &QAction::triggered, [this]() { charts.spawnWidget(this); });
+  QObject::connect(ui.actionRemovCharts, &QAction::triggered, &charts, &ChartManager::clearWidgets);
 }
 
 MainWindow::~MainWindow() {

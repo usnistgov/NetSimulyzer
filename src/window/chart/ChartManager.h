@@ -115,6 +115,11 @@ public:
    */
   void reset();
   void spawnWidget(QMainWindow *parent);
+
+  /**
+   * Remove all child `ChartWidget`s
+   */
+  void clearWidgets();
   void addSeries(const std::vector<parser::XYSeries> &xySeries,
                  const std::vector<parser::SeriesCollection> &collections,
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);

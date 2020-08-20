@@ -242,6 +242,15 @@ void ChartManager::spawnWidget(QMainWindow *parent) {
   chartWidgets.emplace_back(newWidget);
 }
 
+void ChartManager::clearWidgets() {
+  for (auto widget: chartWidgets) {
+    widget->close();
+    widget->deleteLater();
+  }
+
+  chartWidgets.clear();
+}
+
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
   for (auto &iterator : series) {
     // Only update collections
@@ -383,7 +392,6 @@ void ChartManager::timeRewound(double time) {
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
-
 void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
                              const std::vector<parser::SeriesCollection> &collections,
                              const std::vector<parser::CategoryValueSeries> &categoryValueSeries) {
