@@ -32,4 +32,8 @@ void SettingsManager::clear(SettingsManager::Key key) {
   qtSettings.remove(getQtKey(key).key);
 }
 
+void SettingsManager::sync() {
+  qtSettings.sync();
+}
+
 } // namespace visualization

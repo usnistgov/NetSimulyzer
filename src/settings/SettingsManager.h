@@ -220,6 +220,11 @@ public:
    * The key for the setting to clear
    */
   void clear(SettingsManager::Key key);
+
+  /**
+   * Sync settings to storage
+   */
+  void sync();
 };
 
 // Specialize so we don't have to convert to/from QString all the time
