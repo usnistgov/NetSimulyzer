@@ -210,6 +210,16 @@ public:
 
     return settingKey.defaultValue.template value<T>();
   }
+
+  /**
+   * Clears `key` from the settings.
+   *
+   * If you mean to set a setting back to its default, see `setDefault()`
+   *
+   * @param key
+   * The key for the setting to clear
+   */
+  void clear(SettingsManager::Key key);
 };
 
 // Specialize so we don't have to convert to/from QString all the time

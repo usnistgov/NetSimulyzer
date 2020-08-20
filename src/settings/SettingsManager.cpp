@@ -28,4 +28,8 @@ void SettingsManager::setDefault(SettingsManager::Key key) {
   qtSettings.setValue(settingKey.key, settingKey.defaultValue);
 }
 
+void SettingsManager::clear(SettingsManager::Key key) {
+  qtSettings.remove(getQtKey(key).key);
+}
+
 } // namespace visualization
