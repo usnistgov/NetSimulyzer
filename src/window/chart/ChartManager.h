@@ -120,6 +120,15 @@ public:
    * Remove all child `ChartWidget`s
    */
   void clearWidgets();
+
+  /**
+   * Signals a child widget has been closed.
+   * Removes all references to `widget`
+   *
+   * @param widget
+   * The child widget that is closing
+   */
+  void widgetClosed(ChartWidget *widget);
   void addSeries(const std::vector<parser::XYSeries> &xySeries,
                  const std::vector<parser::SeriesCollection> &collections,
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);

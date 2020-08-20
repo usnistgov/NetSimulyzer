@@ -149,6 +149,7 @@ void ChartWidget::clearChart() {
 void ChartWidget::closeEvent(QCloseEvent *event) {
   clearChart();
   manager.enableSeries(currentSeries);
+  manager.widgetClosed(this);
 
   QDockWidget::closeEvent(event);
 }

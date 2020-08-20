@@ -243,12 +243,17 @@ void ChartManager::spawnWidget(QMainWindow *parent) {
 }
 
 void ChartManager::clearWidgets() {
-  for (auto widget: chartWidgets) {
+  for (auto widget : chartWidgets) {
     widget->close();
     widget->deleteLater();
   }
 
   chartWidgets.clear();
+}
+
+void ChartManager::widgetClosed(ChartWidget *widget) {
+  // Remove the closed widget from our list
+  chartWidgets.erase(std::remove(chartWidgets.begin(), chartWidgets.end(), widget), chartWidgets.end());
 }
 
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
@@ -388,7 +393,6 @@ void ChartManager::timeRewound(double time) {
     undoEvents.pop_back();
   }
 }
-
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
