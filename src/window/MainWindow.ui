@@ -36,9 +36,9 @@
     <addaction name="actionAbout"/>
     <addaction name="actionLoad"/>
    </widget>
-   <widget class="QMenu" name="menuWidget">
+   <widget class="QMenu" name="menuWindow">
     <property name="title">
-     <string>&amp;Widget</string>
+     <string>&amp;Window</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuCamera">
