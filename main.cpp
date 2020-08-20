@@ -135,8 +135,34 @@ int main(int argc, char *argv[]) {
   QApplication application(argc, argv);
 
   // Must me checked after the QApplication is constructed
-  // since this may create dialogs 
-  if (!settings.isDefined(Key::ResourcePath)) {
+  // since this may create dialogs
+  if (settings.isDefined(Key::ResourcePath)) {
+    auto savedResourcePath = *settings.get<QString>(Key::ResourcePath);
+    QFileInfo savedResourceDir{savedResourcePath};
+
+    if (!savedResourceDir.isDir() || !savedResourceDir.isReadable()) {
+      QMessageBox::warning(nullptr, "Resource Path Not Accessible",
+                           "The resource path :\"" + savedResourcePath + "\" is inaccessible, select a new one");
+
+      auto newResourcePath =
+#ifdef __APPLE__
+          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
+#else
+          QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory", "",
+                                            QFileDialog::DontUseNativeDialog);
+#endif
+
+      QDir resources{newResourcePath};
+      if (!newResourcePath.isEmpty() && resources.exists() && resources.isReadable())
+        settings.set(Key::ResourcePath, resources.canonicalPath());
+      else {
+        QMessageBox::critical(nullptr, "Invalid 'resources' directory",
+                              "An invalid 'resources' directory was selected. "
+                              "A valid 'resources' directory is necessary to run the application");
+        return 1;
+      }
+    }
+  } else {
 
     QDir dir{QCoreApplication::applicationDirPath(), "resources"};
     dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
