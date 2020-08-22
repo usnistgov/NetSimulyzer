@@ -36,6 +36,8 @@ public:
     CameraKeyRightTurn,
     CameraKeyUp,
     CameraKeyDown,
+    SceneKeyPlay,
+    SceneKeyRewind,
     MainWindowState,
     NumberSamples
   };
@@ -77,6 +79,8 @@ private:
       {Key::CameraKeyRightTurn, {"camera/keyRightTurn", Qt::Key_E}},
       {Key::CameraKeyUp, {"camera/keyUp", Qt::Key_Z}},
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
+      {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
+      {Key::SceneKeyRewind, {"scene/keyRewind", Qt::Key_R}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}}};
 
