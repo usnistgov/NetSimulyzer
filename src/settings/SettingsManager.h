@@ -141,7 +141,7 @@ public:
    * depending on `mode`
    */
   template <class T>
-  [[nodiscard]] std::optional<T> get(Key key, RetrieveMode mode = RetrieveMode::DisallowDefault) const {
+  [[nodiscard]] std::optional<T> get(Key key, RetrieveMode mode = RetrieveMode::AllowDefault) const {
     const auto &settingKey = getQtKey(key);
     const auto qtSetting = qtSettings.value(settingKey.key, settingKey.defaultValue);
 
