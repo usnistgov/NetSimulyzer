@@ -54,14 +54,14 @@ private:
     side turn = side::none;
   };
 
-  int keyForward = Qt::Key_W;
-  int keyBackward = Qt::Key_S;
-  int keyLeft = Qt::Key_A;
-  int keyRight = Qt::Key_D;
-  int keyTurnLeft = Qt::Key_Q;
-  int keyTurnRight = Qt::Key_E;
-  int keyUp = Qt::Key_Z;
-  int keyDown = Qt::Key_X;
+  int keyForward;
+  int keyBackward;
+  int keyLeft;
+  int keyRight;
+  int keyTurnLeft;
+  int keyTurnRight;
+  int keyUp;
+  int keyDown;
 
   glm::vec3 position{0.0f};
   glm::vec3 front{0.0f, 0.0f, -1.0f};

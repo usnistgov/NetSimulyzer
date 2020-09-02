@@ -174,7 +174,7 @@ void SceneWidget::initializeGL() {
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 
-  renderer.setPerspective(perspective);
+  updatePerspective();
 
   // Cheap hack to get Qt to repaint at a reasonable rate
   // Seems to only work with the old connect syntax
@@ -238,8 +238,7 @@ void SceneWidget::paintGL() {
 }
 
 void SceneWidget::resizeGL(int w, int h) {
-  renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
-                                           static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
+  updatePerspective();
   glViewport(0, 0, w, h);
 }
 
@@ -329,7 +328,7 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   setFocusPolicy(Qt::StrongFocus);
   setMinimumSize({640, 480});
 
-  auto resourceDirSetting = settings.get<std::string>(SettingsManager::Key::ResourcePath);
+  auto resourceDirSetting = settings.get<QString>(SettingsManager::Key::ResourcePath);
 
   // Shouldn't happen, but just in case
   if (!resourceDirSetting) {
@@ -338,19 +337,8 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
                           "rerun the application and set one");
     std::abort();
   }
-  auto resourceDir = *resourceDirSetting;
 
-  if (resourceDir.back() != '/')
-    resourceDir.push_back('/');
-
-  textures.setResourceDirectory({QString::fromStdString(resourceDir)});
-  models.setBasePath(resourceDir);
-
-  QObject::connect(&cameraConfigurationDialogue, &CameraConfigurationDialogue::perspectiveUpdated, [this]() {
-    renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
-                                             static_cast<float>(width()) / static_cast<float>(height()), 0.1f,
-                                             1000.0f));
-  });
+  setResourcePath(resourceDirSetting.value());
 }
 
 void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
@@ -421,13 +409,31 @@ void SceneWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
 
-void SceneWidget::showCameraConfigurationDialogue() {
-  cameraConfigurationDialogue.show();
-}
-
 void SceneWidget::resetCamera() {
   camera.setPosition({0.0f, 0.0f, 0.0f});
   camera.resetRotation();
+}
+
+Camera &SceneWidget::getCamera() {
+  return camera;
+}
+
+void SceneWidget::updatePerspective() {
+  renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
+                                           static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
+}
+
+void SceneWidget::setPlayKey(int key) {
+  pauseKey = static_cast<Qt::Key>(key);
+}
+
+void SceneWidget::setRewindKey(int key) {
+  rewindKey = static_cast<Qt::Key>(key);
+}
+
+void SceneWidget::setResourcePath(const QString &value) {
+  textures.setResourceDirectory(QDir{value});
+  models.setBasePath(value.toStdString());
 }
 
 void SceneWidget::pause() {

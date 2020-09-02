@@ -53,11 +53,11 @@ target_sources(visualization PRIVATE
         window/LoadWorker.h window/LoadWorker.cpp
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui
         window/scene/SceneWidget.h window/scene/SceneWidget.cpp
+        window/settings/SettingsDialog.h window/settings/SettingsDialog.cpp window/settings/SettingsDialog.ui
         window/chart/ChartManager.cpp window/chart/ChartManager.h
         window/chart/ChartWidget.cpp window/chart/ChartWidget.h window/chart/ChartWidget.ui
         window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
-        window/camera/CameraConfigurationDialogue.h window/camera/CameraConfigurationDialogue.cpp window/camera/CameraConfigurationDialogue.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
         conversion.h conversion.cpp)

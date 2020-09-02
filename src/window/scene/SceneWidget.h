@@ -49,7 +49,6 @@
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
-#include "../camera/CameraConfigurationDialogue.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -78,9 +77,6 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   SettingsManager settings;
   Camera camera;
   QPoint initialCursorPosition{width() / 2, height() / 2};
-  CameraConfigurationDialogue cameraConfigurationDialogue{camera, this};
-  glm::mat4 perspective = glm::perspective(glm::radians(camera.getFieldOfView()),
-                                           static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f);
   QPoint lastCursorPosition{width() / 2, height() / 2};
   bool isInitialMove = true;
   TextureCache textures;
@@ -137,9 +133,26 @@ public:
   void focusNode(uint32_t nodeId);
 
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
-
-  void showCameraConfigurationDialogue();
   void resetCamera();
+
+  /**
+   * Gets the user controlled camera
+   *
+   * @return
+   * The camera
+   */
+  [[nodiscard]] Camera &getCamera();
+
+  /**
+   * Update the projection matrix
+   * for when the FOV or window size changes
+   */
+  void updatePerspective();
+
+  void setPlayKey(int key);
+  void setRewindKey(int key);
+
+  void setResourcePath(const QString &value);
 
   void pause();
 

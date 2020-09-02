@@ -93,8 +93,38 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
-  QObject::connect(ui.actionCameraSettings, &QAction::triggered,
-                   [this]() { render.showCameraConfigurationDialogue(); });
+  QObject::connect(ui.actionSettings, &QAction::triggered, [this]() { settingsDialog.show(); });
+
+  auto &camera = render.getCamera();
+  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged,
+                   [&camera](float value) { camera.setMoveSpeed(value); });
+  QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged,
+                   [&camera](float value) { camera.setTurnSpeed(value); });
+  QObject::connect(&settingsDialog, &SettingsDialog::mouseTurnSpeedChanged,
+                   [&camera](float value) { camera.setMouseTurnSpeed(value); });
+  QObject::connect(&settingsDialog, &SettingsDialog::fieldOfViewChanged, [this, &camera](float value) {
+    camera.setFieldOfView(value);
+    render.updatePerspective();
+  });
+
+  QObject::connect(&settingsDialog, &SettingsDialog::forwardKeyChanged,
+                   [&camera](int key) { camera.setKeyForward(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::backwardKeyChanged,
+                   [&camera](int key) { camera.setKeyBackward(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::leftKeyChanged, [&camera](int key) { camera.setKeyLeft(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::rightKeyChanged, [&camera](int key) { camera.setKeyRight(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::turnLeftKeyChanged,
+                   [&camera](int key) { camera.setKeyTurnLeft(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::turnRightKeyChanged,
+                   [&camera](int key) { camera.setKeyTurnRight(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::upKeyChanged, [&camera](int key) { camera.setKeyUp(key); });
+  QObject::connect(&settingsDialog, &SettingsDialog::downKeyChanged, [&camera](int key) { camera.setKeyDown(key); });
+
+  QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, &render, &SceneWidget::setPlayKey);
+
+  QObject::connect(&settingsDialog, &SettingsDialog::rewindKeyChanged, &render, &SceneWidget::setRewindKey);
+
+  QObject::connect(&settingsDialog, &SettingsDialog::resourcePathChanged, &render, &SceneWidget::setResourcePath);
 
   QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &SceneWidget::resetCamera);
 

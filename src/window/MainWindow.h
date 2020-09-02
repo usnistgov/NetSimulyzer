@@ -39,6 +39,7 @@
 #include "log/ScenarioLogWidget.h"
 #include "node/NodeWidget.h"
 #include "scene/SceneWidget.h"
+#include "settings/SettingsDialog.h"
 #include "ui_MainWindow.h"
 #include <QLabel>
 #include <QMainWindow>
@@ -61,6 +62,7 @@ signals:
 private:
   const int stateVersion = 3;
   SettingsManager settings;
+  SettingsDialog settingsDialog{this};
 
   ChartManager charts{this};
   NodeWidget nodeWidget{this};

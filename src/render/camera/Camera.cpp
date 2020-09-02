@@ -32,12 +32,24 @@
  */
 
 #include "Camera.h"
+#include "src/settings/SettingsManager.h"
 #include <cmath>
 
 namespace visualization {
 
 Camera::Camera() {
   update();
+  SettingsManager settings;
+  using Key = SettingsManager::Key;
+
+  keyForward = *settings.get<int>(Key::CameraKeyForward);
+  keyBackward = *settings.get<int>(Key::CameraKeyBackwards);
+  keyLeft = *settings.get<int>(Key::CameraKeyLeft);
+  keyRight = *settings.get<int>(Key::CameraKeyRight);
+  keyTurnLeft = *settings.get<int>(Key::CameraKeyLeftTurn);
+  keyTurnRight = *settings.get<int>(Key::CameraKeyRightTurn);
+  keyUp = *settings.get<int>(Key::CameraKeyUp);
+  keyDown = *settings.get<int>(Key::CameraKeyDown);
 }
 
 void Camera::update() {
