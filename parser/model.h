@@ -53,7 +53,6 @@ struct Ns3Color3 {
 };
 
 struct GlobalConfiguration {
-  double millisecondsPerFrame = 1.0;
   double endTime = 0.0;
   Ns3Coordinate minLocation;
   Ns3Coordinate maxLocation;

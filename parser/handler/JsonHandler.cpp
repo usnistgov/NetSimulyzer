@@ -82,8 +82,9 @@ parser::CategoryAxis categoryAxisFromObject(const util::json::JsonObject &object
 
   // Category values must be sorted least to greatest
   // since we may only define a category's end position
-  std::sort(axis.values.begin(), axis.values.end(),
-            [](const auto &left, const auto &right) { return left.id < right.id; });
+  std::sort(axis.values.begin(), axis.values.end(), [](const auto &left, const auto &right) {
+    return left.id < right.id;
+  });
 
   return axis;
 }
@@ -177,7 +178,11 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
-  fileParser.globalConfiguration.millisecondsPerFrame = object["ms-per-frame"].get<double>();
+  // TODO: Remove later (v0.2.0)
+  if (object.contains("ms-per-frame")) {
+    std::cerr << "Property 'ms-per-frame' is deprecated, value ignored.\n"
+                 "Go to File -> Settings dialog to set playback speed\n";
+  }
 }
 
 void JsonHandler::parseNode(const util::json::JsonObject &object) {
