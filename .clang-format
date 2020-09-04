@@ -3,6 +3,7 @@ AccessModifierOffset: -2
 AlwaysBreakTemplateDeclarations: Yes
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: None
+AllowShortLambdasOnASingleLine: Empty
 BreakBeforeBraces: Attach
 ColumnLimit: 120
 Cpp11BracedListStyle: true
