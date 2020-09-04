@@ -84,10 +84,16 @@ class SettingsDialog : public QDialog {
    * Set the Mouse Turn Speed slider to the default value from the Settings Manager
    */
   void defaultMouseTurnSpeed();
+
   /**
    * Set the Field of View slider to the default value from the Settings Manager
    */
   void defaultFieldOfView();
+
+  /**
+   * Set the Samples input to the default value
+   */
+  void defaultSamples();
 
   /**
    * Brings up a file select dialog for choosing a resource directory.

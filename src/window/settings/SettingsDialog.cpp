@@ -71,6 +71,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetRightTurn, &QPushButton::clicked, ui.keyTurnRight, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetUp, &QPushButton::clicked, ui.keyUp, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetDown, &QPushButton::clicked, ui.keyDown, &SingleKeySequenceEdit::setDefault);
+
+  QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
+
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetRewind, &QPushButton::clicked, ui.keyRewind, &SingleKeySequenceEdit::setDefault);
 
@@ -95,6 +98,8 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetRightTurn->click();
     ui.buttonResetUp->click();
     ui.buttonResetDown->click();
+
+    ui.buttonResetSamples->click();
 
     ui.buttonResetPlay->click();
     ui.buttonResetRewind->click();
@@ -224,6 +229,11 @@ void SettingsDialog::defaultMouseTurnSpeed() {
 
 void SettingsDialog::defaultFieldOfView() {
   ui.sliderFieldOfView->setValue(static_cast<int>(settings.getDefault<float>(SettingsManager::Key::FieldOfView)));
+}
+
+void SettingsDialog::defaultSamples() {
+  ui.comboSamples->setCurrentIndex(
+      ui.comboSamples->findData(settings.getDefault<int>(SettingsManager::Key::NumberSamples)));
 }
 
 void SettingsDialog::selectResourcePath() {
