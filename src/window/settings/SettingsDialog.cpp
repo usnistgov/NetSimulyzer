@@ -29,6 +29,7 @@ void SettingsDialog::loadSettings() {
   const auto samples = *settings.get<int>(Key::NumberSamples);
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
+  ui.spinPlaybackSpeed->setValue(*settings.get<int>(Key::MsPerFrame));
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
   ui.keyRewind->setKeySequence(*settings.get<int>(Key::SceneKeyRewind));
 
@@ -74,6 +75,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
 
+  QObject::connect(ui.buttonResetPlaybackSpeed, &QPushButton::clicked, [this]() {
+    ui.spinPlaybackSpeed->setValue(settings.getDefault<int>(Key::MsPerFrame));
+  });
+
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetRewind, &QPushButton::clicked, ui.keyRewind, &SingleKeySequenceEdit::setDefault);
 
@@ -101,6 +106,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
 
     ui.buttonResetSamples->click();
 
+    ui.buttonResetPlaybackSpeed->click();
     ui.buttonResetPlay->click();
     ui.buttonResetRewind->click();
     break;
@@ -108,6 +114,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     bool requiresRestart = false;
     using Key = SettingsManager::Key;
 
+    // Camera
     const auto moveSpeed = static_cast<float>(ui.sliderMoveSpeed->value()) / moveSpeedScale;
     settings.set(Key::MoveSpeed, moveSpeed);
     emit moveSpeedChanged(moveSpeed);
@@ -172,10 +179,20 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit downKeyChanged(downKey);
     }
 
+    // Graphics
+
     const auto samples = ui.comboSamples->currentData().toInt();
     if (samples != settings.get<int>(Key::NumberSamples)) {
       settings.set(Key::NumberSamples, samples);
       requiresRestart = true;
+    }
+
+    // Playback
+
+    const auto msPerFrame = ui.spinPlaybackSpeed->value();
+    if (msPerFrame != settings.get<int>(Key::MsPerFrame).value()) {
+      settings.set(Key::MsPerFrame, msPerFrame);
+      emit playbackSpeedChanged(msPerFrame);
     }
 
     const auto playKey = ui.keyPlay->keySequence()[0];

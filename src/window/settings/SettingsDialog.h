@@ -207,6 +207,15 @@ signals:
   void downKeyChanged(int key);
 
   /**
+   * Signal emitted when the user saves a new Playback Speed
+   *
+   * @param ms
+   * The amount of time to pass per frame of the simulation
+   * in milliseconds
+   */
+  void playbackSpeedChanged(int ms);
+
+  /**
    * Signal emitted when the user saves a new Play/Pause Key
    *
    * @param key

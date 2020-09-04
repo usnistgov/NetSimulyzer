@@ -92,6 +92,13 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unique_ptr<Floor> floor;
 
   parser::GlobalConfiguration config;
+
+  /**
+   * Amount of time to advance/rewind `simulationTime`
+   * per frame in milliseconds.
+   */
+  int timeIncrement;
+
   double simulationTime = 0.0;
 
   std::vector<Area> areas;
@@ -151,6 +158,15 @@ public:
 
   void setPlayKey(int key);
   void setRewindKey(int key);
+
+  /**
+   * Set the time increment per frame of the simulation
+   * when playing/rewinding
+   *
+   * @param ms
+   * The time increment, in milliseconds
+   */
+  void setPlaybackSpeed(int ms);
 
   void setResourcePath(const QString &value);
 

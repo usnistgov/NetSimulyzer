@@ -219,7 +219,7 @@ void SceneWidget::paintGL() {
   renderer.endTransparent();
   frameTimer.restart();
   if (playMode == PlayMode::Play) {
-    simulationTime += config.millisecondsPerFrame;
+    simulationTime += timeIncrement;
     emit timeAdvanced(simulationTime);
 
     if (simulationTime >= config.endTime && playMode != PlayMode::Paused) {
@@ -227,7 +227,7 @@ void SceneWidget::paintGL() {
       emit pauseToggled(true);
     }
   } else if (playMode == PlayMode::Rewind) {
-    simulationTime -= config.millisecondsPerFrame;
+    simulationTime -= timeIncrement;
     emit timeRewound(simulationTime);
 
     if (simulationTime <= 0 && playMode != PlayMode::Paused) {
@@ -339,6 +339,8 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   }
 
   setResourcePath(resourceDirSetting.value());
+
+  timeIncrement = settings.get<int>(SettingsManager::Key::MsPerFrame).value();
 }
 
 void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
@@ -431,11 +433,14 @@ void SceneWidget::setRewindKey(int key) {
   rewindKey = static_cast<Qt::Key>(key);
 }
 
+void SceneWidget::setPlaybackSpeed(int ms) {
+  timeIncrement = ms;
+}
+
 void SceneWidget::setResourcePath(const QString &value) {
   textures.setResourceDirectory(QDir{value});
   models.setBasePath(value.toStdString());
 }
-
 void SceneWidget::pause() {
   playMode = PlayMode::Paused;
   emit pauseToggled(true);
