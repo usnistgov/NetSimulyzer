@@ -39,9 +39,16 @@ set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
 set(CMAKE_CXX_STANDARD 17)
 
-SET(ASSIMP_BUILD_TESTS CACHE BOOL OFF)
-SET(ASSIMP_NO_EXPORT CACHE BOOL ON)
-SET(BUILD_SHARED_LIBS CACHE BOOL OFF)
+# Assimp Settings
+option (ASSIMP_BUILD_TESTS "If the test suite for Assimp is built in addition to the library." ON)
+set(ASSIMP_BUILD_TESTS OFF)
+
+option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." OFF)
+set(ASSIMP_NO_EXPORT ON)
+
+option(BUILD_SHARED_LIBS "Build package with shared libraries." OFF)
+set(BUILD_SHARED_LIBS OFF)
+
 add_subdirectory(lib/assimp)
 # Suppress assimp warnings
 target_compile_options(assimp PRIVATE -w)
