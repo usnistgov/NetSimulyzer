@@ -1,0 +1,1101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "border-color": {
+            "type": "object",
+            "properties": {
+              "red": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "green": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "blue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "red",
+              "green",
+              "blue"
+            ]
+          },
+          "border-mode": {
+            "type": "string",
+            "enum": [
+              "solid",
+              "hidden"
+            ]
+          },
+          "fill-color": {
+            "type": "object",
+            "properties": {
+              "red": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "green": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "blue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "red",
+              "green",
+              "blue"
+            ]
+          },
+          "fill-mode": {
+            "type": "string",
+            "enum": [
+              "solid",
+              "hidden"
+            ]
+          },
+          "height": {
+            "type": "number"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            }
+          },
+          "type": {
+            "type": "string",
+            "const": "rectangular-area"
+          }
+        },
+        "required": [
+          "border-color",
+          "border-mode",
+          "fill-color",
+          "fill-mode",
+          "height",
+          "id",
+          "name",
+          "points",
+          "type"
+        ]
+      }
+    },
+    "buildings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bounds": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "object",
+                "properties": {
+                  "max": {
+                    "type": "number"
+                  },
+                  "min": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "min"
+                ]
+              },
+              "y": {
+                "type": "object",
+                "properties": {
+                  "max": {
+                    "type": "number"
+                  },
+                  "min": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "min"
+                ]
+              },
+              "z": {
+                "type": "object",
+                "properties": {
+                  "max": {
+                    "type": "number"
+                  },
+                  "min": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "min"
+                ]
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "color": {
+            "type": "object",
+            "properties": {
+              "red": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "green": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "blue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "red",
+              "green",
+              "blue"
+            ]
+          },
+          "floors": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "id": {
+            "type": "integer"
+          },
+          "rooms": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "const": "building"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "bounds",
+          "color",
+          "floors",
+          "id",
+          "rooms",
+          "type",
+          "visible"
+        ]
+      }
+    },
+    "configuration": {
+      "type": "object"
+    },
+    "decorations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "number",
+            "minimum": 0
+          },
+          "id": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "orientation": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "scale": {
+            "type": "number",
+            "minimum": 0
+          },
+          "type": {
+            "type": "string",
+            "const": "decoration"
+          }
+        },
+        "required": [
+          "height",
+          "id",
+          "model",
+          "opacity",
+          "orientation",
+          "position",
+          "scale",
+          "type"
+        ]
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "milliseconds": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "milliseconds"
+            ]
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "node-position"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "node-orientation"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "decoration-position"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "decoration-orientation"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "xy-series-append"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "series-id": {
+                  "type": "integer"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "series-id",
+                "x",
+                "y"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "category-series-append"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "series-id": {
+                  "type": "integer"
+                },
+                "category": {
+                  "type": "integer"
+                },
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "series-id",
+                "category",
+                "value"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "stream-append"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "stream-id": {
+                  "type": "integer"
+                },
+                "data": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream-id",
+                "data"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "number",
+            "minimum": 0
+          },
+          "id": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "orientation": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "scale": {
+            "type": "number",
+            "minimum": 0
+          },
+          "visible": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "const": "node"
+          }
+        },
+        "required": [
+          "height",
+          "id",
+          "model",
+          "name",
+          "offset",
+          "orientation",
+          "position",
+          "scale",
+          "type",
+          "visible"
+        ]
+      }
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "xy-series"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "alpha": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "alpha",
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                },
+                "connection": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "line",
+                    "spline"
+                  ]
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "labels": {
+                  "type": "string",
+                  "enum": [
+                    "hidden",
+                    "shown"
+                  ]
+                },
+                "legend": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "visible": {
+                  "type": "boolean"
+                },
+                "x-axis": {
+                  "type": "object",
+                  "properties": {
+                    "bound-mode": {
+                      "type": "string",
+                      "enum": [
+                        "fixed",
+                        "highest value"
+                      ]
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scale": {
+                      "type": "string",
+                      "enum": [
+                        "linear",
+                        "logarithmic"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bound-mode",
+                    "max",
+                    "min",
+                    "name",
+                    "scale"
+                  ]
+                },
+                "y-axis": {
+                  "type": "object",
+                  "properties": {
+                    "bound-mode": {
+                      "type": "string",
+                      "enum": [
+                        "fixed",
+                        "highest value"
+                      ]
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scale": {
+                      "type": "string",
+                      "enum": [
+                        "linear",
+                        "logarithmic"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bound-mode",
+                    "max",
+                    "min",
+                    "name",
+                    "scale"
+                  ]
+                }
+              },
+              "required": [
+                "color",
+                "connection",
+                "id",
+                "labels",
+                "legend",
+                "name",
+                "visible",
+                "x-axis",
+                "y-axis"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "category-value-series"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "alpha": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "alpha",
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "legend": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "visible": {
+                  "type": "boolean"
+                },
+                "x-axis": {
+                  "type": "object",
+                  "properties": {
+                    "bound-mode": {
+                      "type": "string",
+                      "enum": [
+                        "fixed",
+                        "highest value"
+                      ]
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scale": {
+                      "type": "string",
+                      "enum": [
+                        "linear",
+                        "logarithmic"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bound-mode",
+                    "max",
+                    "min",
+                    "name",
+                    "scale"
+                  ]
+                },
+                "y-axis": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "values": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "value"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "values"
+                  ]
+                }
+              },
+              "required": [
+                "color",
+                "id",
+                "legend",
+                "name",
+                "visible",
+                "x-axis",
+                "y-axis"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "series-collection"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "child-series": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "x-axis": {
+                  "type": "object",
+                  "properties": {
+                    "bound-mode": {
+                      "type": "string",
+                      "enum": [
+                        "fixed",
+                        "highest value"
+                      ]
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scale": {
+                      "type": "string",
+                      "enum": [
+                        "linear",
+                        "logarithmic"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bound-mode",
+                    "max",
+                    "min",
+                    "name",
+                    "scale"
+                  ]
+                },
+                "y-axis": {
+                  "type": "object",
+                  "properties": {
+                    "bound-mode": {
+                      "type": "string",
+                      "enum": [
+                        "fixed",
+                        "highest value"
+                      ]
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scale": {
+                      "type": "string",
+                      "enum": [
+                        "linear",
+                        "logarithmic"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bound-mode",
+                    "max",
+                    "min",
+                    "name",
+                    "scale"
+                  ]
+                }
+              },
+              "required": [
+                "child-series",
+                "id",
+                "name",
+                "x-axis",
+                "y-axis"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "object",
+            "properties": {
+              "red": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "green": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "blue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "red",
+              "green",
+              "blue"
+            ]
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "const": "stream"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "visible"
+        ]
+      }
+    }
+  },
+  "required": [
+    "areas",
+    "buildings",
+    "configuration",
+    "decorations",
+    "events",
+    "nodes",
+    "series",
+    "streams"
+  ]
+}
