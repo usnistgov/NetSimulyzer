@@ -14,7 +14,7 @@ public:
 public slots:
   void load(const QString &fileName);
 signals:
-  void fileLoaded(const QString &fileName, long milliseconds);
+  void fileLoaded(const QString &fileName, unsigned long long milliseconds);
 };
 
 } // namespace visualization

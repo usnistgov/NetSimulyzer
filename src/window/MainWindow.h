@@ -54,7 +54,7 @@ public:
   ~MainWindow() override;
 
 public slots:
-  void finishLoading(const QString &fileName, long milliseconds);
+  void finishLoading(const QString &fileName, unsigned long long milliseconds);
 
 signals:
   void startLoading(const QString &fileName);

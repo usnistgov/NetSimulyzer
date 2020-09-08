@@ -1,18 +1,18 @@
 #include "LoadWorker.h"
-#include <chrono>
+#include <QElapsedTimer>
 
 namespace visualization {
 
 void LoadWorker::load(const QString &fileName) {
-  using namespace std::chrono;
+  QElapsedTimer timer;
 
   parser.reset();
 
-  auto start = steady_clock::now();
+  timer.start();
   parser.parse(fileName.toStdString().c_str());
-  auto end = steady_clock::now();
+  auto elapsed = static_cast<unsigned long long>(timer.elapsed());
 
-  emit fileLoaded(fileName, duration_cast<milliseconds, long>(end - start).count());
+  emit fileLoaded(fileName, elapsed);
 }
 parser::FileParser &LoadWorker::getParser() {
   return parser;

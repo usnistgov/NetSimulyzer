@@ -233,7 +233,7 @@ void MainWindow::load() {
   emit startLoading(fileName);
 }
 
-void MainWindow::finishLoading(const QString &fileName, long milliseconds) {
+void MainWindow::finishLoading(const QString &fileName, unsigned long long milliseconds) {
   auto parser = loadWorker.getParser();
   render.setConfiguration(parser.getConfiguration());
 
