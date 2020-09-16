@@ -157,7 +157,6 @@ struct CategoryValueSeries {
   bool visible;
   std::string name;
   std::string legend;
-  ConnectionMode connectionMode = ConnectionMode::InCategory;
   uint8_t red = 0u;
   uint8_t green = 0u;
   uint8_t blue = 0u;

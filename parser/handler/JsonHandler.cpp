@@ -438,14 +438,6 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   series.green = object["color"].object()["green"].get<int>();
   series.red = object["color"].object()["red"].get<int>();
 
-  auto connectionMode = object["connection-mode"].get<std::string>();
-  if (connectionMode == "all")
-    series.connectionMode = parser::CategoryValueSeries::ConnectionMode::All;
-  else if (connectionMode == "in category")
-    series.connectionMode = parser::CategoryValueSeries::ConnectionMode::InCategory;
-  else
-    std::cerr << "Unrecognized connection mode: " << connectionMode << '\n';
-
   series.xAxis = valueAxisFromObject(object["x-axis"].object());
   series.yAxis = categoryAxisFromObject(object["y-axis"].object());
 
