@@ -190,7 +190,6 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
   node.name = object["name"].get<std::string>();
   node.model = object["model"].get<std::string>();
   node.scale = object["scale"].get<double>();
-  node.opacity = object["opacity"].get<double>();
 
   if (object.contains("height")) {
     node.height = object["height"].get<double>();
@@ -266,7 +265,6 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
   decoration.orientation[1] = object["orientation"].object()["y"].get<double>();
   decoration.orientation[2] = object["orientation"].object()["z"].get<double>();
 
-  decoration.opacity = object["opacity"].get<double>();
   decoration.scale = object["scale"].get<double>();
 
   fileParser.decorations.emplace_back(decoration);

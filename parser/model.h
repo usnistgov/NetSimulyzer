@@ -66,7 +66,6 @@ struct Node {
   std::string name;
   std::string model;
   float scale = 1.0f;
-  double opacity = 1.0; // TODO: Unused
   std::optional<float> height;
   bool visible = true;
   Ns3Coordinate position;
@@ -90,7 +89,6 @@ struct Decoration {
   std::string model;
   Ns3Coordinate position;
   std::array<double, 3> orientation{0.0};
-  double opacity = 1.0;
   std::optional<float> height;
   float scale = 1.0f;
 };
