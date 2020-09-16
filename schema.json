@@ -247,7 +247,13 @@
       }
     },
     "configuration": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "ms-per-frame": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
     },
     "decorations": {
       "type": "array",

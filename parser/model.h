@@ -54,6 +54,7 @@ struct Ns3Color3 {
 
 struct GlobalConfiguration {
   double endTime = 0.0;
+  std::optional<double> msPerFrame;
   Ns3Coordinate minLocation;
   Ns3Coordinate maxLocation;
 };

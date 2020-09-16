@@ -339,8 +339,6 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   }
 
   setResourcePath(resourceDirSetting.value());
-
-  timeIncrement = settings.get<int>(SettingsManager::Key::MsPerFrame).value();
 }
 
 void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
@@ -353,6 +351,11 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
   // Don't resize beneath the default
   if (newSize > 100.0f)
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
+
+  if (configuration.msPerFrame)
+    timeIncrement = configuration.msPerFrame.value();
+  else
+    timeIncrement = 10.0;
 }
 
 void SceneWidget::reset() {
@@ -433,7 +436,7 @@ void SceneWidget::setRewindKey(int key) {
   rewindKey = static_cast<Qt::Key>(key);
 }
 
-void SceneWidget::setPlaybackSpeed(int ms) {
+void SceneWidget::setPlaybackSpeed(double ms) {
   timeIncrement = ms;
 }
 

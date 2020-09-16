@@ -147,8 +147,6 @@ MainWindow::MainWindow() : QMainWindow() {
     camera.setKeyDown(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::playbackSpeedChanged, &render, &SceneWidget::setPlaybackSpeed);
-
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, &render, &SceneWidget::setPlayKey);
 
   QObject::connect(&settingsDialog, &SettingsDialog::rewindKeyChanged, &render, &SceneWidget::setRewindKey);

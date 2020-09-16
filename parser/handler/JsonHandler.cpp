@@ -178,10 +178,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
-  // TODO: Remove later (v0.2.0)
   if (object.contains("ms-per-frame")) {
-    std::cerr << "Property 'ms-per-frame' is deprecated, value ignored.\n"
-                 "Go to File -> Settings dialog to set playback speed\n";
+    fileParser.globalConfiguration.msPerFrame = object["ms-per-frame"].get<double>();
   }
 }
 

@@ -39,8 +39,7 @@ public:
     SceneKeyPlay,
     SceneKeyRewind,
     MainWindowState,
-    NumberSamples,
-    MsPerFrame
+    NumberSamples
   };
 
   /**
@@ -84,7 +83,7 @@ private:
       {Key::SceneKeyRewind, {"scene/keyRewind", Qt::Key_R}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
-      {Key::MsPerFrame, {"playback/msPerFrame", 10}}};
+  };
 
   /**
    * Get the Qt key for the corresponding enum value.

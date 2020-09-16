@@ -97,7 +97,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
    * Amount of time to advance/rewind `simulationTime`
    * per frame in milliseconds.
    */
-  int timeIncrement;
+  double timeIncrement = 10.0;
 
   double simulationTime = 0.0;
 
@@ -166,7 +166,7 @@ public:
    * @param ms
    * The time increment, in milliseconds
    */
-  void setPlaybackSpeed(int ms);
+  void setPlaybackSpeed(double ms);
 
   void setResourcePath(const QString &value);
 
