@@ -53,7 +53,6 @@ add_subdirectory(lib/assimp)
 # Suppress assimp warnings
 target_compile_options(assimp PRIVATE -w)
 
-add_subdirectory(lib/json)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
 
