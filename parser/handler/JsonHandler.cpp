@@ -222,23 +222,9 @@ void JsonHandler::parseBuilding(const util::json::JsonObject &object) {
 
   building.id = object["id"].get<int>();
 
-  if (object.contains("color")) {
-    building.color.red = object["color"].object()["red"].get<int>();
-    building.color.green = object["color"].object()["green"].get<int>();
-    building.color.blue = object["color"].object()["blue"].get<int>();
-  } else {
-    // TODO: Remove later (v0.2.0)
-    std::cerr << "Warning: Building ID " << building.id
-              << " does not define a color! "
-                 "'color' is a new, required attribute. "
-                 "This message will be replaced with a parse error "
-                 "in a future version!\n";
-
-    // Old default color
-    building.color.red = 204u;
-    building.color.green = 204u;
-    building.color.blue = 204u;
-  }
+  building.color.red = object["color"].object()["red"].get<int>();
+  building.color.green = object["color"].object()["green"].get<int>();
+  building.color.blue = object["color"].object()["blue"].get<int>();
 
   building.visible = object["visible"].get<bool>();
   building.floors = object["floors"].get<int>();
@@ -408,27 +394,8 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
   series.id = object["id"].get<int>();
   series.name = object["name"].get<std::string>();
 
-  // TODO: Remove later (v0.2.0)
-  if (!object.contains("legend")) {
-    std::cerr << "XY Series ID: " << series.id
-              << " Missing required attribute 'legend'.\n"
-                 "This message will be replaced with a "
-                 "parse error in the future\n";
-    series.legend = series.name;
-  } else {
-    series.legend = object["legend"].get<std::string>();
-  }
-
-  // TODO: Remove later (v0.2.0)
-  if (!object.contains("visible")) {
-    std::cerr << "XY Series ID: " << series.id
-              << " Missing required attribute 'visible'.\n"
-                 "This message will be replaced with a "
-                 "parse error in the future\n";
-    series.visible = true;
-  } else {
-    series.visible = object["visible"].get<bool>();
-  }
+  series.legend = object["legend"].get<std::string>();
+  series.visible = object["visible"].get<bool>();
 
   series.alpha = object["color"].object()["alpha"].get<int>();
   series.blue = object["color"].object()["blue"].get<int>();
@@ -465,27 +432,8 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   series.id = object["id"].get<int>();
   series.name = object["name"].get<std::string>();
 
-  // TODO: Remove later (v0.2.0)
-  if (!object.contains("legend")) {
-    std::cerr << "Category Value Series ID: " << series.id
-              << " Missing required attribute 'legend'.\n"
-                 "This message will be replaced with a "
-                 "parse error in the future\n";
-    series.legend = series.name;
-  } else {
-    series.legend = object["legend"].get<std::string>();
-  }
-
-  // TODO: Remove later (v0.2.0)
-  if (!object.contains("visible")) {
-    std::cerr << "Category Value Series ID: " << series.id
-              << " Missing required attribute 'visible'.\n"
-                 "This message will be replaced with a "
-                 "parse error in the future\n";
-    series.visible = true;
-  } else {
-    series.visible = object["visible"].get<bool>();
-  }
+  series.legend = object["legend"].get<std::string>();
+  series.visible = object["visible"].get<bool>();
 
   series.alpha = object["color"].object()["alpha"].get<int>();
   series.blue = object["color"].object()["blue"].get<int>();
@@ -535,16 +483,7 @@ void JsonHandler::parseLogStream(const util::json::JsonObject &object) {
     stream.color = color;
   }
 
-  // TODO: Remove later (v0.2.0)
-  if (!object.contains("visible")) {
-    std::cerr << "Log Stream ID: " << stream.id << " "
-              << "Missing required attribute 'visible'.\n"
-                 "This message will be replaced with a "
-                 "parse error in the future\n";
-    stream.visible = true;
-  } else {
-    stream.visible = object["visible"].get<bool>();
-  }
+  stream.visible = object["visible"].get<bool>();
 
   fileParser.logStreams.emplace_back(stream);
 }
