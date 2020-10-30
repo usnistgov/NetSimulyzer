@@ -108,12 +108,8 @@ bool validateResourceDir(const QString &path) {
  * The path from the user. Empty string if nothing was selected
  */
 std::optional<QFileInfo> promptResourceDir() {
-  auto selected =
-#ifdef __APPLE__
-      QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
-#else
-      QFileDialog::getExistingDirectory(nullptr, "Select a resource Directory", "", QFileDialog::DontUseNativeDialog);
-#endif
+  auto selected = QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
+
 
   if (!validateResourceDir(selected)) {
     QMessageBox::critical(nullptr, "Invalid resource directory selected",
