@@ -60,4 +60,5 @@ target_sources(visualization PRIVATE
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
+        window/playback/PlaybackWidget.cpp window/playback/PlaybackWidget.h window/playback/PlaybackWidget.ui
         conversion.h conversion.cpp)

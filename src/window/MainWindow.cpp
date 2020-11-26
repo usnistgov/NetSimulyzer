@@ -34,6 +34,7 @@
 #include "MainWindow.h"
 #include "LoadWorker.h"
 #include "about/AboutDialog.h"
+#include "src/conversion.h"
 #include <QAction>
 #include <QDebug>
 #include <QDockWidget>
@@ -54,6 +55,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
   ui.nodesDock->setWidget(&nodeWidget);
   ui.logDock->setWidget(&logWidget);
+  ui.playbackDock->setWidget(&playbackWidget);
 
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
@@ -66,6 +68,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -73,21 +76,31 @@ MainWindow::MainWindow() : QMainWindow() {
   // should we choose to do so
   ui.statusbar->insertWidget(0, &statusLabel);
 
-  QObject::connect(&render, &SceneWidget::timeAdvanced, &charts, &ChartManager::timeAdvanced);
-  QObject::connect(&render, &SceneWidget::timeRewound, &charts, &ChartManager::timeRewound);
-
-  QObject::connect(&render, &SceneWidget::timeAdvanced, &logWidget, &ScenarioLogWidget::timeAdvanced);
-  QObject::connect(&render, &SceneWidget::timeRewound, &logWidget, &ScenarioLogWidget::timeRewound);
-
-  QObject::connect(&render, &SceneWidget::timeAdvanced, this, &MainWindow::timeChanged);
-  QObject::connect(&render, &SceneWidget::timeRewound, this, &MainWindow::timeChanged);
-
-  QObject::connect(&render, &SceneWidget::pauseToggled, [this](bool paused) {
-    // clears any temporary messages when playback is started/resumed
-    // so the time is visible
-    if (!paused)
-      ui.statusbar->clearMessage();
+  QObject::connect(&render, &SceneWidget::timeChanged, this, &MainWindow::timeChanged);
+  QObject::connect(&render, &SceneWidget::timeChanged, &charts, &ChartManager::timeChanged);
+  QObject::connect(&render, &SceneWidget::timeChanged, &logWidget, &ScenarioLogWidget::timeChanged);
+  QObject::connect(&render, &SceneWidget::timeChanged, [this](double time, double /* increment */) {
+    playbackWidget.setTime(time);
   });
+
+  QObject::connect(ui.actionPlayPause, &QAction::triggered, [this]() {
+    if (playbackWidget.isPlaying()) {
+      playbackWidget.setPaused();
+      render.pause();
+      return;
+    }
+
+    playbackWidget.setPlaying();
+    render.play();
+  });
+
+  QObject::connect(&playbackWidget, &PlaybackWidget::play, &render, &SceneWidget::play);
+  QObject::connect(&playbackWidget, &PlaybackWidget::pause, &render, &SceneWidget::pause);
+
+  QObject::connect(&playbackWidget, &PlaybackWidget::timeSet, &render, &SceneWidget::setTime);
+
+  QObject::connect(&render, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
+  QObject::connect(&render, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &SceneWidget::focusNode);
 
@@ -147,9 +160,11 @@ MainWindow::MainWindow() : QMainWindow() {
     camera.setKeyDown(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, &render, &SceneWidget::setPlayKey);
+  QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
+    ui.actionPlayPause->setShortcut(QKeySequence{key});
+  });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::rewindKeyChanged, &render, &SceneWidget::setRewindKey);
+  QObject::connect(&settingsDialog, &SettingsDialog::timeStepSet, &render, &SceneWidget::setTimeStep);
 
   QObject::connect(&settingsDialog, &SettingsDialog::resourcePathChanged, &render, &SceneWidget::setResourcePath);
 
@@ -172,41 +187,9 @@ MainWindow::~MainWindow() {
   // Make sure the thread has time to close before trying to destroy it
   loadThread.wait();
 }
-void MainWindow::timeChanged(double time) {
-  auto convertedTime = static_cast<long>(time);
 
-  // combine / and %
-  auto result = std::div(convertedTime, 1000L);
-  auto milliseconds = result.rem;
-
-  result = std::div(result.quot, 60L);
-  auto seconds = result.rem;
-
-  result = std::div(result.quot, 60L);
-  auto minutes = result.rem;
-
-  // Dump the rest in as hours
-  auto hours = result.quot;
-
-  QString label;
-  if (convertedTime > 3'600'000) /* 1 Hour in ms */ {
-    label = QString{"%1:%2:%3.%4"}
-                .arg(hours)
-                .arg(minutes, 2, 10, QChar{'0'})
-                .arg(seconds, 2, 10, QChar{'0'})
-                .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime > 60'000L) /* 1 minute in ms */ {
-    label = QString{"%1:%2.%3"}
-                .arg(minutes, 2, 10, QChar{'0'})
-                .arg(seconds, 2, 10, QChar{'0'})
-                .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime > 1000L) {
-    label = QString{"%1.%2"}.arg(seconds, 2, 10, QChar{'0'}).arg(milliseconds, 3, 10, QChar{'0'});
-  } else {
-    label.append('.' + QString::number(milliseconds));
-  }
-
-  statusLabel.setText(label);
+void MainWindow::timeChanged(double time, double /* increment */) {
+  statusLabel.setText(toDisplayTime(time));
 }
 
 void MainWindow::load() {
@@ -222,12 +205,20 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   render.reset();
   nodeWidget.reset();
+  playbackWidget.reset();
   emit startLoading(fileName);
 }
 
 void MainWindow::finishLoading(const QString &fileName, unsigned long long milliseconds) {
   auto parser = loadWorker.getParser();
-  render.setConfiguration(parser.getConfiguration());
+  const auto config = parser.getConfiguration();
+  render.setConfiguration(config);
+
+  playbackWidget.setMaxTime(config.endTime);
+  if (config.msPerFrame)
+    settingsDialog.setTimeStep(config.msPerFrame.value());
+  else
+    settingsDialog.setTimeStep(10.0);
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();
@@ -261,6 +252,8 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
   std::clog << "Scenario loaded in " << milliseconds << "ms\n";
   ui.statusbar->showMessage("Successfully loaded scenario: " + fileName + " in " + QString::number(milliseconds) + "ms",
                             10000);
+
+  playbackWidget.enableControls();
   statusLabel.setText("Ready");
   loading = false;
   ui.actionLoad->setEnabled(true);

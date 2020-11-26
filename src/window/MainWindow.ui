@@ -51,9 +51,16 @@
     </property>
     <addaction name="actionResetCameraPosition"/>
    </widget>
+   <widget class="QMenu" name="menuPlayback">
+    <property name="title">
+     <string>&amp;Playback</string>
+    </property>
+    <addaction name="actionPlayPause"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCamera"/>
    <addaction name="menuWindow"/>
+   <addaction name="menuPlayback"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="nodesDock">
@@ -98,6 +105,18 @@
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
+  </widget>
+  <widget class="QDockWidget" name="playbackDock">
+   <property name="allowedAreas">
+    <set>Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>&amp;Playback</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2"/>
   </widget>
   <action name="actionLoad">
    <property name="text">
@@ -166,6 +185,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionPlayPause">
+   <property name="text">
+    <string>Play/Pause</string>
+   </property>
+   <property name="shortcut">
+    <string>P</string>
    </property>
   </action>
  </widget>

@@ -132,6 +132,9 @@ private:
    */
   void clearSeries(const ChartWidget *except, unsigned int id);
 
+  void timeAdvanced(double time);
+  void timeRewound(double time);
+
 public:
   explicit ChartManager(QWidget *parent);
 
@@ -160,8 +163,7 @@ public:
   TieVariant &getSeries(uint32_t seriesId);
 
   void seriesSelected(const ChartWidget *widget, unsigned int selected);
-  void timeAdvanced(double time);
-  void timeRewound(double time);
+  void timeChanged(double time, double increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 };
 

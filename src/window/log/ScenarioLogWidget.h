@@ -113,13 +113,15 @@ class ScenarioLogWidget : public QWidget {
   void streamSelected(unsigned int id);
   int printToUnifiedLog(LogStreamPair &pair, const QString &value);
 
+  void timeAdvanced(double time);
+  void timeRewound(double time);
+
 public:
   explicit ScenarioLogWidget(QWidget *parent = nullptr);
 
   void addStream(const parser::LogStream &stream);
   void enqueueEvents(const std::vector<parser::LogEvent> &e);
-  void timeAdvanced(double time);
-  void timeRewound(double time);
+  void timeChanged(double time, double increment);
   void reset();
 };
 

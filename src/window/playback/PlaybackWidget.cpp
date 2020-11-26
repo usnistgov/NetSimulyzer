@@ -31,62 +31,74 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "playback/PlaybackWidget.h"
-#include "scene/SceneWidget.h"
-#include "settings/SettingsDialog.h"
-#include "ui_MainWindow.h"
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
+#include "PlaybackWidget.h"
+#include "src/conversion.h"
+#include <QObject>
+#include <QPushButton>
+#include <QString>
 
 namespace visualization {
-class MainWindow : public QMainWindow {
-  Q_OBJECT
 
-public:
-  MainWindow();
-  ~MainWindow() override;
+PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
+  ui.setupUi(this);
+  ui.buttonPlayPause->setIcon(playIcon);
 
-public slots:
-  void finishLoading(const QString &fileName, unsigned long long milliseconds);
+  QObject::connect(ui.buttonPlayPause, &QPushButton::pressed, [this]() {
+    playing = !playing;
+    if (playing) {
+      ui.buttonPlayPause->setIcon(pauseIcon);
+      emit play();
+    } else {
+      ui.buttonPlayPause->setIcon(playIcon);
+      emit pause();
+    }
+  });
 
-signals:
-  void startLoading(const QString &fileName);
+  QObject::connect(ui.timelineSlider, &QSlider::valueChanged, this, &PlaybackWidget::sliderMoved);
+}
 
-private:
-  const int stateVersion = 4;
-  SettingsManager settings;
-  SettingsDialog settingsDialog{this};
+void PlaybackWidget::setMaxTime(double value) {
+  formattedMaxTime = toDisplayTime(value);
+  maxTime = value;
+  ui.timelineSlider->setMaximum(static_cast<int>(value));
+  ui.labelTime->setText(QString{"0.000 / "} + formattedMaxTime);
+}
 
-  ChartManager charts{this};
-  NodeWidget nodeWidget{this};
-  ScenarioLogWidget logWidget{this};
-  SceneWidget render{this};
-  PlaybackWidget playbackWidget{this};
-  Ui::MainWindow ui{};
+void PlaybackWidget::setTime(double simulationTime) {
+  ui.timelineSlider->setValue(static_cast<int>(simulationTime));
+  ui.labelTime->setText(toDisplayTime(simulationTime) + " / " + formattedMaxTime);
+}
 
-  /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
-   */
-  QLabel statusLabel{"Load Scenario", this};
+void PlaybackWidget::sliderMoved(int value) {
+  setTime(static_cast<double>(value));
+  emit timeSet(static_cast<double>(value));
+}
 
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
+void PlaybackWidget::reset() {
+  ui.timelineSlider->setValue(0);
+  setMaxTime(0.0);
 
-  void timeChanged(double time, double increment);
-  void load();
+  ui.buttonPlayPause->setEnabled(false);
+  ui.timelineSlider->setEnabled(false);
+}
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
-};
+void PlaybackWidget::enableControls() {
+  ui.buttonPlayPause->setEnabled(true);
+  ui.timelineSlider->setEnabled(true);
+}
+
+bool PlaybackWidget::isPlaying() const {
+  return playing;
+}
+
+void PlaybackWidget::setPlaying() {
+  ui.buttonPlayPause->setIcon(pauseIcon);
+  playing = true;
+}
+
+void PlaybackWidget::setPaused() {
+  ui.buttonPlayPause->setIcon(playIcon);
+  playing = false;
+}
+
 } // namespace visualization

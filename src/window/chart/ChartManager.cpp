@@ -261,80 +261,6 @@ void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
   }
 }
 
-void ChartManager::spawnWidget(QMainWindow *parent) {
-  auto newWidget = new ChartWidget{parent, *this, dropdownElements};
-  parent->addDockWidget(Qt::RightDockWidgetArea, newWidget);
-
-  chartWidgets.emplace_back(newWidget);
-}
-
-void ChartManager::clearWidgets() {
-  for (auto widget : chartWidgets) {
-    widget->close();
-    widget->deleteLater();
-  }
-
-  chartWidgets.clear();
-}
-
-void ChartManager::widgetClosed(ChartWidget *widget) {
-  // Remove the closed widget from our list
-  chartWidgets.erase(std::remove(chartWidgets.begin(), chartWidgets.end(), widget), chartWidgets.end());
-}
-
-void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
-  for (auto &iterator : series) {
-    // Only update collections
-    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
-      continue;
-
-    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
-
-    // Only update the collection's ranges if it actually contains the series
-    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
-        collection.model.series.end()) {
-      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-        updateRange(collection.xAxis, x);
-      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-        updateRange(collection.yAxis, y);
-    }
-  }
-}
-
-ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
-  const auto &seriesIterator = series.find(seriesId);
-  if (seriesIterator == series.end()) {
-    QMessageBox::critical(qobject_cast<QMainWindow *>(parent()), "Series not found",
-                          "The selected series was not found");
-    std::abort();
-  }
-
-  return seriesIterator->second;
-}
-
-void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int selected) {
-  if (selected == PlaceholderId)
-    return;
-
-  clearSeries(widget, selected);
-
-  // If a collection was selected, clear the child series
-  const auto &tie = series[selected];
-  if (std::holds_alternative<SeriesCollectionTie>(tie)) {
-    const auto &tieValue = std::get<SeriesCollectionTie>(tie);
-
-    for (const auto seriesId : tieValue.model.series)
-      clearSeries(widget, seriesId);
-  } else if (std::holds_alternative<XYSeriesTie>(tie)) {
-    // Clear all the collections this series belongs to as well
-    // Only XYSeries may belong to collections
-    const auto &tieModel = std::get<XYSeriesTie>(tie).model;
-    const auto collections = inCollections(tieModel.id);
-    for (const auto id : collections)
-      clearSeries(widget, id);
-  }
-}
-
 void ChartManager::timeAdvanced(double time) {
   auto handleEvent = [time, this](auto &&e) {
     // Strip off qualifiers, etc
@@ -422,6 +348,88 @@ void ChartManager::timeRewound(double time) {
     undoEvents.pop_back();
   }
 }
+
+void ChartManager::spawnWidget(QMainWindow *parent) {
+  auto newWidget = new ChartWidget{parent, *this, dropdownElements};
+  parent->addDockWidget(Qt::RightDockWidgetArea, newWidget);
+
+  chartWidgets.emplace_back(newWidget);
+}
+
+void ChartManager::clearWidgets() {
+  for (auto widget : chartWidgets) {
+    widget->close();
+    widget->deleteLater();
+  }
+
+  chartWidgets.clear();
+}
+
+void ChartManager::widgetClosed(ChartWidget *widget) {
+  // Remove the closed widget from our list
+  chartWidgets.erase(std::remove(chartWidgets.begin(), chartWidgets.end(), widget), chartWidgets.end());
+}
+
+void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
+  for (auto &iterator : series) {
+    // Only update collections
+    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
+      continue;
+
+    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
+
+    // Only update the collection's ranges if it actually contains the series
+    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
+        collection.model.series.end()) {
+      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
+        updateRange(collection.xAxis, x);
+      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
+        updateRange(collection.yAxis, y);
+    }
+  }
+}
+
+ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
+  const auto &seriesIterator = series.find(seriesId);
+  if (seriesIterator == series.end()) {
+    QMessageBox::critical(qobject_cast<QMainWindow *>(parent()), "Series not found",
+                          "The selected series was not found");
+    std::abort();
+  }
+
+  return seriesIterator->second;
+}
+
+void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int selected) {
+  if (selected == PlaceholderId)
+    return;
+
+  clearSeries(widget, selected);
+
+  // If a collection was selected, clear the child series
+  const auto &tie = series[selected];
+  if (std::holds_alternative<SeriesCollectionTie>(tie)) {
+    const auto &tieValue = std::get<SeriesCollectionTie>(tie);
+
+    for (const auto seriesId : tieValue.model.series)
+      clearSeries(widget, seriesId);
+  } else if (std::holds_alternative<XYSeriesTie>(tie)) {
+    // Clear all the collections this series belongs to as well
+    // Only XYSeries may belong to collections
+    const auto &tieModel = std::get<XYSeriesTie>(tie).model;
+    const auto collections = inCollections(tieModel.id);
+    for (const auto id : collections)
+      clearSeries(widget, id);
+  }
+}
+
+void ChartManager::timeChanged(double time, double increment) {
+  if (increment > 0)
+    timeAdvanced(time);
+  else
+    timeRewound(time);
+}
+
 void ChartManager::enqueueEvents(const std::vector<parser::ChartEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
@@ -477,8 +485,9 @@ void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
 
     break;
   case SortOrder::Id:
-    std::sort(dropdownElements.begin(), dropdownElements.end(),
-              [](const auto &left, const auto &right) -> bool { return left.id < right.id; });
+    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
+      return left.id < right.id;
+    });
     break;
   case SortOrder::None:
     // Intentionally Blank

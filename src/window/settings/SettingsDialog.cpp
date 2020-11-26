@@ -32,6 +32,8 @@ void SettingsDialog::loadSettings() {
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
   ui.keyRewind->setKeySequence(*settings.get<int>(Key::SceneKeyRewind));
 
+  // Time Step is session based (so no setting to load)
+
   ui.lineEditResource->setText(resourcePath);
 }
 
@@ -76,10 +78,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetRewind, &QPushButton::clicked, ui.keyRewind, &SingleKeySequenceEdit::setDefault);
+  QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
 
   QObject::connect(ui.buttonResource, &QPushButton::clicked, this, &SettingsDialog::selectResourcePath);
 
   QObject::connect(ui.buttonBox, &QDialogButtonBox::clicked, this, &SettingsDialog::dialogueButtonClicked);
+}
+
+void SettingsDialog::setTimeStep(double value) {
+  ui.spinTimeStep->setValue(static_cast<int>(value));
+
+  passedTimeStep = value;
 }
 
 void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
@@ -200,6 +209,10 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       settings.set(Key::ResourcePath, resourcePath);
       emit resourcePathChanged(resourcePath);
     }
+
+    // Since we don't have a setting for this, just assume it's always different
+    emit timeStepSet(static_cast<double>(ui.spinTimeStep->value()));
+
     settings.sync();
 
     if (requiresRestart)
@@ -239,6 +252,10 @@ void SettingsDialog::defaultFieldOfView() {
 void SettingsDialog::defaultSamples() {
   ui.comboSamples->setCurrentIndex(
       ui.comboSamples->findData(settings.getDefault<int>(SettingsManager::Key::NumberSamples)));
+}
+
+void SettingsDialog::defaultTimeStep() {
+  ui.spinTimeStep->setValue(static_cast<int>(passedTimeStep));
 }
 
 void SettingsDialog::selectResourcePath() {

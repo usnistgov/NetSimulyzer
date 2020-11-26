@@ -33,60 +33,42 @@
 
 #pragma once
 
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "playback/PlaybackWidget.h"
-#include "scene/SceneWidget.h"
-#include "settings/SettingsDialog.h"
-#include "ui_MainWindow.h"
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
+#include "ui_PlaybackWidget.h"
+#include <QIcon>
+#include <QString>
+#include <QStyle>
+#include <QWidget>
 
 namespace visualization {
-class MainWindow : public QMainWindow {
+
+class PlaybackWidget : public QWidget {
   Q_OBJECT
 
-public:
-  MainWindow();
-  ~MainWindow() override;
+private:
+  Ui::PlaybackWidget ui{};
+  double maxTime{0.0};
+  QString formattedMaxTime{"0.000"};
+  bool playing{false};
+  const QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
+  const QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
 
-public slots:
-  void finishLoading(const QString &fileName, unsigned long long milliseconds);
+public:
+  explicit PlaybackWidget(QWidget *parent = nullptr);
+
+  void setMaxTime(double value);
+  void setTime(double simulationTime);
+  void sliderMoved(int value);
+  void reset();
+  void enableControls();
+
+  [[nodiscard]] bool isPlaying() const;
+  void setPlaying();
+  void setPaused();
 
 signals:
-  void startLoading(const QString &fileName);
-
-private:
-  const int stateVersion = 4;
-  SettingsManager settings;
-  SettingsDialog settingsDialog{this};
-
-  ChartManager charts{this};
-  NodeWidget nodeWidget{this};
-  ScenarioLogWidget logWidget{this};
-  SceneWidget render{this};
-  PlaybackWidget playbackWidget{this};
-  Ui::MainWindow ui{};
-
-  /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
-   */
-  QLabel statusLabel{"Load Scenario", this};
-
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
-
-  void timeChanged(double time, double increment);
-  void load();
-
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  void play();
+  void pause();
+  void timeSet(double time);
 };
+
 } // namespace visualization

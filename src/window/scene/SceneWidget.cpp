@@ -185,10 +185,12 @@ void SceneWidget::initializeGL() {
 }
 
 void SceneWidget::paintGL() {
-  if (playMode == PlayMode::Play)
-    handleEvents();
-  else if (playMode == PlayMode::Rewind)
-    handleUndoEvents();
+  if (playMode == PlayMode::Play) {
+    if (timeStep > 0.0)
+      handleEvents();
+    else if (timeStep < 0.0)
+      handleUndoEvents();
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
   camera.move(static_cast<float>(frameTimer.elapsed()));
@@ -218,22 +220,25 @@ void SceneWidget::paintGL() {
   }
   renderer.endTransparent();
   frameTimer.restart();
-  if (playMode == PlayMode::Play) {
-    simulationTime += timeIncrement;
-    emit timeAdvanced(simulationTime);
 
-    if (simulationTime >= config.endTime && playMode != PlayMode::Paused) {
-      playMode = PlayMode::Paused;
-      emit pauseToggled(true);
-    }
-  } else if (playMode == PlayMode::Rewind) {
-    simulationTime -= timeIncrement;
-    emit timeRewound(simulationTime);
+  if (playMode == PlayMode::Paused)
+    return;
 
-    if (simulationTime <= 0 && playMode != PlayMode::Paused) {
-      playMode = PlayMode::Paused;
-      emit pauseToggled(true);
-    }
+  simulationTime += timeStep;
+  emit timeChanged(simulationTime, timeStep);
+
+  const auto pastEnd = timeStep > 0.0 && simulationTime >= config.endTime;
+  const auto pastBeginning = timeStep < 0.0 && simulationTime <= 0.0;
+  if ((pastEnd || pastBeginning) && playMode == PlayMode::Play) {
+    pause();
+
+    // Correct times so they match up with the end/beginning
+    // Useful if the increment does not match up with
+    // the end time
+    if (pastEnd)
+      setTime(config.endTime);
+    else
+      setTime(0.0);
   }
 }
 
@@ -246,21 +251,20 @@ void SceneWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
 
-  if (event->key() == pauseKey && config.endTime >= simulationTime) {
-    if (playMode == PlayMode::Play)
-      playMode = PlayMode::Paused;
-    else
-      playMode = PlayMode::Play;
-
-    emit pauseToggled(playMode == PlayMode::Paused);
-  } else if (event->key() == rewindKey && simulationTime > 0.0) {
-    if (playMode == PlayMode::Rewind)
-      playMode = PlayMode::Paused;
-    else
-      playMode = PlayMode::Rewind;
-
-    emit pauseToggled(playMode == PlayMode::Paused);
-  }
+  //  if (event->key() == pauseKey) {
+  //    if (playMode == PlayMode::Play) {
+  //      pause();
+  //      return;
+  //    }
+  //
+  //    // If playing moves time forward, make sure we don't go past the end time
+  //    auto forwardOkay = timeIncrement > 0.0 && simulationTime < config.endTime;
+  //    // If playing moves time backward, make sure we don't go past 0ms (the beginning)
+  //    auto backwardOkay = timeIncrement < 0.0 && simulationTime > 0.0;
+  //    if (forwardOkay || backwardOkay) {
+  //      play();
+  //    }
+  //  }
 }
 
 void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
@@ -353,9 +357,9 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
 
   if (configuration.msPerFrame)
-    timeIncrement = configuration.msPerFrame.value();
+    timeStep = configuration.msPerFrame.value();
   else
-    timeIncrement = 10.0;
+    timeStep = 10.0;
 }
 
 void SceneWidget::reset() {
@@ -428,25 +432,43 @@ void SceneWidget::updatePerspective() {
                                            static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
 }
 
-void SceneWidget::setPlayKey(int key) {
-  pauseKey = static_cast<Qt::Key>(key);
-}
-
-void SceneWidget::setRewindKey(int key) {
-  rewindKey = static_cast<Qt::Key>(key);
-}
-
 void SceneWidget::setPlaybackSpeed(double ms) {
-  timeIncrement = ms;
+  timeStep = ms;
 }
 
 void SceneWidget::setResourcePath(const QString &value) {
   textures.setResourceDirectory(QDir{value});
   models.setBasePath(value.toStdString());
 }
+
+void SceneWidget::play() {
+  playMode = PlayMode::Play;
+
+  emit playing();
+}
+
 void SceneWidget::pause() {
   playMode = PlayMode::Paused;
-  emit pauseToggled(true);
+
+  emit paused();
+}
+
+void SceneWidget::setTime(double value) {
+  const auto oldTime = simulationTime;
+
+  simulationTime = value;
+  const auto diff = simulationTime - oldTime;
+
+  if (diff > 0.0)
+    handleEvents();
+  else
+    handleUndoEvents();
+
+  emit timeChanged(simulationTime, diff);
+}
+
+void SceneWidget::setTimeStep(double value) {
+  timeStep = value;
 }
 
 } // namespace visualization

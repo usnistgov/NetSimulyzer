@@ -63,6 +63,13 @@ class SettingsDialog : public QDialog {
   QString resourcePath = *settings.get<QString>(SettingsManager::Key::ResourcePath);
 
   /**
+   * Default vale to use for the time step.
+   *
+   * Also set by `setTimeStep`
+   */
+  double passedTimeStep = 10.0;
+
+  /**
    * Callback for when a button at the bottom of the dialog is clicked
    *
    * @param button
@@ -96,6 +103,13 @@ class SettingsDialog : public QDialog {
   void defaultSamples();
 
   /**
+   * Set the default value for the time step spinner.
+   *
+   * Sets the value passed to `setTimeStep` if one was provided
+   */
+  void defaultTimeStep();
+
+  /**
    * Brings up a file select dialog for choosing a resource directory.
    * Validates and stores result in `resourcePath` and the `LineEdit`
    */
@@ -108,6 +122,16 @@ class SettingsDialog : public QDialog {
 
 public:
   explicit SettingsDialog(QWidget *parent = nullptr);
+
+  /**
+   * Sets the time step spinner to `value`.
+   * Does not trigger the `timeStepSet` signal
+   *
+   * @param value
+   * The value to set the spinner to.
+   * Should be a whole number
+   */
+  void setTimeStep(double value);
 
 signals:
   /**
@@ -221,6 +245,14 @@ signals:
    * The Qt keycode, From `Qt::Key`
    */
   void rewindKeyChanged(int key);
+
+  /**
+   * Signal emitted when the user saves a new time step
+   *
+   * @param key
+   * The number of milliseconds to advance per frame
+   */
+  void timeStepSet(double value);
 
   /**
    * Signal emitted when the user saves a new Resource Directory.

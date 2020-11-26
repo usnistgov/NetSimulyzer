@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include <QString>
 #include <glm/glm.hpp>
 #include <model.h>
 
@@ -40,5 +41,7 @@ namespace visualization {
 glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate);
 
 glm::vec3 toRenderColor(const parser::Ns3Color3 &color);
+
+QString toDisplayTime(double value);
 
 } // namespace visualization

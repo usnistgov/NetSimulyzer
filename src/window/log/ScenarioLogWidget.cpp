@@ -152,26 +152,6 @@ void ScenarioLogWidget::streamSelected(unsigned int id) {
   ui.plainTextLog->ensureCursorVisible();
 }
 
-ScenarioLogWidget::ScenarioLogWidget(QWidget *parent) : QWidget(parent) {
-  ui.setupUi(this);
-  unifiedStreamDocument.setDocumentLayout(new QPlainTextDocumentLayout(&unifiedStreamDocument));
-
-  reset();
-
-  QObject::connect(ui.comboBoxLogName, qOverload<int>(&QComboBox::currentIndexChanged),
-                   [this](int index) { streamSelected(ui.comboBoxLogName->itemData(index).toUInt()); });
-}
-
-void ScenarioLogWidget::addStream(const parser::LogStream &stream) {
-  streams.try_emplace(stream.id, stream);
-
-  if (stream.visible)
-    ui.comboBoxLogName->addItem(QString::fromStdString(stream.name), stream.id);
-}
-
-void ScenarioLogWidget::enqueueEvents(const std::vector<parser::LogEvent> &e) {
-  events.insert(events.end(), e.begin(), e.end());
-}
 void ScenarioLogWidget::timeAdvanced(double time) {
   auto handle = [this, time](auto &&e) -> bool {
     if (time < e.time)
@@ -202,6 +182,35 @@ void ScenarioLogWidget::timeRewound(double time) {
   while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
     undoEvents.pop_back();
   }
+}
+
+ScenarioLogWidget::ScenarioLogWidget(QWidget *parent) : QWidget(parent) {
+  ui.setupUi(this);
+  unifiedStreamDocument.setDocumentLayout(new QPlainTextDocumentLayout(&unifiedStreamDocument));
+
+  reset();
+
+  QObject::connect(ui.comboBoxLogName, qOverload<int>(&QComboBox::currentIndexChanged), [this](int index) {
+    streamSelected(ui.comboBoxLogName->itemData(index).toUInt());
+  });
+}
+
+void ScenarioLogWidget::addStream(const parser::LogStream &stream) {
+  streams.try_emplace(stream.id, stream);
+
+  if (stream.visible)
+    ui.comboBoxLogName->addItem(QString::fromStdString(stream.name), stream.id);
+}
+
+void ScenarioLogWidget::enqueueEvents(const std::vector<parser::LogEvent> &e) {
+  events.insert(events.end(), e.begin(), e.end());
+}
+
+void ScenarioLogWidget::timeChanged(double time, double increment) {
+  if (increment > 0)
+    timeAdvanced(time);
+  else
+    timeRewound(time);
 }
 
 void ScenarioLogWidget::reset() {

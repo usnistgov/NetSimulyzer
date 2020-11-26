@@ -72,7 +72,7 @@ namespace visualization {
 class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
 
-  enum class PlayMode { Paused, Play, Rewind };
+  enum class PlayMode { Paused, Play };
 
   SettingsManager settings;
   Camera camera;
@@ -84,8 +84,6 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Renderer renderer{models, textures};
   QTimer timer{this};
   QElapsedTimer frameTimer;
-  Qt::Key pauseKey = Qt::Key::Key_P;
-  Qt::Key rewindKey = Qt::Key::Key_R;
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -97,7 +95,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
    * Amount of time to advance/rewind `simulationTime`
    * per frame in milliseconds.
    */
-  double timeIncrement = 10.0;
+  double timeStep = 10.0;
 
   double simulationTime = 0.0;
 
@@ -156,9 +154,6 @@ public:
    */
   void updatePerspective();
 
-  void setPlayKey(int key);
-  void setRewindKey(int key);
-
   /**
    * Set the time increment per frame of the simulation
    * when playing/rewinding
@@ -170,11 +165,15 @@ public:
 
   void setResourcePath(const QString &value);
 
+  void play();
   void pause();
 
+  void setTime(double value);
+  void setTimeStep(double value);
+
 signals:
-  void timeAdvanced(double simulationTime);
-  void timeRewound(double simulationTime);
-  void pauseToggled(bool paused);
+  void timeChanged(double simulationTime, double increment);
+  void paused();
+  void playing();
 };
 } // namespace visualization

@@ -45,4 +45,41 @@ glm::vec3 toRenderColor(const parser::Ns3Color3 &color) {
           static_cast<float>(color.blue) / 255.0f};
 }
 
+QString toDisplayTime(double value) {
+  auto convertedTime = static_cast<long>(value);
+
+  // combine / and %
+  auto result = std::div(convertedTime, 1000L);
+  auto milliseconds = result.rem;
+
+  result = std::div(result.quot, 60L);
+  auto seconds = result.rem;
+
+  result = std::div(result.quot, 60L);
+  auto minutes = result.rem;
+
+  // Dump the rest in as hours
+  auto hours = result.quot;
+
+  QString displayTime;
+  if (convertedTime > 3'600'000) /* 1 Hour in ms */ {
+    displayTime = QString{"%1:%2:%3.%4"}
+                      .arg(hours)
+                      .arg(minutes, 2, 10, QChar{'0'})
+                      .arg(seconds, 2, 10, QChar{'0'})
+                      .arg(milliseconds, 3, 10, QChar{'0'});
+  } else if (convertedTime > 60'000L) /* 1 minute in ms */ {
+    displayTime = QString{"%1:%2.%3"}
+                      .arg(minutes, 2, 10, QChar{'0'})
+                      .arg(seconds, 2, 10, QChar{'0'})
+                      .arg(milliseconds, 3, 10, QChar{'0'});
+  } else if (convertedTime > 1000L) {
+    displayTime = QString{"%1.%2"}.arg(seconds, 2, 10, QChar{'0'}).arg(milliseconds, 3, 10, QChar{'0'});
+  } else {
+    displayTime.append('.' + QString::number(milliseconds));
+  }
+
+  return displayTime;
+}
+
 } // namespace visualization
