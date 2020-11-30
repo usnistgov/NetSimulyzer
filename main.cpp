@@ -37,6 +37,7 @@
 
 #include "src/window/MainWindow.h"
 #include "src/settings/SettingsManager.h"
+#include "src/window/util/file-operations.h"
 #include <QApplication>
 #include <QCoreApplication>
 #include <QSettings>
@@ -108,8 +109,7 @@ bool validateResourceDir(const QString &path) {
  * The path from the user. Empty string if nothing was selected
  */
 std::optional<QFileInfo> promptResourceDir() {
-  auto selected = QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
-
+  auto selected = visualization::getExistingDirectory("Select 'resources' Directory");
 
   if (!validateResourceDir(selected)) {
     QMessageBox::critical(nullptr, "Invalid resource directory selected",

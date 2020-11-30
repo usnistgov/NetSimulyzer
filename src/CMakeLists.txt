@@ -54,6 +54,7 @@ target_sources(visualization PRIVATE
         window/MainWindow.cpp window/MainWindow.h window/MainWindow.ui
         window/scene/SceneWidget.h window/scene/SceneWidget.cpp
         window/settings/SettingsDialog.h window/settings/SettingsDialog.cpp window/settings/SettingsDialog.ui
+        window/util/file-operations.h window/util/file-operations.cpp
         window/chart/ChartManager.cpp window/chart/ChartManager.h
         window/chart/ChartWidget.cpp window/chart/ChartWidget.h window/chart/ChartWidget.ui
         window/chart/ControlsChartView.cpp window/chart/ControlsChartView.h

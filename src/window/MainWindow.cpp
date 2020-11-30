@@ -35,6 +35,7 @@
 #include "LoadWorker.h"
 #include "about/AboutDialog.h"
 #include "src/conversion.h"
+#include "src/window/util/file-operations.h"
 #include <QAction>
 #include <QDebug>
 #include <QDockWidget>
@@ -193,7 +194,7 @@ void MainWindow::timeChanged(double time, double /* increment */) {
 }
 
 void MainWindow::load() {
-  auto fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "JSON Files (*.json)");
+  auto fileName = getScenarioFile(this);
 
   if (fileName.isEmpty())
     return;

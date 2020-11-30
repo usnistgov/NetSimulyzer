@@ -1,5 +1,6 @@
 #include "SettingsDialog.h"
 #include "src/settings/SettingsManager.h"
+#include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
 #include <QFileDialog>
 #include <QFileInfo>
@@ -259,13 +260,7 @@ void SettingsDialog::defaultTimeStep() {
 }
 
 void SettingsDialog::selectResourcePath() {
-  auto selected =
-#ifdef __APPLE__
-      QFileDialog::getExistingDirectory(nullptr, "Select 'resources' Directory");
-#else
-      QFileDialog::getExistingDirectory(nullptr, "Select a resource Directory", "", QFileDialog::DontUseNativeDialog);
-#endif
-
+  auto selected = visualization::getExistingDirectory("Select 'resources' Directory");
   if (selected.isEmpty())
     return;
 
