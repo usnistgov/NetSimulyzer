@@ -368,6 +368,7 @@ void SceneWidget::reset() {
   nodes.clear();
   decorations.clear();
   events.clear();
+  undoEvents.clear();
   simulationTime = 0.0;
 }
 

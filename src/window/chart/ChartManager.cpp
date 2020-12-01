@@ -204,6 +204,7 @@ ChartManager::ChartManager(QWidget *parent) : QObject(parent) {
 void ChartManager::reset() {
   dropdownElements.clear();
   events.clear();
+  undoEvents.clear();
 
   // Clear the child widgets first
   // since they may be holding on to series

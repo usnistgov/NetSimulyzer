@@ -219,6 +219,8 @@ void ScenarioLogWidget::reset() {
   ui.comboBoxLogName->clear();
   streams.clear();
   ui.comboBoxLogName->addItem("Unified Log", unifiedStreamId);
+  events.clear();
+  undoEvents.clear();
 }
 
 } // namespace visualization
