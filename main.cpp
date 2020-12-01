@@ -248,9 +248,6 @@ int main(int argc, char *argv[]) {
     // Make sure any changes to the resource directory are committed
     settings.sync();
   }
-
-  std::cout << "Resources path: " << *settings.get<std::string>(Key::ResourcePath) << '\n';
-
   visualization::MainWindow mainWindow;
   mainWindow.show();
   return QApplication::exec();
