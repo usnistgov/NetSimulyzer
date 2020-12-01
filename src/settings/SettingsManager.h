@@ -21,6 +21,7 @@ public:
    */
   enum class Key {
     SettingsVersion,
+    LastLoadPath,
     ResourcePath,
     MoveSpeed,
     KeyboardTurnSpeed,
@@ -64,6 +65,7 @@ private:
    */
   const static inline std::unordered_map<SettingsManager::Key, SettingValue> qtKeyMap{
       {Key::SettingsVersion, {"application/version", {}}},
+      {Key::LastLoadPath, {"application/lastLoadPath", {}}},
       {Key::ResourcePath, {"resources/resourcePath", {}}},
       {Key::MoveSpeed, {"camera/moveSpeed", 0.05f}},
       {Key::KeyboardTurnSpeed, {"camera/keyboardTurnSpeed", 0.1f}},

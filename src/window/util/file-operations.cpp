@@ -32,7 +32,10 @@
  */
 
 #include "file-operations.h"
+#include "src/settings/SettingsManager.h"
 #include <QFileDialog>
+#include <QFileInfo>
+#include <QString>
 
 namespace visualization {
 QString getExistingDirectory(const QString &caption, QWidget *parent) {
@@ -48,15 +51,32 @@ QString getExistingDirectory(const QString &caption, QWidget *parent) {
 }
 
 QString getScenarioFile(QWidget *parent) {
-  return QFileDialog::getOpenFileName(parent, "Open Scenario File", ".", "JSON Files (*.json)",
-                                      nullptr
+
+  SettingsManager settings;
+  auto lastPath =
+      settings.get<QString>(SettingsManager::Key::LastLoadPath, SettingsManager::RetrieveMode::DisallowDefault);
+
+  // Use either the last loaded path, or the current working directory
+  QString startingDirectory = ".";
+  if (lastPath && QFileInfo{lastPath.value()}.exists())
+    startingDirectory = lastPath.value();
+
+  auto selected = QFileDialog::getOpenFileName(parent, "Open Scenario File", startingDirectory, "JSON Files (*.json)",
+                                               nullptr
 #ifdef __linux__
-                                      // Disable native dialogs on linux,
-                                      // as some distros have poor performance with them
-                                      ,
-                                      QFileDialog::DontUseNativeDialog
+                                               // Disable native dialogs on linux,
+                                               // as some distros have poor performance with them
+                                               ,
+                                               QFileDialog::DontUseNativeDialog
 #endif
   );
+
+  // Save the current path if a file was selected
+  QFileInfo selectedFile{selected};
+  if (!selected.isEmpty() && selectedFile.exists())
+    settings.set(SettingsManager::Key::LastLoadPath, selectedFile.absolutePath());
+
+  return selected;
 }
 
 } // namespace visualization
