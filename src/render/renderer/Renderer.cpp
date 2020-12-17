@@ -470,7 +470,7 @@ void Renderer::render(Floor &f) {
   modelShader.bind();
   modelShader.uniform("model", f.getModelMatrix());
   modelShader.uniform("useTexture", true);
-  modelShader.uniform("saturation_factor", 0.5f);
+  modelShader.uniform("saturation_factor", 0.8f);
   textureCache.use(f.getTextureId());
   f.render();
 }
