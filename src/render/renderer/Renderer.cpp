@@ -449,6 +449,7 @@ void Renderer::render(std::vector<Building> &buildings) {
 
 void Renderer::render(const Model &m) {
   modelShader.bind();
+  modelShader.uniform("saturation_factor", 1.5f);
   modelShader.uniform("model", m.getModelMatrix());
   modelCache.get(m.getModelId()).render(modelShader);
 }
@@ -460,6 +461,7 @@ void Renderer::renderTransparent(const Model &m) {
     return;
 
   modelShader.bind();
+  modelShader.uniform("saturation_factor", 1.0f);
   modelShader.uniform("model", m.getModelMatrix());
   renderInfo.renderTransparent(modelShader);
 }
@@ -468,6 +470,7 @@ void Renderer::render(Floor &f) {
   modelShader.bind();
   modelShader.uniform("model", f.getModelMatrix());
   modelShader.uniform("useTexture", true);
+  modelShader.uniform("saturation_factor", 0.5f);
   textureCache.use(f.getTextureId());
   f.render();
 }
