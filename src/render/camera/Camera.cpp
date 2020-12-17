@@ -50,6 +50,11 @@ Camera::Camera() {
   keyTurnRight = *settings.get<int>(Key::CameraKeyRightTurn);
   keyUp = *settings.get<int>(Key::CameraKeyUp);
   keyDown = *settings.get<int>(Key::CameraKeyDown);
+
+  fieldOfView = *settings.get<float>(Key::FieldOfView);
+  move_speed = *settings.get<float>(Key::MoveSpeed);
+  turnSpeed = *settings.get<float>(Key::KeyboardTurnSpeed);
+  mouseTurnSpeed = *settings.get<float>(Key::MouseTurnSpeed);
 }
 
 void Camera::update() {
