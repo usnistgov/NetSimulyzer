@@ -64,9 +64,6 @@ unsigned int Shader::compile(unsigned int type, const char *src) {
 
     glDeleteShader(id);
     return 0;
-  } else {
-    std::clog << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader id: " << id
-              << " compiled successfully\n";
   }
 
   return id;
@@ -94,8 +91,6 @@ unsigned int Shader::createProgram(const std::string &vertex, const std::string 
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
-  } else {
-    std::clog << "program: " << program_id << " compiled successfully\n";
   }
 
   return program_id;

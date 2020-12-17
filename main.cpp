@@ -161,11 +161,6 @@ int main(int argc, char *argv[]) {
   // Note: everything becomes a string as a result
   QSettings::setDefaultFormat(QSettings::Format::IniFormat);
 
-  {
-    QSettings settings;
-    std::cout << "Settings file at: " << settings.fileName().toStdString() << '\n';
-  }
-
   using Key = visualization::SettingsManager::Key;
   using RetrieveMode = visualization::SettingsManager::RetrieveMode;
   visualization::SettingsManager settings;
