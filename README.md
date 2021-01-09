@@ -131,8 +131,6 @@ The simulation starts in a paused state, the scene will still render, but time w
 
 `P`: Pause/Resume scenario playback.
 
-`R`: Rewind/Pause scenario playback. 
-
 ### Chart
 `Left Mouse` + Move: Move the chart view
 

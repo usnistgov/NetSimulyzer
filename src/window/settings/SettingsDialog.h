@@ -239,14 +239,6 @@ signals:
   void playKeyChanged(int key);
 
   /**
-   * Signal emitted when the user saves a new Rewind Key
-   *
-   * @param key
-   * The Qt keycode, From `Qt::Key`
-   */
-  void rewindKeyChanged(int key);
-
-  /**
    * Signal emitted when the user saves a new time step
    *
    * @param key

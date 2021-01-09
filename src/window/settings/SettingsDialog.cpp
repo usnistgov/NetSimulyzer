@@ -31,7 +31,6 @@ void SettingsDialog::loadSettings() {
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
-  ui.keyRewind->setKeySequence(*settings.get<int>(Key::SceneKeyRewind));
 
   // Time Step is session based (so no setting to load)
 
@@ -56,7 +55,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.keyUp->setDefaultKey(settings.getDefault<int>(Key::CameraKeyUp));
   ui.keyDown->setDefaultKey(settings.getDefault<int>(Key::CameraKeyDown));
   ui.keyPlay->setDefaultKey(settings.getDefault<int>(Key::SceneKeyPlay));
-  ui.keyRewind->setDefaultKey(settings.getDefault<int>(Key::SceneKeyRewind));
 
   loadSettings();
 
@@ -78,7 +76,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
-  QObject::connect(ui.buttonResetRewind, &QPushButton::clicked, ui.keyRewind, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
 
   QObject::connect(ui.buttonResource, &QPushButton::clicked, this, &SettingsDialog::selectResourcePath);
@@ -112,7 +109,6 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSamples->click();
 
     ui.buttonResetPlay->click();
-    ui.buttonResetRewind->click();
     break;
   case QDialogButtonBox::Save: {
     bool requiresRestart = false;
@@ -197,12 +193,6 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (playKey != settings.get<int>(Key::SceneKeyPlay).value()) {
       settings.set(Key::SceneKeyPlay, playKey);
       emit playKeyChanged(playKey);
-    }
-
-    const auto rewindKey = ui.keyRewind->keySequence()[0];
-    if (rewindKey != settings.get<int>(Key::SceneKeyRewind).value()) {
-      settings.set(Key::SceneKeyRewind, rewindKey);
-      emit rewindKeyChanged(rewindKey);
     }
 
     auto oldResourcePath = settings.get<QString>(Key::ResourcePath);
