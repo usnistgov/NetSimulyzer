@@ -44,7 +44,7 @@ target_sources(visualization PRIVATE
         render/model/ModelCache.h render/model/ModelCache.cpp
         render/renderer/Renderer.h render/renderer/Renderer.cpp
         render/shader/Shader.h render/shader/Shader.cpp
-        render/texture/SkyBox.h render/texture/SkyBox.cpp
+        render/helper/SkyBox.h render/helper/SkyBox.cpp
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         settings/SettingsManager.h settings/SettingsManager.cpp

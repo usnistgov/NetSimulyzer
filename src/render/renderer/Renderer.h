@@ -41,8 +41,8 @@
 #include "../model/Model.h"
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
-#include "../texture/SkyBox.h"
 #include "../texture/TextureCache.h"
+#include "src/render/helper/SkyBox.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <sstream>

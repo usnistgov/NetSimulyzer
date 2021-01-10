@@ -45,10 +45,10 @@
 #include "../../render/model/ModelCache.h"
 #include "../../render/renderer/Renderer.h"
 #include "../../render/shader/Shader.h"
-#include "../../render/texture/SkyBox.h"
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
+#include "src/render/helper/SkyBox.h"
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>

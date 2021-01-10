@@ -1,5 +1,5 @@
 #include "SkyBox.h"
-#include "../mesh/Vertex.h"
+#include "src/render/mesh/Vertex.h"
 
 namespace {
 unsigned int indices[]{0u, 1u, 2u, 2u, 1u, 3u, 2u, 3u, 5u, 5u, 3u, 7u, 5u, 7u, 4u, 4u, 7u, 6u,
