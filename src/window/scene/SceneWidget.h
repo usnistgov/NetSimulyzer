@@ -154,20 +154,18 @@ public:
    */
   void updatePerspective();
 
-  /**
-   * Set the time increment per frame of the simulation
-   * when playing/rewinding
-   *
-   * @param ms
-   * The time increment, in milliseconds
-   */
-  void setPlaybackSpeed(double ms);
-
   void setResourcePath(const QString &value);
 
   void play();
   void pause();
 
+  /**
+   * Set the time increment per frame of the simulation
+   * when playing/rewinding
+   *
+   * @param value
+   * The time increment, in milliseconds
+   */
   void setTime(double value);
   void setTimeStep(double value);
 

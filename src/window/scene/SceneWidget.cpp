@@ -433,10 +433,6 @@ void SceneWidget::updatePerspective() {
                                            static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
 }
 
-void SceneWidget::setPlaybackSpeed(double ms) {
-  timeStep = ms;
-}
-
 void SceneWidget::setResourcePath(const QString &value) {
   textures.setResourceDirectory(QDir{value});
   models.setBasePath(value.toStdString());
