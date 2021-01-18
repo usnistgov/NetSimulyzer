@@ -9,7 +9,7 @@ A 3D visualizer for ns-3 scenarios.
     * Clang 6.0.0
 * CMake 3.13 or greater
 * A graphics card supporting OpenGL 3.3
-* Qt 5.3
+* Qt 5.12
 * Optional: Doxygen
 
 ## Initial Setup
