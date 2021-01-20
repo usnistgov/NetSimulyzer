@@ -153,12 +153,11 @@ vec4 calculateSpotLights() {
 
 void main()
 {
-    vec4 lights = calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
-    if (useTexture) {
-        final_color = texture(texture_sampler, texture_coordinates) * lights;
-    } else {
-        final_color = vec4(material_color, 1) * lights;
-    }
+    // Choose Material color or Texture for the base
+    final_color = mix(vec4(material_color, 1.0), texture(texture_sampler, texture_coordinates), useTexture);
+
+    // Apply lighting
+    final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
 
     // Adjust final saturation, based on `saturation_factor`
     vec3 hsv = hsv(final_color.rgb);
