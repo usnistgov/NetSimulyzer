@@ -251,15 +251,6 @@ Model::ModelLoadInfo ModelCache::load(const std::string &path) {
     return {existing->second, bounds.min, bounds.max};
   }
 
-  // TODO: Leave this in for a little, then remove it
-  QFileInfo normalPath{QString::fromStdString(fullPath)};
-  QFileInfo quirkPath{QString::fromStdString(basePath) + "models/" + QString::fromStdString(path)};
-  if (!normalPath.exists() && quirkPath.exists()) {
-    std::cerr << "Warning: Using depreciated path style for: " << path << '\n'
-              << "Please prepend 'models/' to your old paths!\n ";
-    return load("models/" + path);
-  }
-
   Assimp::Importer importer;
   const auto *const scene =
       importer.ReadFile(fullPath.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
