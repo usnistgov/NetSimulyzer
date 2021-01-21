@@ -236,7 +236,21 @@ void ModelRenderInfo::renderTransparent(Shader &s, const Model &model) {
     if (material.textureId) {
       textureCache.use(*material.textureId);
     } else if (material.color) {
-      s.uniform("material_color", *material.color);
+      const auto &color = material.color.value();
+
+      switch (material.materialType) {
+      case Material::MaterialType::Base:
+        s.uniform("material_color", model.getBaseColor().value_or(color));
+        break;
+      case Material::MaterialType::Highlight:
+        s.uniform("material_color", model.getHighlightColor().value_or(color));
+        break;
+      case Material::MaterialType::Unclassified:
+        [[fallthrough]];
+      default:
+        s.uniform("material_color", color);
+        break;
+      }
     }
 
     //    s.set_uniform_vector_1f("material.specularIntensity", material.specular_intensity);
