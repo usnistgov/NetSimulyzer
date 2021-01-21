@@ -53,6 +53,11 @@ Node::Node(const Model &model, parser::Node ns3Node)
   }
 
   this->model.setScale(ns3Node.scale);
+
+  if (ns3Node.baseColor)
+    this->model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
+  if (ns3Node.highlightColor)
+    this->model.setHighlightColor(toRenderColor(ns3Node.highlightColor.value()));
 }
 
 const Model &Node::getModel() const {

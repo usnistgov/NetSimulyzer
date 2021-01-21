@@ -98,6 +98,16 @@ parser::Area::DrawMode drawModeFromString(const std::string &mode) {
     assert(!"Unhandled Area::DrawMode mode");
 }
 
+parser::Ns3Color3 colorFromObject(const util::json::JsonObject &object) {
+  parser::Ns3Color3 color;
+
+  color.red = object["red"].get<int>();
+  color.green = object["green"].get<int>();
+  color.blue = object["blue"].get<int>();
+
+  return color;
+}
+
 constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
   {
     if (key == "areas")
@@ -210,6 +220,12 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
     node.offset.y = object["offset"].object()["y"].get<double>();
     node.offset.z = object["offset"].object()["z"].get<double>();
   }
+
+  if (object.contains("base-color"))
+    node.baseColor = colorFromObject(object["base-color"].object());
+
+  if (object.contains("highlight-color"))
+    node.highlightColor = colorFromObject(object["highlight-color"].object());
 
   updateLocationBounds(node.position);
 

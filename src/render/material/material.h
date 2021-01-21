@@ -41,6 +41,8 @@
 namespace visualization {
 
 struct Material {
+  enum class MaterialType { Unclassified, Base, Highlight };
+
   float specularIntensity = 4.0f;
   float shininess = 1.0f;
   float opacity = 1.0f;
@@ -48,6 +50,7 @@ struct Material {
 
   // Potentially used if texture is not defined
   std::optional<glm::vec3> color;
+  MaterialType materialType = MaterialType::Unclassified;
 };
 
 } // namespace visualization

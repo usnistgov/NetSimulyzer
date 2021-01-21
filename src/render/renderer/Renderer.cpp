@@ -451,7 +451,7 @@ void Renderer::render(const Model &m) {
   modelShader.bind();
   modelShader.uniform("saturation_factor", 1.5f);
   modelShader.uniform("model", m.getModelMatrix());
-  modelCache.get(m.getModelId()).render(modelShader);
+  modelCache.get(m.getModelId()).render(modelShader, m);
 }
 
 void Renderer::renderTransparent(const Model &m) {
@@ -463,7 +463,7 @@ void Renderer::renderTransparent(const Model &m) {
   modelShader.bind();
   modelShader.uniform("saturation_factor", 1.0f);
   modelShader.uniform("model", m.getModelMatrix());
-  renderInfo.renderTransparent(modelShader);
+  renderInfo.renderTransparent(modelShader, m);
 }
 
 void Renderer::render(Floor &f) {

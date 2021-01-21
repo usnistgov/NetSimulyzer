@@ -108,4 +108,20 @@ Model::ModelBounds Model::getBounds() const {
   return {min, max};
 }
 
+void Model::setBaseColor(const glm::vec3 &value) {
+  baseColor.emplace(value);
+}
+
+const std::optional<glm::vec3> &Model::getBaseColor() const {
+  return baseColor;
+}
+
+void Model::setHighlightColor(const glm::vec3 &value) {
+  highlightColor.emplace(value);
+}
+
+const std::optional<glm::vec3> &Model::getHighlightColor() const {
+  return highlightColor;
+}
+
 } // namespace visualization

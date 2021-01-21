@@ -70,6 +70,8 @@ struct Node {
   bool visible = true;
   Ns3Coordinate position;
   Ns3Coordinate offset;
+  std::optional<Ns3Color3> baseColor;
+  std::optional<Ns3Color3> highlightColor;
   std::array<double, 3> orientation{0.0};
 };
 

@@ -35,6 +35,7 @@
 
 #include "glm/glm.hpp"
 #include <array>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -67,6 +68,8 @@ private:
   float targetHeightScale = 1.0f;
   float scale = 1.0f;
   std::array<float, 3> rotate{0.0f};
+  std::optional<glm::vec3> baseColor;
+  std::optional<glm::vec3> highlightColor;
 
   /**
    * Final model matrix built from the
@@ -95,6 +98,11 @@ public:
   [[nodiscard]] const glm::mat4 &getModelMatrix() const;
 
   [[nodiscard]] ModelBounds getBounds() const;
+
+  void setBaseColor(const glm::vec3 &value);
+  [[nodiscard]] const std::optional<glm::vec3> &getBaseColor() const;
+  void setHighlightColor(const glm::vec3 &value);
+  [[nodiscard]] const std::optional<glm::vec3> &getHighlightColor() const;
 
   void rebuildModelMatrix();
 };

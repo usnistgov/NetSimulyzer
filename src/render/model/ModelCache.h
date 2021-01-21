@@ -90,8 +90,8 @@ public:
   [[nodiscard]] const ModelRenderBounds &getBounds() const;
   [[nodiscard]] bool hasTransparentMeshes() const;
 
-  void render(Shader &s);
-  void renderTransparent(Shader &s);
+  void render(Shader &s, const Model &model);
+  void renderTransparent(Shader &s, const Model &model);
   void clear();
 };
 
@@ -115,7 +115,6 @@ public:
     return get(index);
   }
   void clear();
-  void render(model_id index, Shader &s);
 };
 
 } // namespace visualization

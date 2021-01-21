@@ -39,6 +39,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <cstring>
 #include <iostream>
 #include <unordered_map>
 #include <utility>
@@ -133,6 +134,7 @@ ModelRenderInfo::~ModelRenderInfo() {
 }
 
 void ModelRenderInfo::loadMaterials(aiScene const *scene) {
+  using MaterialType = Material::MaterialType;
   auto fallbackTexture = textureCache.getFallbackTexture();
 
   for (auto i = 0u; i < scene->mNumMaterials; i++) {
@@ -140,6 +142,17 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
     Material m;
 
     material->Get(AI_MATKEY_OPACITY, m.opacity);
+
+    aiString name;
+    material->Get(AI_MATKEY_NAME, name);
+
+    // Check for configurable materials
+    if (std::strcmp(name.data, "visualizer.base") == 0) {
+      m.materialType = MaterialType::Base;
+    } else if (std::strcmp(name.data, "visualizer.highlight") == 0)
+      m.materialType = MaterialType::Highlight;
+    else
+      m.materialType = MaterialType::Unclassified;
 
     if (material->GetTextureCount(aiTextureType_DIFFUSE)) {
       aiString path;
@@ -182,7 +195,7 @@ bool ModelRenderInfo::hasTransparentMeshes() const {
   return !transparentMeshes.empty();
 }
 
-void ModelRenderInfo::render(Shader &s) {
+void ModelRenderInfo::render(Shader &s, const Model &model) {
   for (auto &m : meshes) {
     // Operator [] for unordered map is not const...
     const auto &material = m.getMaterial();
@@ -191,7 +204,21 @@ void ModelRenderInfo::render(Shader &s) {
     if (material.textureId) {
       textureCache.use(*material.textureId);
     } else if (material.color) {
-      s.uniform("material_color", *material.color);
+      const auto &color = material.color.value();
+
+      switch (material.materialType) {
+      case Material::MaterialType::Base:
+        s.uniform("material_color", model.getBaseColor().value_or(color));
+        break;
+      case Material::MaterialType::Highlight:
+        s.uniform("material_color", model.getHighlightColor().value_or(color));
+        break;
+      case Material::MaterialType::Unclassified:
+        [[fallthrough]];
+      default:
+        s.uniform("material_color", color);
+        break;
+      }
     }
 
     //    s.set_uniform_vector_1f("material.specularIntensity", material.specular_intensity);
@@ -201,7 +228,7 @@ void ModelRenderInfo::render(Shader &s) {
   }
 }
 
-void ModelRenderInfo::renderTransparent(Shader &s) {
+void ModelRenderInfo::renderTransparent(Shader &s, const Model &model) {
   for (auto &m : transparentMeshes) {
     const auto &material = m.getMaterial();
 
@@ -281,10 +308,6 @@ ModelRenderInfo &ModelCache::get(model_id index) {
 
 void ModelCache::clear() {
   // TODO: Implement
-}
-
-void ModelCache::render(model_id index, Shader &s) {
-  models[index].render(s);
 }
 
 } // namespace visualization
