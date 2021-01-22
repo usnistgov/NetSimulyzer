@@ -154,7 +154,7 @@ vec4 calculateSpotLights() {
 void main()
 {
     // Choose Material color or Texture for the base
-    final_color = mix(vec4(material_color, 1.0), texture(texture_sampler, texture_coordinates), useTexture);
+    final_color = mix(vec4(material_color, 1.0), texture(texture_sampler, texture_coordinates), int(useTexture));
 
     // Apply lighting
     final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
