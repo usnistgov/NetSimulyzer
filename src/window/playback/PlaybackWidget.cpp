@@ -36,12 +36,19 @@
 #include <QObject>
 #include <QPushButton>
 #include <QString>
+#include <QFont>
 
 namespace visualization {
 
 PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
   ui.buttonPlayPause->setIcon(playIcon);
+
+  QFont monospace{"Monospace"};
+  // Should select another monospaced font
+  // if the "Monospace" font family is unavailable
+  monospace.setStyleHint(QFont::TypeWriter);
+  ui.labelTime->setFont(monospace);
 
   QObject::connect(ui.buttonPlayPause, &QPushButton::pressed, [this]() {
     playing = !playing;

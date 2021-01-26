@@ -48,11 +48,6 @@
    </item>
    <item>
     <widget class="QLabel" name="labelTime">
-     <property name="font">
-      <font>
-       <family>Monospace</family>
-      </font>
-     </property>
      <property name="text">
       <string>0.000 / 0.000</string>
      </property>
