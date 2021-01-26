@@ -33,10 +33,10 @@
 
 #include "PlaybackWidget.h"
 #include "src/conversion.h"
+#include <QFontDatabase>
 #include <QObject>
 #include <QPushButton>
 #include <QString>
-#include <QFont>
 
 namespace visualization {
 
@@ -44,11 +44,8 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
   ui.buttonPlayPause->setIcon(playIcon);
 
-  QFont monospace{"Monospace"};
-  // Should select another monospaced font
-  // if the "Monospace" font family is unavailable
-  monospace.setStyleHint(QFont::TypeWriter);
-  ui.labelTime->setFont(monospace);
+  // Pull the system fixed width font and use it for the numeric time
+  ui.labelTime->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 
   QObject::connect(ui.buttonPlayPause, &QPushButton::pressed, [this]() {
     playing = !playing;
