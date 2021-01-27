@@ -333,7 +333,7 @@ void ChartManager::timeAdvanced(double time) {
     const auto lastValue = points.last();
     parser::CategorySeriesAddValue fakeEvent;
     fakeEvent.time = time;
-    fakeEvent.value = lastValue.x() + value.model.autoUpdateValue;
+    fakeEvent.value = lastValue.x() + value.model.autoUpdateIncrement;
     fakeEvent.category = static_cast<unsigned int>(lastValue.y());
     fakeEvent.seriesId = key;
 
