@@ -157,6 +157,9 @@ struct CategoryValueSeries {
 
   unsigned int id = 0u;
   bool visible;
+  bool autoUpdate = false;
+  double autoUpdateInterval;
+  double autoUpdateIncrement;
   std::string name;
   std::string legend;
   uint8_t red = 0u;

@@ -81,6 +81,7 @@ public:
     QtCharts::QXYSeries *qtSeries;
     QtCharts::QAbstractAxis *xAxis;
     QtCharts::QCategoryAxis *yAxis;
+    double lastUpdatedTime{0.0};
   };
 
   struct DropdownValue {

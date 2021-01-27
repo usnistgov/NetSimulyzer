@@ -866,6 +866,16 @@
             },
             "then": {
               "properties": {
+                "auto-update": {
+                  "type": "boolean"
+                },
+                "auto-update-interval": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "auto-update-increment": {
+                  "type": "number"
+                },
                 "color": {
                   "type": "object",
                   "properties": {
@@ -976,6 +986,7 @@
                 }
               },
               "required": [
+                "auto-update",
                 "color",
                 "id",
                 "legend",

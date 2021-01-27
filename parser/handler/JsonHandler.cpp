@@ -457,6 +457,13 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   series.xAxis = valueAxisFromObject(object["x-axis"].object());
   series.yAxis = categoryAxisFromObject(object["y-axis"].object());
 
+  // TODO: `contains` check for compatibility with 0.5.0, Remove for 0.6.0
+  if (object.contains("auto-update") && object["auto-update"].get<bool>()) {
+    series.autoUpdate = true;
+    series.autoUpdateInterval = object["auto-update-interval"].get<double>();
+    series.autoUpdateIncrement = object["auto-update-increment"].get<double>();
+  }
+
   fileParser.categoryValueSeries.emplace_back(series);
 }
 

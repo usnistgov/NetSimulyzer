@@ -288,13 +288,15 @@ void ChartManager::timeAdvanced(double time) {
     }
 
     if constexpr (std::is_same_v<T, parser::CategorySeriesAddValue>) {
-      const auto &s = std::get<CategoryValueTie>(series[e.seriesId]);
+      // Not const since we change the lastUpdatedTime
+      auto &s = std::get<CategoryValueTie>(series[e.seriesId]);
       if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
         updateRange(s.xAxis, e.value);
       }
 
       // Y axis on category charts is a fixed size
 
+      s.lastUpdatedTime = time;
       s.qtSeries->append(e.value, e.category);
       updateCollectionRanges(e.seriesId, e.value, e.category);
       events.pop_front();
@@ -308,6 +310,44 @@ void ChartManager::timeAdvanced(double time) {
 
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     // Intentionally Blank
+  }
+
+  // Add "Fake Events" to keep the category value series moving
+  // TODO: Maybe move to parse time
+  for (auto &[key, s] : series) {
+    // Only CategoryValueSeries may have auto-appended values
+    if (!std::holds_alternative<CategoryValueTie>(s))
+      continue;
+
+    auto &value = std::get<CategoryValueTie>(s);
+    if (!value.model.autoUpdate)
+      continue;
+
+    const auto &points = value.qtSeries->pointsVector();
+    if (points.empty())
+      continue;
+
+    if (time - value.lastUpdatedTime < value.model.autoUpdateInterval)
+      continue;
+
+    const auto lastValue = points.last();
+    parser::CategorySeriesAddValue fakeEvent;
+    fakeEvent.time = time;
+    fakeEvent.value = lastValue.x() + value.model.autoUpdateValue;
+    fakeEvent.category = static_cast<unsigned int>(lastValue.y());
+    fakeEvent.seriesId = key;
+
+    if (value.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
+      updateRange(value.xAxis, fakeEvent.value);
+    }
+
+    // Y axis on category charts is a fixed size
+
+    value.qtSeries->append(fakeEvent.value, fakeEvent.category);
+    updateCollectionRanges(fakeEvent.seriesId, fakeEvent.value, fakeEvent.category);
+    undoEvents.emplace_back(undo::CategorySeriesAddValue{fakeEvent});
+
+    value.lastUpdatedTime = time;
   }
 }
 
