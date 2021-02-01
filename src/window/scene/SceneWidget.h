@@ -168,6 +168,7 @@ public:
    */
   void setTime(double value);
   void setTimeStep(double value);
+  QSize sizeHint() const override;
 
 signals:
   void timeChanged(double simulationTime, double increment);

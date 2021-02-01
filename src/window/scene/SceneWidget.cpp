@@ -330,7 +330,6 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWidget(parent, f) {
   // Make sure we get keyboard events
   setFocusPolicy(Qt::StrongFocus);
-  setMinimumSize({640, 480});
 
   auto resourceDirSetting = settings.get<QString>(SettingsManager::Key::ResourcePath);
 
@@ -467,5 +466,10 @@ void SceneWidget::setTime(double value) {
 void SceneWidget::setTimeStep(double value) {
   timeStep = value;
 }
+
+QSize SceneWidget::sizeHint() const {
+  return {640, 480};
+}
+
 
 } // namespace visualization
