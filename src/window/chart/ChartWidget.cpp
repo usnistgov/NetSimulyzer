@@ -120,16 +120,16 @@ void ChartWidget::clearChart() {
   auto currentAxes = chart.axes();
 
   // Remove currently attached series
-  for (const auto &currentSeries : chart.series()) {
+  for (const auto &activeSeries : chart.series()) {
     // Detach the axes from each series,
     // then they may be removed from the chart
     for (const auto &axis : currentAxes) {
-      currentSeries->detachAxis(axis);
+      activeSeries->detachAxis(axis);
     }
 
-    chart.removeSeries(currentSeries);
+    chart.removeSeries(activeSeries);
     // The chart claims ownership of the series when it's attached
-    currentSeries->setParent(&manager);
+    activeSeries->setParent(&manager);
   }
 
   for (const auto &axis : currentAxes) {
