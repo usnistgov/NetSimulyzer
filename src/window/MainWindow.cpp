@@ -200,6 +200,7 @@ void MainWindow::load() {
     return;
   if (loading) {
     ui.statusbar->showMessage("Already loading scenario!", 10000);
+    return;
   }
   loading = true;
   ui.actionLoad->setEnabled(false);
