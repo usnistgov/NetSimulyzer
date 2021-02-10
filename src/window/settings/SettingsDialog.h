@@ -103,6 +103,11 @@ class SettingsDialog : public QDialog {
   void defaultSamples();
 
   /**
+   * Set the Skybox checkbox to the default value
+   */
+  void defaultEnableSkybox();
+
+  /**
    * Set the default value for the time step spinner.
    *
    * Sets the value passed to `setTimeStep` if one was provided
@@ -229,6 +234,15 @@ signals:
    * The Qt keycode, From `Qt::Key`
    */
   void downKeyChanged(int key);
+
+  /**
+   * Signal emitted when the user changes the
+   * Skybox render state
+   *
+   * @param enable
+   * Indicator for the skybox to be rendered or not.
+   */
+  void renderSkyboxChanged(bool enable);
 
   /**
    * Signal emitted when the user saves a new Play/Pause Key

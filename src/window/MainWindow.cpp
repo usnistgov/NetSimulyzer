@@ -161,6 +161,10 @@ MainWindow::MainWindow() : QMainWindow() {
     camera.setKeyDown(key);
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::renderSkyboxChanged, [this](bool enable) {
+    render.setSkyboxRenderState(enable);
+  });
+
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });

@@ -84,6 +84,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Renderer renderer{models, textures};
   QTimer timer{this};
   QElapsedTimer frameTimer;
+  bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -169,6 +170,14 @@ public:
   void setTime(double value);
   void setTimeStep(double value);
   QSize sizeHint() const override;
+
+  /**
+   *
+   * @param enable
+   * If true, then the skybox is rendered,
+   * if false, no skybox is rendered
+   */
+  void setSkyboxRenderState(bool enable);
 
 signals:
   void timeChanged(double simulationTime, double increment);

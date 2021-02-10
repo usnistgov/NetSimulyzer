@@ -39,7 +39,8 @@ public:
     CameraKeyDown,
     SceneKeyPlay,
     MainWindowState,
-    NumberSamples
+    NumberSamples,
+    RenderSkybox
   };
 
   /**
@@ -83,6 +84,7 @@ private:
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
+      {Key::RenderSkybox, {"renderer/enableSkybox", true}},
   };
 
   /**

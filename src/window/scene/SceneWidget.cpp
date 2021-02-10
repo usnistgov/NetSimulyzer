@@ -195,7 +195,8 @@ void SceneWidget::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
-  renderer.render(*skyBox);
+  if (renderSkybox)
+    renderer.render(*skyBox);
 
   for (auto &[key, node] : nodes) {
     renderer.render(node.getModel());
@@ -471,5 +472,8 @@ QSize SceneWidget::sizeHint() const {
   return {640, 480};
 }
 
+void SceneWidget::setSkyboxRenderState(bool enable) {
+  renderSkybox = enable;
+}
 
 } // namespace visualization

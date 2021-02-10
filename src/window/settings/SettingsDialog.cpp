@@ -30,6 +30,8 @@ void SettingsDialog::loadSettings() {
   const auto samples = *settings.get<int>(Key::NumberSamples);
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
+  ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
+
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   // Time Step is session based (so no setting to load)
@@ -73,6 +75,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetUp, &QPushButton::clicked, ui.keyUp, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetDown, &QPushButton::clicked, ui.keyDown, &SingleKeySequenceEdit::setDefault);
 
+  QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
@@ -106,6 +109,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetUp->click();
     ui.buttonResetDown->click();
 
+    ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
 
     ui.buttonResetPlay->click();
@@ -187,6 +191,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       requiresRestart = true;
     }
 
+    auto enableSkybox = ui.checkBoxSkybox->isChecked();
+    if (enableSkybox != settings.get<bool>(Key::RenderSkybox)) {
+      settings.set(Key::RenderSkybox, enableSkybox);
+      emit renderSkyboxChanged(enableSkybox);
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -243,6 +253,10 @@ void SettingsDialog::defaultFieldOfView() {
 void SettingsDialog::defaultSamples() {
   ui.comboSamples->setCurrentIndex(
       ui.comboSamples->findData(settings.getDefault<int>(SettingsManager::Key::NumberSamples)));
+}
+
+void SettingsDialog::defaultEnableSkybox() {
+  ui.checkBoxSkybox->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderSkybox));
 }
 
 void SettingsDialog::defaultTimeStep() {
