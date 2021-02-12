@@ -210,7 +210,7 @@ void SceneWidget::paintGL() {
   renderer.render(areas);
 
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Opaque)
-    renderer.render(buildings);
+    renderer.render(buildings, Renderer::BuildingEdgeMode::Render);
   // else in the transparent section
 
   // Keep this last
@@ -218,7 +218,7 @@ void SceneWidget::paintGL() {
 
   // Other condition in opaque section
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
-    renderer.render(buildings);
+    renderer.render(buildings, Renderer::BuildingEdgeMode::DoNotRender);
 
   for (auto &[key, node] : nodes) {
     renderer.renderTransparent(node.getModel());

@@ -434,16 +434,32 @@ void Renderer::render(const std::vector<Area> &areas) {
   }
 }
 
-void Renderer::render(std::vector<Building> &buildings) {
+void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMode) {
   buildingShader.bind();
 
-  for (const auto &building : buildings) {
-    const auto &renderInfo = building.getRenderInfo();
-    buildingShader.uniform("color", building.getColor());
+  if (edgeMode == BuildingEdgeMode::Render) {
+    for (const auto &building : buildings) {
+      const auto &renderInfo = building.getRenderInfo();
+      buildingShader.uniform("color", building.getColor());
 
-    glBindVertexArray(renderInfo.vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
-    glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+      glBindVertexArray(renderInfo.vao);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+
+      // TODO: Make configurable
+      buildingShader.uniform("color", glm::vec3{0.0, 0.0, 0.0});
+      // TODO: Use separate geometry
+      glDrawElements(GL_LINE_STRIP, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+    }
+  } else {
+    for (const auto &building : buildings) {
+      const auto &renderInfo = building.getRenderInfo();
+      buildingShader.uniform("color", building.getColor());
+
+      glBindVertexArray(renderInfo.vao);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+    }
   }
 }
 
