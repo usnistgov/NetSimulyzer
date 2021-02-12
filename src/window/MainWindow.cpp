@@ -165,6 +165,10 @@ MainWindow::MainWindow() : QMainWindow() {
     render.setSkyboxRenderState(enable);
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::buildingRenderModeChanged, [this](int mode) {
+    render.setBuildingRenderMode(SettingsManager::BuildingRenderModeFromInt(mode));
+  });
+
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });

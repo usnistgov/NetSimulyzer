@@ -1,7 +1,21 @@
 #include "SettingsManager.h"
+#include <QMessageBox>
 #include <iostream>
 
 namespace visualization {
+
+SettingsManager::BuildingRenderMode SettingsManager::BuildingRenderModeFromInt(int value) {
+  switch (value) {
+  case static_cast<int>(SettingsManager::BuildingRenderMode::Transparent):
+    return SettingsManager::BuildingRenderMode::Transparent;
+  case static_cast<int>(SettingsManager::BuildingRenderMode::Opaque):
+    return SettingsManager::BuildingRenderMode::Opaque;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'Building Render Mode'!",
+                          "An unrecognised value for 'Building Render Mode':" + QString{value} + " was provided");
+    std::abort();
+  }
+}
 
 const SettingsManager::SettingValue &SettingsManager::getQtKey(SettingsManager::Key key) const {
   auto iterator = SettingsManager::qtKeyMap.find(key);

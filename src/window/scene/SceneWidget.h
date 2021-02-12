@@ -71,7 +71,6 @@ namespace visualization {
 
 class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
-
   enum class PlayMode { Paused, Play };
 
   SettingsManager settings;
@@ -89,6 +88,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
   std::unique_ptr<Floor> floor;
+  SettingsManager::BuildingRenderMode buildingRenderMode =
+      settings.get<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode).value();
 
   parser::GlobalConfiguration config;
 
@@ -178,6 +179,13 @@ public:
    * if false, no skybox is rendered
    */
   void setSkyboxRenderState(bool enable);
+
+  /**
+   * Sets the building render behavior
+   * @param mode
+   * A mode from SettingsManager::BuildingRenderMode
+   */
+  void setBuildingRenderMode(SettingsManager::BuildingRenderMode mode);
 
 signals:
   void timeChanged(double simulationTime, double increment);

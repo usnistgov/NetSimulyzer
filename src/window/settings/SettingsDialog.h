@@ -34,6 +34,7 @@
 #pragma once
 
 #include "src/settings/SettingsManager.h"
+#include "src/window/scene/SceneWidget.h"
 #include "ui_SettingsDialog.h"
 #include <QDialog>
 #include <QString>
@@ -106,6 +107,11 @@ class SettingsDialog : public QDialog {
    * Set the Skybox checkbox to the default value
    */
   void defaultEnableSkybox();
+
+  /**
+   * Sets the building render mode to the default value
+   */
+  void defaultBuildingEffect();
 
   /**
    * Set the default value for the time step spinner.
@@ -243,6 +249,15 @@ signals:
    * Indicator for the skybox to be rendered or not.
    */
   void renderSkyboxChanged(bool enable);
+
+  /**
+   * Signal emitted when the user changes the
+   * Building render mode.
+   *
+   * @param value
+   * Enum value from SettingsManager::BuildingRenderMode
+   */
+  void buildingRenderModeChanged(int value);
 
   /**
    * Signal emitted when the user saves a new Play/Pause Key

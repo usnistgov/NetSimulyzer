@@ -209,9 +209,17 @@ void SceneWidget::paintGL() {
 
   renderer.render(areas);
 
+  if (buildingRenderMode == SettingsManager::BuildingRenderMode::Opaque)
+    renderer.render(buildings);
+  // else in the transparent section
+
   // Keep this last
   renderer.startTransparent();
-  renderer.render(buildings);
+
+  // Other condition in opaque section
+  if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
+    renderer.render(buildings);
+
   for (auto &[key, node] : nodes) {
     renderer.renderTransparent(node.getModel());
   }
@@ -474,6 +482,10 @@ QSize SceneWidget::sizeHint() const {
 
 void SceneWidget::setSkyboxRenderState(bool enable) {
   renderSkybox = enable;
+}
+
+void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {
+  buildingRenderMode = mode;
 }
 
 } // namespace visualization
