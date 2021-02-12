@@ -159,7 +159,7 @@ void SceneWidget::initializeGL() {
   cubeMap.front = QImage{":/texture/resources/textures/skybox/front.png"};
   skyBox = std::make_unique<SkyBox>(textures.load(cubeMap));
 
-  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("grass.png")));
+  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f));
   floor->setPosition({0.0f, -0.5f, 0.0f});
 
   auto s = size();
