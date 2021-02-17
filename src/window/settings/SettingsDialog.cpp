@@ -30,6 +30,11 @@ void SettingsDialog::loadSettings() {
   const auto samples = *settings.get<int>(Key::NumberSamples);
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
+  ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
+
+  const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
+  ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
+
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   // Time Step is session based (so no setting to load)
@@ -44,6 +49,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboSamples->addItem("4", 4);
   ui.comboSamples->addItem("8", 8);
   ui.comboSamples->addItem("16", 16);
+
+  ui.comboBuildingRender->addItem("Transparent", static_cast<int>(SettingsManager::BuildingRenderMode::Transparent));
+  ui.comboBuildingRender->addItem("Opaque", static_cast<int>(SettingsManager::BuildingRenderMode::Opaque));
 
   using Key = SettingsManager::Key;
   ui.keyForward->setDefaultKey(settings.getDefault<int>(Key::CameraKeyForward));
@@ -73,7 +81,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetUp, &QPushButton::clicked, ui.keyUp, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetDown, &QPushButton::clicked, ui.keyDown, &SingleKeySequenceEdit::setDefault);
 
+  QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
+  QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -106,7 +116,9 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetUp->click();
     ui.buttonResetDown->click();
 
+    ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
+    ui.buttonResetBuildingRender->click();
 
     ui.buttonResetPlay->click();
     break;
@@ -187,6 +199,18 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       requiresRestart = true;
     }
 
+    auto enableSkybox = ui.checkBoxSkybox->isChecked();
+    if (enableSkybox != settings.get<bool>(Key::RenderSkybox)) {
+      settings.set(Key::RenderSkybox, enableSkybox);
+      emit renderSkyboxChanged(enableSkybox);
+    }
+
+    auto buildingRenderMode = SettingsManager::BuildingRenderModeFromInt(ui.comboBuildingRender->currentData().toInt());
+    if (buildingRenderMode != settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value()) {
+      settings.set(Key::RenderBuildingMode, buildingRenderMode);
+      emit buildingRenderModeChanged(static_cast<int>(buildingRenderMode));
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -243,6 +267,16 @@ void SettingsDialog::defaultFieldOfView() {
 void SettingsDialog::defaultSamples() {
   ui.comboSamples->setCurrentIndex(
       ui.comboSamples->findData(settings.getDefault<int>(SettingsManager::Key::NumberSamples)));
+}
+
+void SettingsDialog::defaultEnableSkybox() {
+  ui.checkBoxSkybox->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderSkybox));
+}
+
+void SettingsDialog::defaultBuildingEffect() {
+  const auto defaultBuildingMode =
+      settings.getDefault<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode);
+  ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(defaultBuildingMode)));
 }
 
 void SettingsDialog::defaultTimeStep() {

@@ -64,6 +64,10 @@ const Model &Node::getModel() const {
   return model;
 }
 
+bool Node::visible() const {
+  return ns3Node.visible;
+}
+
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo::MoveEvent undo;
   undo.position = model.getPosition();
@@ -87,7 +91,6 @@ undo::NodeOrientationChangeEvent Node::handle(const parser::NodeOrientationChang
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
 }
-
 void Node::handle(const undo::NodeOrientationChangeEvent &e) {
   model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }

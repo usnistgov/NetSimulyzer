@@ -317,7 +317,7 @@ Area::RenderInfo Renderer::allocate(const parser::Area &area) {
   return info;
 }
 
-Mesh Renderer::allocateFloor(float size, texture_id textureId) {
+Mesh Renderer::allocateFloor(float size) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
 
@@ -331,8 +331,7 @@ Mesh Renderer::allocateFloor(float size, texture_id textureId) {
   Material floorMaterial;
   floorMaterial.shininess = 4.0f;
   floorMaterial.specularIntensity = 0.03f;
-  floorMaterial.textureId = textureId;
-
+  floorMaterial.color = {0.56f, 0.79f, 0.39f}; // Light Green
   Mesh m{floorVertices, floorIndices, 4u, 6};
   m.setMaterial(floorMaterial);
   return m;
@@ -434,16 +433,36 @@ void Renderer::render(const std::vector<Area> &areas) {
   }
 }
 
-void Renderer::render(std::vector<Building> &buildings) {
+void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMode) {
   buildingShader.bind();
 
-  for (const auto &building : buildings) {
-    const auto &renderInfo = building.getRenderInfo();
-    buildingShader.uniform("color", building.getColor());
+  if (edgeMode == BuildingEdgeMode::Render) {
+    for (const auto &building : buildings) {
+      if (!building.visible())
+        continue;
+      const auto &renderInfo = building.getRenderInfo();
+      buildingShader.uniform("color", building.getColor());
 
-    glBindVertexArray(renderInfo.vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
-    glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+      glBindVertexArray(renderInfo.vao);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+
+      // TODO: Make configurable
+      buildingShader.uniform("color", glm::vec3{0.0, 0.0, 0.0});
+      // TODO: Use separate geometry
+      glDrawElements(GL_LINE_STRIP, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+    }
+  } else {
+    for (const auto &building : buildings) {
+      if (!building.visible())
+        continue;
+      const auto &renderInfo = building.getRenderInfo();
+      buildingShader.uniform("color", building.getColor());
+
+      glBindVertexArray(renderInfo.vao);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+    }
   }
 }
 
@@ -469,9 +488,9 @@ void Renderer::renderTransparent(const Model &m) {
 void Renderer::render(Floor &f) {
   modelShader.bind();
   modelShader.uniform("model", f.getModelMatrix());
-  modelShader.uniform("useTexture", true);
+  modelShader.uniform("useTexture", false);
+  modelShader.uniform("material_color", f.getMesh().getMaterial().color.value());
   modelShader.uniform("saturation_factor", 0.8f);
-  textureCache.use(f.getTextureId());
   f.render();
 }
 

@@ -159,7 +159,7 @@ void SceneWidget::initializeGL() {
   cubeMap.front = QImage{":/texture/resources/textures/skybox/front.png"};
   skyBox = std::make_unique<SkyBox>(textures.load(cubeMap));
 
-  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f, textures.load("grass.png")));
+  floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f));
   floor->setPosition({0.0f, -0.5f, 0.0f});
 
   auto s = size();
@@ -195,9 +195,12 @@ void SceneWidget::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
-  renderer.render(*skyBox);
+  if (renderSkybox)
+    renderer.render(*skyBox);
 
   for (auto &[key, node] : nodes) {
+    if (!node.visible())
+      continue;
     renderer.render(node.getModel());
   }
 
@@ -208,9 +211,17 @@ void SceneWidget::paintGL() {
 
   renderer.render(areas);
 
+  if (buildingRenderMode == SettingsManager::BuildingRenderMode::Opaque)
+    renderer.render(buildings, Renderer::BuildingEdgeMode::Render);
+  // else in the transparent section
+
   // Keep this last
   renderer.startTransparent();
-  renderer.render(buildings);
+
+  // Other condition in opaque section
+  if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
+    renderer.render(buildings, Renderer::BuildingEdgeMode::DoNotRender);
+
   for (auto &[key, node] : nodes) {
     renderer.renderTransparent(node.getModel());
   }
@@ -471,5 +482,12 @@ QSize SceneWidget::sizeHint() const {
   return {640, 480};
 }
 
+void SceneWidget::setSkyboxRenderState(bool enable) {
+  renderSkybox = enable;
+}
+
+void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {
+  buildingRenderMode = mode;
+}
 
 } // namespace visualization

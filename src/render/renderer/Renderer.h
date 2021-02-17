@@ -60,6 +60,7 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
   Shader skyBoxShader;
 
 public:
+  enum class BuildingEdgeMode { Render, DoNotRender };
   const unsigned int maxPointLights = 5u;
   const unsigned int maxSpotLights = 5u;
 
@@ -72,7 +73,7 @@ public:
 
   Building::RenderInfo allocate(const parser::Building &building);
   Area::RenderInfo allocate(const parser::Area &area);
-  Mesh allocateFloor(float size, texture_id textureId);
+  Mesh allocateFloor(float size);
   void resize(Floor &f, float size);
 
   void startTransparent();
@@ -83,7 +84,7 @@ public:
   void render(const PointLight &light);
   void render(const SpotLight &light);
   void render(const std::vector<Area> &areas);
-  void render(std::vector<Building> &buildings);
+  void render(std::vector<Building> &buildings, BuildingEdgeMode edgeMode);
   void render(const Model &m);
   void renderTransparent(const Model &m);
   void render(Floor &f);

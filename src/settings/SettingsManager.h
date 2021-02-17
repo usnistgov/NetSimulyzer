@@ -39,8 +39,24 @@ public:
     CameraKeyDown,
     SceneKeyPlay,
     MainWindowState,
-    NumberSamples
+    NumberSamples,
+    RenderBuildingMode,
+    RenderSkybox
   };
+
+  enum class BuildingRenderMode : int { Transparent, Opaque };
+
+  /**
+   * Convert an int to a `BuildingRenderMode` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static BuildingRenderMode BuildingRenderModeFromInt(int value);
 
   /**
    * Defines when retrieving a value fails,
@@ -83,6 +99,8 @@ private:
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
+      {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
+      {Key::RenderSkybox, {"renderer/enableSkybox", true}},
   };
 
   /**
@@ -206,7 +224,7 @@ public:
    * The default value of `key` converted to `T`
    */
   template <class T>
-  [[nodiscard]] T getDefault(SettingsManager::Key key) {
+  [[nodiscard]] T getDefault(SettingsManager::Key key) const {
     const auto &settingKey = getQtKey(key);
     if (!settingKey.defaultValue.isValid()) {
       std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
@@ -255,7 +273,7 @@ inline void SettingsManager::set(SettingsManager::Key key, const std::string &va
 }
 
 template <>
-[[nodiscard]] inline std::string SettingsManager::getDefault(SettingsManager::Key key) {
+[[nodiscard]] inline std::string SettingsManager::getDefault(SettingsManager::Key key) const {
   const auto &settingKey = getQtKey(key);
   if (!settingKey.defaultValue.isValid()) {
     std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
@@ -263,6 +281,63 @@ template <>
   }
 
   return settingKey.defaultValue.toString().toStdString();
+}
+
+// Specialization for SceneWidget::BuildingRenderMode enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::BuildingRenderMode SettingsManager::getDefault(SettingsManager::Key key) const {
+  const auto &settingKey = getQtKey(key);
+  if (!settingKey.defaultValue.isValid()) {
+    std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
+    std::abort();
+  }
+
+  // TODO: Use the map value
+  return SettingsManager::BuildingRenderMode::Transparent;
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::BuildingRenderMode> SettingsManager::get(Key key,
+                                                                                             RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+
+  if (stringMode == "transparent")
+    return {SettingsManager::BuildingRenderMode::Transparent};
+  else if (stringMode == "opaque")
+    return {SettingsManager::BuildingRenderMode::Opaque};
+  else
+    std::cerr << "Unrecognised 'BuildingRenderMode' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<BuildingRenderMode>(Key::RenderBuildingMode);
+
+  return {};
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::BuildingRenderMode &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::BuildingRenderMode::Transparent:
+    qtSettings.setValue(settingKey.key, "transparent");
+    break;
+  case SettingsManager::BuildingRenderMode::Opaque:
+    qtSettings.setValue(settingKey.key, "opaque");
+    break;
+  default:
+    std::cerr << "Unrecognised 'BuildingRenderMode': " << static_cast<int>(value) << " value not saved!\n";
+  }
 }
 
 } // namespace visualization
