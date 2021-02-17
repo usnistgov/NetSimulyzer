@@ -199,6 +199,8 @@ void SceneWidget::paintGL() {
     renderer.render(*skyBox);
 
   for (auto &[key, node] : nodes) {
+    if (!node.visible())
+      continue;
     renderer.render(node.getModel());
   }
 

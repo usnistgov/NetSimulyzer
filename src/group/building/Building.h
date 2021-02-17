@@ -62,6 +62,7 @@ public:
 
   [[nodiscard]] const glm::vec3 &getColor() const;
   void setColor(const glm::vec3 &value);
+  [[nodiscard]] bool visible() const;
 };
 
 } // namespace visualization

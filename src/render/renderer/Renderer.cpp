@@ -438,6 +438,8 @@ void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMod
 
   if (edgeMode == BuildingEdgeMode::Render) {
     for (const auto &building : buildings) {
+      if (!building.visible())
+        continue;
       const auto &renderInfo = building.getRenderInfo();
       buildingShader.uniform("color", building.getColor());
 
@@ -452,6 +454,8 @@ void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMod
     }
   } else {
     for (const auto &building : buildings) {
+      if (!building.visible())
+        continue;
       const auto &renderInfo = building.getRenderInfo();
       buildingShader.uniform("color", building.getColor());
 

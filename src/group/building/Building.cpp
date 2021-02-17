@@ -49,4 +49,9 @@ const glm::vec3 &Building::getColor() const {
 void Building::setColor(const glm::vec3 &value) {
   color = value;
 }
+
+bool Building::visible() const {
+  return model.visible;
+}
+
 } // namespace visualization
