@@ -29,7 +29,7 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-target_sources(visualization PRIVATE
+target_sources(netsimulyzer PRIVATE
         group/area/Area.h group/area/Area.cpp
         group/building/Building.h group/building/Building.cpp
         group/decoration/Decoration.h group/decoration/Decoration.cpp

@@ -30,7 +30,7 @@
 # Author: Evan Black <evan.black@nist.gov>
 
 cmake_minimum_required(VERSION 3.13)
-project(Visualizer
+project(NetSimulyzer
         VERSION 0.5.0
         LANGUAGES C CXX)
 
@@ -70,20 +70,20 @@ configure_file(project.h.in
         ${PROJECT_BINARY_DIR}/project.h
         )
 
-add_executable(visualization
+add_executable(netsimulyzer
         main.cpp
-        visualization.rc
+        netsimulyzer.rc
         resources.qrc)
 
-target_compile_features(visualization PRIVATE cxx_std_17)
+target_compile_features(netsimulyzer PRIVATE cxx_std_17)
 
-target_compile_options(visualization PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
+target_compile_options(netsimulyzer PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
 
-target_link_libraries(visualization PRIVATE parser)
-target_link_libraries(visualization PRIVATE assimp)
-target_include_directories(visualization PRIVATE lib/glm)
-target_link_libraries(visualization PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
-target_link_libraries(visualization PRIVATE Threads::Threads)
+target_link_libraries(netsimulyzer PRIVATE parser)
+target_link_libraries(netsimulyzer PRIVATE assimp)
+target_include_directories(netsimulyzer PRIVATE lib/glm)
+target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
+target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
 add_subdirectory(src)
 

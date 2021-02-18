@@ -44,7 +44,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * ID for outside code to access a given texture
@@ -93,4 +93,4 @@ public:
   void useCubeMap(unsigned int id);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

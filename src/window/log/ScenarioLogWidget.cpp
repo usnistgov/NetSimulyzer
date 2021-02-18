@@ -38,7 +38,7 @@
 #include <QString>
 #include <variant>
 
-namespace visualization {
+namespace netsimulyzer {
 
 ScenarioLogWidget::LogStreamPair::LogStreamPair(parser::LogStream model) : model(std::move(model)) {
   data->setDocumentLayout(new QPlainTextDocumentLayout(data.get()));
@@ -223,4 +223,4 @@ void ScenarioLogWidget::reset() {
   undoEvents.clear();
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

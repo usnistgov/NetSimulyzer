@@ -38,7 +38,7 @@
 #include <QPushButton>
 #include <QString>
 
-namespace visualization {
+namespace netsimulyzer {
 
 PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
@@ -105,4 +105,4 @@ void PlaybackWidget::setPaused() {
   playing = false;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

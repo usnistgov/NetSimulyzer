@@ -39,7 +39,7 @@
 #include <QStyle>
 #include <QWidget>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class PlaybackWidget : public QWidget {
   Q_OBJECT
@@ -71,4 +71,4 @@ signals:
   void timeSet(double time);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -35,7 +35,7 @@
 #include "Vertex.h"
 #include <algorithm>
 
-namespace visualization {
+namespace netsimulyzer {
 
 void Mesh::move(Mesh &&other) noexcept {
   initializeOpenGLFunctions();
@@ -138,4 +138,4 @@ Mesh::~Mesh() {
   renderInfo.indexCount = 0;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

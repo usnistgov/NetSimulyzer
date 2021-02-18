@@ -48,7 +48,7 @@
 #include <utility>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class ScenarioLogWidget : public QWidget {
   Q_OBJECT
@@ -125,4 +125,4 @@ public:
   void reset();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

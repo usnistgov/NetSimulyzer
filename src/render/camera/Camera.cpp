@@ -35,7 +35,7 @@
 #include "src/settings/SettingsManager.h"
 #include <cmath>
 
-namespace visualization {
+namespace netsimulyzer {
 
 Camera::Camera() {
   update();
@@ -280,4 +280,4 @@ void Camera::setKeyDown(int value) {
   keyDown = value;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <QtWidgets/QDialogButtonBox>
 
-namespace visualization {
+namespace netsimulyzer {
 
 void SettingsDialog::loadSettings() {
   using Key = SettingsManager::Key;
@@ -284,7 +284,7 @@ void SettingsDialog::defaultTimeStep() {
 }
 
 void SettingsDialog::selectResourcePath() {
-  auto selected = visualization::getExistingDirectory("Select 'resources' Directory");
+  auto selected = netsimulyzer::getExistingDirectory("Select 'resources' Directory");
   if (selected.isEmpty())
     return;
 
@@ -309,4 +309,4 @@ void SettingsDialog::selectResourcePath() {
   ui.lineEditResource->setText(resourcePath);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -36,7 +36,7 @@
 #include <glm/vec3.hpp>
 #include <model.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Area {
 public:
@@ -64,4 +64,4 @@ public:
   [[nodiscard]] const RenderInfo &getRenderInfo() const;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

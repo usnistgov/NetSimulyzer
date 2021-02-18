@@ -33,10 +33,10 @@
 
 #pragma once
 
-#include <QDialog>
 #include "ui_AboutDialog.h"
+#include <QDialog>
 
-namespace visualization {
+namespace netsimulyzer {
 class AboutDialog : public QDialog {
   Q_OBJECT
 
@@ -47,4 +47,4 @@ private:
   Ui::AboutDialog ui{};
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

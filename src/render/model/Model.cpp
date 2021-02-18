@@ -37,7 +37,7 @@
 #include <iostream>
 #include <utility>
 
-namespace visualization {
+namespace netsimulyzer {
 
 Model::Model(const Model::ModelLoadInfo &info) : Model(info.id, info.min, info.max) {
 }
@@ -124,4 +124,4 @@ const std::optional<glm::vec3> &Model::getHighlightColor() const {
   return highlightColor;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

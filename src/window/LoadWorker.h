@@ -3,7 +3,7 @@
 #include <QObject>
 #include <file-parser.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class LoadWorker : public QObject {
   Q_OBJECT
@@ -17,4 +17,4 @@ signals:
   void fileLoaded(const QString &fileName, unsigned long long milliseconds);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

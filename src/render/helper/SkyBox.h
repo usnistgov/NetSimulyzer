@@ -2,7 +2,7 @@
 
 #include "src/render/mesh/Mesh.h"
 
-namespace visualization {
+namespace netsimulyzer {
 
 class SkyBox {
   Mesh mesh;
@@ -14,4 +14,4 @@ public:
   [[nodiscard]] unsigned long getTextureId() const;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

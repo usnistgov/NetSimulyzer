@@ -40,7 +40,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Shader : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, int> uniform_cache;
@@ -65,4 +65,4 @@ public:
   void unbind();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

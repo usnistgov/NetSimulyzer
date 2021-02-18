@@ -35,7 +35,7 @@
 #include "../../conversion.h"
 #include <utility>
 
-namespace visualization {
+namespace netsimulyzer {
 
 Area::Area(Area::RenderInfo renderInfo, parser::Area model) : renderInfo(renderInfo), model(std::move(model)) {
   this->renderInfo.fillColor = toRenderColor(this->model.fillColor);
@@ -45,4 +45,4 @@ const Area::RenderInfo &Area::getRenderInfo() const {
   return renderInfo;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

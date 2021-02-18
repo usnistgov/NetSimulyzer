@@ -35,7 +35,7 @@
 #include "../../conversion.h"
 #include "../../util/undo-events.h"
 
-namespace visualization {
+namespace netsimulyzer {
 
 Decoration::Decoration(const Model &model, const parser::Decoration &ns3Model) : model(model), ns3Model(ns3Model) {
   this->model.setPosition(toRenderCoordinate(ns3Model.position));
@@ -83,4 +83,4 @@ void Decoration::handle(const undo::DecorationOrientationChangeEvent &e) {
   model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

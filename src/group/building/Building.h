@@ -39,7 +39,7 @@
 #include <glm/glm.hpp>
 #include <model.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Building {
 public:
@@ -65,4 +65,4 @@ public:
   [[nodiscard]] bool visible() const;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

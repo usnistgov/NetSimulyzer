@@ -39,7 +39,7 @@
 #include <QDialog>
 #include <QString>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * Dialog for configuring application settings
@@ -285,4 +285,4 @@ signals:
   void resourcePathChanged(const QString &dir);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

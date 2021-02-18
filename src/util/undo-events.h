@@ -38,7 +38,7 @@
 #include <model.h>
 #include <variant>
 
-namespace visualization::undo {
+namespace netsimulyzer::undo {
 
 /**
  * An event which undoes a `parser::MoveEvent`
@@ -153,4 +153,4 @@ using ChartUndoEvent = std::variant<XYSeriesAddValue, CategorySeriesAddValue>;
 
 using LogUndoEvent = std::variant<StreamAppendEvent>;
 
-} // namespace visualization::undo
+} // namespace netsimulyzer::undo

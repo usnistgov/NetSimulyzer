@@ -1,4 +1,4 @@
-# Visualization
+# NetSimulyzer
 A 3D visualizer for ns-3 scenarios.
 
 ## Requirements
@@ -54,7 +54,7 @@ cmake --build . --parallel
 After building the application may launched from the project root directory with the following command:
 ```shell
 cd ../
-./build/visualization
+./build/netsimulyzer
 ```
 
 ## Resources

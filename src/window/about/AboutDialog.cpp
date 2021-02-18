@@ -38,7 +38,7 @@
 #include <QSysInfo>
 #include <project.h>
 
-namespace visualization {
+namespace netsimulyzer {
 AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   ui.setupUi(this);
 
@@ -71,9 +71,9 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   compiler = "Unknown Compiler";
 #endif
 
-  ui.labelApplicationName->setText(VISUALIZER_APPLICATION_NAME);
-  ui.labelVersion->setText("v" VISUALIZER_VERSION " (" + compliedArchitecture + ", " + releaseType + ')');
-  ui.labelTarget->setText(VISUALIZER_APPLICATION_NAME " for " + QSysInfo::prettyProductName());
+  ui.labelApplicationName->setText(NETSIMULYZER_VERSION);
+  ui.labelVersion->setText("v" NETSIMULYZER_VERSION " (" + compliedArchitecture + ", " + releaseType + ')');
+  ui.labelTarget->setText(NETSIMULYZER_VERSION " for " + QSysInfo::prettyProductName());
   ui.labelCompiler->setText(compiler);
 
   ui.plainTextEditLicense->setPlainText(
@@ -101,4 +101,4 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
       "copyright protection within the United States.");
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

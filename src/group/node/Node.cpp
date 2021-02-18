@@ -38,7 +38,7 @@
 #include <glm/glm.hpp>
 #include <utility>
 
-namespace visualization {
+namespace netsimulyzer {
 
 Node::Node(const Model &model, parser::Node ns3Node)
     : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)) {
@@ -95,4 +95,4 @@ void Node::handle(const undo::NodeOrientationChangeEvent &e) {
   model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

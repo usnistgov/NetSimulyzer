@@ -39,7 +39,7 @@
 #include <glm/glm.hpp>
 #include <utility>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Mesh : protected QOpenGLFunctions_3_3_Core {
 public:
@@ -91,4 +91,4 @@ public:
   ~Mesh() override;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

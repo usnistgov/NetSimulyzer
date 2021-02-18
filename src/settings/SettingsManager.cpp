@@ -2,7 +2,7 @@
 #include <QMessageBox>
 #include <iostream>
 
-namespace visualization {
+namespace netsimulyzer {
 
 SettingsManager::BuildingRenderMode SettingsManager::BuildingRenderModeFromInt(int value) {
   switch (value) {
@@ -50,4 +50,4 @@ void SettingsManager::sync() {
   qtSettings.sync();
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

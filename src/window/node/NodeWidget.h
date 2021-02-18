@@ -42,7 +42,7 @@
 #include <model.h>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class NodeWidget : public QWidget {
   Q_OBJECT
@@ -94,4 +94,4 @@ signals:
   void nodeSelected(uint32_t id);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -46,7 +46,7 @@
 #include <QMainWindow>
 #include <QThread>
 
-namespace visualization {
+namespace netsimulyzer {
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
@@ -89,4 +89,4 @@ private:
 protected:
   void closeEvent(QCloseEvent *event) override;
 };
-} // namespace visualization
+} // namespace netsimulyzer

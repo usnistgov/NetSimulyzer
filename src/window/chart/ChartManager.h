@@ -52,7 +52,7 @@
 #include <unordered_map>
 #include <variant>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class ChartWidget;
 
@@ -168,4 +168,4 @@ public:
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

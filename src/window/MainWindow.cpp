@@ -47,11 +47,11 @@
 #include <parser/model.h>
 #include <project.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 MainWindow::MainWindow() : QMainWindow() {
   ui.setupUi(this);
-  setWindowTitle(VISUALIZER_APPLICATION_NAME);
+  setWindowTitle(NETSIMULYZER_APPLICATION_NAME);
   setCentralWidget(&render);
 
   ui.nodesDock->setWidget(&nodeWidget);
@@ -274,4 +274,4 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   QMainWindow::closeEvent(event);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

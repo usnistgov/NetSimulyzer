@@ -38,7 +38,7 @@
 #include <QString>
 #include <string>
 
-namespace visualization {
+namespace netsimulyzer {
 
 int NodeWidget::NodeModel::rowCount(const QModelIndex &) const {
   return static_cast<int>(nodes.size());
@@ -113,8 +113,9 @@ void NodeWidget::NodeModel::reset() {
 NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
   ui->setupUi(this);
 
-  QObject::connect(ui->nodeTable, &QTableView::doubleClicked,
-                   [this](const QModelIndex &index) { emit nodeSelected(index.data(Qt::UserRole).toUInt()); });
+  QObject::connect(ui->nodeTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {
+    emit nodeSelected(index.data(Qt::UserRole).toUInt());
+  });
 
   proxyModel.setSourceModel(&model);
   ui->nodeTable->setModel(&proxyModel);
@@ -138,4 +139,4 @@ void NodeWidget::reset() {
   model.reset();
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

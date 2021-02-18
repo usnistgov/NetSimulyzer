@@ -37,7 +37,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Camera {
 public:
@@ -143,4 +143,4 @@ public:
   void resetRotation();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

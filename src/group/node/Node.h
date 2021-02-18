@@ -38,7 +38,7 @@
 #include <glm/glm.hpp>
 #include <model.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Node {
   Model model;
@@ -56,4 +56,4 @@ public:
   void handle(const undo::NodeOrientationChangeEvent &e);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -34,7 +34,7 @@
 #pragma once
 #include <string>
 
-namespace visualization {
+namespace netsimulyzer {
 
 struct Texture {
   unsigned int id = 0u;
@@ -43,4 +43,4 @@ struct Texture {
   std::string location;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

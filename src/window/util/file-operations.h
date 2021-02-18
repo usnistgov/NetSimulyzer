@@ -36,7 +36,7 @@
 #include <QString>
 #include <QWidget>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * Wrapper for Qt's `getExistingDirectory`. Used to distinguish which platforms should
@@ -65,4 +65,4 @@ QString getExistingDirectory(const QString &caption, QWidget *parent = nullptr);
  */
 QString getScenarioFile(QWidget *parent = nullptr);
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -36,7 +36,7 @@
 #include <osg/PrimitiveSet>
 #include <osg/ref_ptr>
 
-namespace visualization {
+namespace netsimulyzer {
 
 CoordinateGrid::CoordinateGrid(int size, int steps, osg::Vec4 centerLineColor, osg::Vec4 nonCenterLineColor) {
   getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
@@ -95,4 +95,4 @@ CoordinateGrid::CoordinateGrid(int size, int steps, osg::Vec4 centerLineColor, o
   addChild(centerGrid);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

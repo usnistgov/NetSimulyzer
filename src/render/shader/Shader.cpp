@@ -43,7 +43,7 @@ void log_uniform(int location, std::string_view name) {
   (void)name;
 #endif
 }
-namespace visualization {
+namespace netsimulyzer {
 
 unsigned int Shader::compile(unsigned int type, const char *src) {
   const auto id = glCreateShader(type);
@@ -209,4 +209,4 @@ void Shader::unbind() {
   glUseProgram(0u);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

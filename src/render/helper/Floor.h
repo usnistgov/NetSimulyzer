@@ -40,7 +40,7 @@
 #include <array>
 #include <glm/glm.hpp>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Floor {
   Mesh mesh;
@@ -67,4 +67,4 @@ public:
   void render();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

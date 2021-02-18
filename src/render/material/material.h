@@ -38,7 +38,7 @@
 #include <glm/vec3.hpp>
 #include <optional>
 
-namespace visualization {
+namespace netsimulyzer {
 
 struct Material {
   enum class MaterialType { Unclassified, Base, Highlight };
@@ -53,4 +53,4 @@ struct Material {
   MaterialType materialType = MaterialType::Unclassified;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

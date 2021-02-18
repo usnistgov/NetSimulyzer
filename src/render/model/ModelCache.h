@@ -46,7 +46,7 @@
 #include <utility>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class ModelRenderInfo : protected QOpenGLFunctions_3_3_Core {
 public:
@@ -117,4 +117,4 @@ public:
   void clear();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

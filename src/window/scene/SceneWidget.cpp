@@ -62,7 +62,7 @@ static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
 }
 #endif
 
-namespace visualization {
+namespace netsimulyzer {
 
 void SceneWidget::handleEvents() {
   // Returns true after handling an event
@@ -508,4 +508,4 @@ void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode
   buildingRenderMode = mode;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

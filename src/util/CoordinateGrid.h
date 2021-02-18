@@ -36,7 +36,7 @@
 #include <osg/Array>
 #include <osg/Group>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * Resizeable square grid aligned with the X axis
@@ -67,4 +67,4 @@ public:
                           osg::Vec4 nonCenterLineColor = osg::Vec4(0.26f, 0.26f, 0.26f, 1.0f));
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

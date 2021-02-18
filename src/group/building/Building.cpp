@@ -33,7 +33,7 @@
 #include "Building.h"
 #include "../../conversion.h"
 
-namespace visualization {
+namespace netsimulyzer {
 
 Building::Building(const Building::RenderInfo &renderInfo, const parser::Building &model)
     : renderInfo(renderInfo), color(toRenderColor(model.color)), model(model) {
@@ -54,4 +54,4 @@ bool Building::visible() const {
   return model.visible;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

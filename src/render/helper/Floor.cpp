@@ -42,7 +42,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 Floor::Floor(Mesh mesh) : mesh(std::move(mesh)) {
 }
@@ -72,4 +72,4 @@ texture_id Floor::getTextureId() const {
   return *mesh.getMaterial().textureId;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

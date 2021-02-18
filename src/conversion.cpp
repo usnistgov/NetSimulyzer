@@ -33,7 +33,7 @@
 
 #include "conversion.h"
 
-namespace visualization {
+namespace netsimulyzer {
 
 glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate) {
   // Yes this is the right order
@@ -82,4 +82,4 @@ QString toDisplayTime(double value) {
   return displayTime;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

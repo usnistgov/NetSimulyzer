@@ -48,7 +48,7 @@ static std::string qFileToString(QFile &f) {
   return stream.readAll().toStdString();
 }
 
-namespace visualization {
+namespace netsimulyzer {
 
 Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
     : modelCache(modelCache), textureCache(textureCache) {
@@ -503,4 +503,4 @@ void Renderer::render(SkyBox &skyBox) {
   glDepthMask(GL_TRUE);
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

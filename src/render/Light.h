@@ -35,7 +35,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace visualization {
+namespace netsimulyzer {
 
 struct DirectionalLight {
   glm::vec3 color{1.0f};
@@ -80,4 +80,4 @@ struct PointLight {
   static std::size_t count;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

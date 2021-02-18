@@ -37,7 +37,7 @@
 #include <QFileInfo>
 #include <QString>
 
-namespace visualization {
+namespace netsimulyzer {
 QString getExistingDirectory(const QString &caption, QWidget *parent) {
   return QFileDialog::getExistingDirectory(parent, caption,
                                            ""
@@ -79,4 +79,4 @@ QString getScenarioFile(QWidget *parent) {
   return selected;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

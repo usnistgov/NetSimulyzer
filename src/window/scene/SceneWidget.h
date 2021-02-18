@@ -68,7 +68,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
@@ -197,4 +197,4 @@ signals:
   void paused();
   void playing();
 };
-} // namespace visualization
+} // namespace netsimulyzer

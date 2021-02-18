@@ -37,7 +37,7 @@
 #include "../../util/undo-events.h"
 #include <model.h>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Decoration {
   Model model;
@@ -53,4 +53,4 @@ public:
   void handle(const undo::DecorationOrientationChangeEvent &e);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

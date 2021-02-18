@@ -39,7 +39,7 @@
 #include <string>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * ID used to reference a model with outside code
@@ -107,4 +107,4 @@ public:
   void rebuildModelMatrix();
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

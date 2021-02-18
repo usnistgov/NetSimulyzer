@@ -1,7 +1,7 @@
 #include "LoadWorker.h"
 #include <QElapsedTimer>
 
-namespace visualization {
+namespace netsimulyzer {
 
 void LoadWorker::load(const QString &fileName) {
   QElapsedTimer timer;
@@ -18,4 +18,4 @@ parser::FileParser &LoadWorker::getParser() {
   return parser;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

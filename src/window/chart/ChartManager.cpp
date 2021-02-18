@@ -76,7 +76,7 @@ void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
 
 } // namespace
 
-namespace visualization {
+namespace netsimulyzer {
 
 ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   ChartManager::XYSeriesTie tie;
@@ -544,4 +544,4 @@ void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
   }
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

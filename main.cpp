@@ -109,7 +109,7 @@ bool validateResourceDir(const QString &path) {
  * The path from the user. Empty string if nothing was selected
  */
 std::optional<QFileInfo> promptResourceDir() {
-  auto selected = visualization::getExistingDirectory("Select 'resources' Directory");
+  auto selected = netsimulyzer::getExistingDirectory("Select 'resources' Directory");
 
   if (!validateResourceDir(selected)) {
     QMessageBox::critical(nullptr, "Invalid resource directory selected",
@@ -155,22 +155,22 @@ int main(int argc, char *argv[]) {
   // a QSettings object
   QCoreApplication::setOrganizationName("NIST");
   QCoreApplication::setOrganizationDomain("nist.gov");
-  QCoreApplication::setApplicationName(VISUALIZER_APPLICATION_NAME);
+  QCoreApplication::setApplicationName(NETSIMULYZER_VERSION);
 
   // Prevent up from using odd formats
   // Note: everything becomes a string as a result
   QSettings::setDefaultFormat(QSettings::Format::IniFormat);
 
-  using Key = visualization::SettingsManager::Key;
-  using RetrieveMode = visualization::SettingsManager::RetrieveMode;
-  visualization::SettingsManager settings;
+  using Key = netsimulyzer::SettingsManager::Key;
+  using RetrieveMode = netsimulyzer::SettingsManager::RetrieveMode;
+  netsimulyzer::SettingsManager settings;
 
   if (settings.isDefined(Key::SettingsVersion)) {
     auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
 
-    if (settingsVersion != std::string{VISUALIZER_VERSION}) {
+    if (settingsVersion != std::string{NETSIMULYZER_VERSION}) {
       std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
-                << VISUALIZER_VERSION << '\n';
+                << NETSIMULYZER_VERSION << '\n';
 
       auto version = parseVersion(settingsVersion);
       if (version.major == 0 && version.minor <= 1 && version.patch <= 3) {
@@ -181,10 +181,10 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
+      settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
     }
   } else
-    settings.set(Key::SettingsVersion, VISUALIZER_VERSION);
+    settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
 
   QSurfaceFormat format;
   format.setVersion(3, 3);
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
     // Make sure any changes to the resource directory are committed
     settings.sync();
   }
-  visualization::MainWindow mainWindow;
+  netsimulyzer::MainWindow mainWindow;
   mainWindow.show();
   return QApplication::exec();
 }

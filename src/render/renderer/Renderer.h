@@ -48,7 +48,7 @@
 #include <sstream>
 #include <vector>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class Renderer : protected QOpenGLFunctions_3_3_Core {
   ModelCache &modelCache;
@@ -91,4 +91,4 @@ public:
   void render(SkyBox &skyBox);
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

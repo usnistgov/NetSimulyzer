@@ -34,7 +34,7 @@
 #pragma once
 #include <array>
 
-namespace visualization {
+namespace netsimulyzer {
 
 struct Vertex {
   std::array<float, 3> position;
@@ -42,4 +42,4 @@ struct Vertex {
   std::array<float, 2> textureCoordinate{0.0f, 0.0f};
 };
 
-} // namespace visualization
+} // namespace netsimulyzer

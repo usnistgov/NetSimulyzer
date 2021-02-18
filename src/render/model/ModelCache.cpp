@@ -44,7 +44,7 @@
 #include <unordered_map>
 #include <utility>
 
-namespace visualization {
+namespace netsimulyzer {
 
 void ModelRenderInfo::updateBounds() {
   if (!meshes.empty()) {
@@ -324,4 +324,4 @@ void ModelCache::clear() {
   // TODO: Implement
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

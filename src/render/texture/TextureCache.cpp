@@ -69,7 +69,7 @@ std::optional<QFileInfo> findTexture(const QDir &base, const QString &fileName, 
 
 } // namespace
 
-namespace visualization {
+namespace netsimulyzer {
 
 void TextureCache::setResourceDirectory(const QDir &value) {
   resourceDirectory = value;
@@ -237,4 +237,4 @@ const std::optional<texture_id> &TextureCache::getFallbackTexture() const {
   return fallbackTexture;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

@@ -41,7 +41,7 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QSplineSeries>
 
-namespace visualization {
+namespace netsimulyzer {
 
 void ChartWidget::seriesSelected(int index) {
   clearChart();
@@ -196,4 +196,4 @@ unsigned int ChartWidget::getCurrentSeries() const {
   return currentSeries;
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

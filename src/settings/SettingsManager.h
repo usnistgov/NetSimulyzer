@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <unordered_map>
 
-namespace visualization {
+namespace netsimulyzer {
 
 /**
  * Manager that wraps the QSettings Class
@@ -340,4 +340,4 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
   }
 }
 
-} // namespace visualization
+} // namespace netsimulyzer

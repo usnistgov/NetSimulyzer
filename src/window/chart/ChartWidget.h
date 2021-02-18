@@ -38,7 +38,7 @@
 #include <QDockWidget>
 #include <QWidget>
 
-namespace visualization {
+namespace netsimulyzer {
 
 class ChartWidget : public QDockWidget {
   Q_OBJECT
@@ -82,4 +82,4 @@ public:
   [[nodiscard]] unsigned int getCurrentSeries() const;
 };
 
-} // namespace visualization
+} // namespace netsimulyzer
