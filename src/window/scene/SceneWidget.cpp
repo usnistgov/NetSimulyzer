@@ -35,11 +35,12 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include <QByteArray>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QObject>
+#include <QOpenGLDebugMessage>
 #include <QOpenGLFunctions_3_3_Core>
-#include <QOpenGLFunctions_4_5_Core>
 #include <QSettings>
 #include <QTextStream>
 #include <Qt>
@@ -49,10 +50,17 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <ios>
 #include <iostream>
 #include <model.h>
 #include <qopengl.h>
 #include <vector>
+
+#ifndef NDEBUG
+static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
+  std::clog << message.message().toStdString() << '\n';
+}
+#endif
 
 namespace visualization {
 
@@ -140,6 +148,16 @@ void SceneWidget::initializeGL() {
     std::abort();
   }
   std::cout << glGetString(GL_VERSION) << '\n';
+
+#ifndef NDEBUG
+  const auto hasKhrDebug = context()->hasExtension(QByteArrayLiteral("GL_KHR_debug"));
+  std::cout << std::boolalpha << "GL_KHR_debug: " << hasKhrDebug << '\n';
+  if (hasKhrDebug && glLogger.initialize()) {
+    QObject::connect(&glLogger, &QOpenGLDebugLogger::messageLogged, &logGlDebugMessage);
+    glLogger.startLogging();
+  } else
+    std::clog << "Failed to initialize OpenGL debug log\n";
+#endif
 
   if (!textures.init()) {
     std::cerr << "Failed Initializing Texture Cache\n";

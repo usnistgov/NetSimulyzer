@@ -55,6 +55,7 @@
 #include <QKeyEvent>
 #include <QMainWindow>
 #include <QMouseEvent>
+#include <QOpenGLDebugLogger>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
@@ -109,6 +110,10 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
   std::deque<undo::SceneUndoEvent> undoEvents;
+
+#ifndef NDEBUG
+  QOpenGLDebugLogger glLogger{this};
+#endif
 
   void handleEvents();
   void handleUndoEvents();

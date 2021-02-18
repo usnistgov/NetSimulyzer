@@ -191,6 +191,10 @@ int main(int argc, char *argv[]) {
   auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
   format.setSamples(samples);
   format.setProfile(QSurfaceFormat::CoreProfile);
+#ifndef NDEBUG
+  // Only enable debug logging for debug builds
+  format.setOption(QSurfaceFormat::DebugContext);
+#endif
   QSurfaceFormat::setDefaultFormat(format);
 
   // Default QSurfaceFormat must be set before QApplication
