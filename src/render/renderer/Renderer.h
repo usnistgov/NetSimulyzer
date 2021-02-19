@@ -59,6 +59,8 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
   Shader modelShader;
   Shader skyBoxShader;
 
+  void initShader(Shader &s, const QString &vertexPath, const QString &fragmentPath);
+
 public:
   enum class BuildingEdgeMode { Render, DoNotRender };
   const unsigned int maxPointLights = 5u;

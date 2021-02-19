@@ -35,20 +35,32 @@
 #include "../../conversion.h"
 #include "../material/material.h"
 #include <QFile>
+#include <QMessageBox>
 #include <QString>
 #include <QTextStream>
 #include <cassert>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-static std::string qFileToString(QFile &f) {
-  if (!f.open(QFile::ReadOnly | QFile::Text))
-    abort();
-  QTextStream stream{&f};
-  return stream.readAll().toStdString();
-}
-
 namespace netsimulyzer {
+
+void Renderer::initShader(Shader &s, const QString &vertexPath, const QString &fragmentPath) {
+  QFile vertexFile{vertexPath};
+  if (!vertexFile.open(QFile::ReadOnly | QFile::Text)) {
+    QMessageBox::critical(nullptr, "Failed to open shader file", "Failed to open shader file " + vertexPath);
+    std::abort();
+  }
+  auto vertexSrc = QTextStream{&vertexFile}.readAll().toStdString();
+
+  QFile fragmentFile{fragmentPath};
+  if (!fragmentFile.open(QFile::ReadOnly | QFile::Text)) {
+    QMessageBox::critical(nullptr, "Failed to open shader file", "Failed to open shader file " + fragmentPath);
+    std::abort();
+  }
+  auto fragmentSrc = QTextStream{&fragmentFile}.readAll().toStdString();
+
+  s.init(vertexSrc, fragmentSrc);
+}
 
 Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
     : modelCache(modelCache), textureCache(textureCache) {
@@ -57,37 +69,10 @@ Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
 void Renderer::init() {
   initializeOpenGLFunctions();
 
-  QFile areaVertex{":shader/shaders/area.vert"};
-  auto areaVertexSrc = qFileToString(areaVertex);
-
-  QFile areaFragment{":shader/shaders/area.frag"};
-  auto areaFragmentSrc = qFileToString(areaFragment);
-
-  areaShader.init(areaVertexSrc, areaFragmentSrc);
-
-  QFile buildingVertex{":shader/shaders/building.vert"};
-  auto buildingVertexSrc = qFileToString(buildingVertex);
-
-  QFile buildingFragment{":shader/shaders/building.frag"};
-  auto buildingFragmentSrc = qFileToString(buildingFragment);
-
-  buildingShader.init(buildingVertexSrc, buildingFragmentSrc);
-
-  QFile modelVertex{":/shader/shaders/model.vert"};
-  auto modelVertexSrc = qFileToString(modelVertex);
-
-  QFile modelFragment{":/shader/shaders/model.frag"};
-  auto modelFragmentSrc = qFileToString(modelFragment);
-
-  modelShader.init(modelVertexSrc, modelFragmentSrc);
-
-  QFile skyBoxVertex{":/shader/shaders/skybox.vert"};
-  auto skyBoxVertexSrc = qFileToString(skyBoxVertex);
-
-  QFile skyBoxFragment{":/shader/shaders/skybox.frag"};
-  auto skyBoxFragmentSrc = qFileToString(skyBoxFragment);
-
-  skyBoxShader.init(skyBoxVertexSrc, skyBoxFragmentSrc);
+  initShader(areaShader, ":shader/shaders/area.vert", ":shader/shaders/area.frag");
+  initShader(buildingShader, ":shader/shaders/building.vert", ":shader/shaders/building.frag");
+  initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
+  initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
