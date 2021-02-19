@@ -154,7 +154,7 @@ void SceneWidget::initializeGL() {
   std::cout << std::boolalpha << "GL_KHR_debug: " << hasKhrDebug << '\n';
   if (hasKhrDebug && glLogger.initialize()) {
     QObject::connect(&glLogger, &QOpenGLDebugLogger::messageLogged, &logGlDebugMessage);
-    glLogger.startLogging();
+    glLogger.startLogging(QOpenGLDebugLogger::LoggingMode::SynchronousLogging);
   } else
     std::clog << "Failed to initialize OpenGL debug log\n";
 #endif
@@ -371,6 +371,16 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   }
 
   setResourcePath(resourceDirSetting.value());
+}
+
+SceneWidget::~SceneWidget() {
+#ifndef NDEBUG
+  // Silence the warning for trying to close a logger
+  // without the right OpenGL context
+  makeCurrent();
+  glLogger.stopLogging();
+  doneCurrent();
+#endif
 }
 
 void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
