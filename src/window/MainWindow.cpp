@@ -169,6 +169,9 @@ MainWindow::MainWindow() : QMainWindow() {
     render.setBuildingRenderMode(SettingsManager::BuildingRenderModeFromInt(mode));
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &render, &SceneWidget::setRenderGrid);
+  QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &render, &SceneWidget::changeGridStepSize);
+
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });

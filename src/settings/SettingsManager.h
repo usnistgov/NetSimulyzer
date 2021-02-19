@@ -41,7 +41,9 @@ public:
     MainWindowState,
     NumberSamples,
     RenderBuildingMode,
-    RenderSkybox
+    RenderGrid,
+    RenderGridStep,
+    RenderSkybox,
   };
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
@@ -100,6 +102,8 @@ private:
       {Key::MainWindowState, {"mainWindow/state", {}}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
+      {Key::RenderGrid, {"renderer/showGrid", true}},
+      {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
   };
 

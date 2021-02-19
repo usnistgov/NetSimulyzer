@@ -121,6 +121,16 @@ class SettingsDialog : public QDialog {
   void defaultTimeStep();
 
   /**
+   * Set the grid checkbox to the default value
+   */
+  void defaultShowGrid();
+
+  /**
+   * Sets the grid step size spinner to its default value
+   */
+  void defaultGridStep();
+
+  /**
    * Brings up a file select dialog for choosing a resource directory.
    * Validates and stores result in `resourcePath` and the `LineEdit`
    */
@@ -258,6 +268,24 @@ signals:
    * Enum value from SettingsManager::BuildingRenderMode
    */
   void buildingRenderModeChanged(int value);
+
+  /**
+   * Signal emitted when the user changes the
+   * Grid render state
+   *
+   * @param enable
+   * Indicator for the grid to be rendered or not.
+   */
+  void renderGridChanged(bool enable);
+
+  /**
+   * Signal emitted when the user changes the
+   * Grid step size
+   *
+   * @param stepSize
+   * The new size for grid squares
+   */
+  void gridStepSizeChanged(int stepSize);
 
   /**
    * Signal emitted when the user saves a new Play/Pause Key

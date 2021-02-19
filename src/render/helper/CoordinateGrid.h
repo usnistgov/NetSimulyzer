@@ -33,38 +33,38 @@
 
 #pragma once
 
-#include <osg/Array>
-#include <osg/Group>
+#include <cstddef>
+#include <glm/vec2.hpp>
 
 namespace netsimulyzer {
 
 /**
  * Resizeable square grid aligned with the X axis
  */
-class CoordinateGrid : public osg::Group {
+class CoordinateGrid {
 public:
-  /**
-   * Constructs a CoordinateGrid of a given size.
-   * size should be evenly divisible by steps for best results.
-   *
-   * @param size
-   * Total square size for the grid.
-   * Measured as the distance from the center of the square to the border
-   *
-   * @param steps
-   * Number of grid section on a given axis.
-   * Should be evenly divisible by size!
-   *
-   * @param centerLineColor
-   * The color for the center horizontal and vertical lines
-   * (the lines intersecting at (0, 0, 0))
-   *
-   * @param nonCenterLineColor
-   * The color for every line that isn't the center two lines
-   * of the grid
-   */
-  explicit CoordinateGrid(int size, int steps = 10, osg::Vec4 centerLineColor = osg::Vec4(0.53f, 0.53f, 0.53f, 1.0f),
-                          osg::Vec4 nonCenterLineColor = osg::Vec4(0.26f, 0.26f, 0.26f, 1.0f));
+  struct Vertex {
+    glm::vec2 position;
+  };
+
+  struct RenderInfo {
+    unsigned int vao = 0u;
+    unsigned int vbo = 0u;
+    std::size_t size = 0u;
+    float squareSize = 0.0f;
+  };
+
+  explicit CoordinateGrid(const CoordinateGrid::RenderInfo &renderInfo);
+
+  [[nodiscard]] const RenderInfo &getRenderInfo() const;
+  void resized(std::size_t size, float squareSize);
+
+  [[nodiscard]] float getHeight() const;
+  void setHeight(float value);
+
+private:
+  RenderInfo renderInfo;
+  float height{-0.45f};
 };
 
 } // namespace netsimulyzer

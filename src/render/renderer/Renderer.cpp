@@ -71,6 +71,11 @@ void Renderer::init() {
 
   initShader(areaShader, ":shader/shaders/area.vert", ":shader/shaders/area.frag");
   initShader(buildingShader, ":shader/shaders/building.vert", ":shader/shaders/building.frag");
+
+  initShader(gridShader, ":shader/shaders/grid.vert", ":shader/shaders/grid.frag");
+  gridShader.uniform("discard_distance", 250.0f);
+  gridShader.uniform("height", -0.001f);
+
   initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
   initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
 }
@@ -78,6 +83,7 @@ void Renderer::init() {
 void Renderer::setPerspective(const glm::mat4 &perspective) {
   areaShader.uniform("projection", perspective);
   buildingShader.uniform("projection", perspective);
+  gridShader.uniform("projection", perspective);
   modelShader.uniform("projection", perspective);
   skyBoxShader.uniform("projection", perspective);
 }
@@ -337,6 +343,78 @@ void Renderer::resize(Floor &f, float size) {
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floorVertices), reinterpret_cast<const void *>(floorVertices));
 }
 
+CoordinateGrid::RenderInfo Renderer::allocateCoordinateGrid(float size, int stepSize) {
+  using CVertex = CoordinateGrid::Vertex;
+  // Make sure this isn't negative
+  size = std::abs(size);
+  // Align grid to integer coordinates
+  size = std::floor(size);
+
+  // Allocate points
+  std::vector<CoordinateGrid::Vertex> gridVertices;
+  gridVertices.reserve(size * 4uL);
+
+  for (auto i = -size; i <= size; i += static_cast<float>(stepSize)) { // NOLINT(cert-flp30-c)
+    // Vertical Line
+    gridVertices.emplace_back(CVertex{{i, size}});
+    gridVertices.emplace_back(CVertex{{i, -size}});
+
+    // Horizontal Line
+    gridVertices.emplace_back(CVertex{{-size, i}});
+    gridVertices.emplace_back(CVertex{{size, i}});
+  }
+
+  // Setup VAO & VBO
+  // No IBO, since no points are repeated
+  CoordinateGrid::RenderInfo renderInfo;
+
+  glGenVertexArrays(1, &renderInfo.vao);
+  glBindVertexArray(renderInfo.vao);
+
+  glGenBuffers(1, &renderInfo.vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(CVertex) * gridVertices.size(), gridVertices.data(), GL_STATIC_DRAW);
+
+  // Location
+  glVertexAttribPointer(0u, 2, GL_FLOAT, GL_FALSE, sizeof(CVertex),
+                        reinterpret_cast<void *>(offsetof(CVertex, position)));
+  glEnableVertexAttribArray(0u);
+
+  glBindVertexArray(0u);
+
+  renderInfo.size = gridVertices.size();
+  renderInfo.squareSize = size;
+  return renderInfo;
+}
+
+void Renderer::resize(CoordinateGrid &grid, float size, int stepSize) {
+  using CVertex = CoordinateGrid::Vertex;
+  const auto &renderInfo = grid.getRenderInfo();
+
+  // Regenerate the grid using the same steps as allocation
+  size = std::abs(size);
+  size = std::floor(size);
+
+  std::vector<CoordinateGrid::Vertex> gridVertices;
+  gridVertices.reserve(size * 4uL);
+
+  for (auto i = -size; i <= size; i += static_cast<float>(stepSize)) { // NOLINT(cert-flp30-c)
+    // Vertical Line
+    gridVertices.emplace_back(CVertex{{i, size}});
+    gridVertices.emplace_back(CVertex{{i, -size}});
+
+    // Horizontal Line
+    gridVertices.emplace_back(CVertex{{-size, i}});
+    gridVertices.emplace_back(CVertex{{size, i}});
+  }
+
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(CVertex) * gridVertices.size(), gridVertices.data(), GL_STATIC_DRAW);
+
+  // Notify the grid of the resize
+  grid.resized(gridVertices.size(), size);
+}
+
 void Renderer::startTransparent() {
   glBlendFunc(GL_ZERO, GL_SRC_COLOR);
   glBlendEquation(GL_FUNC_ADD);
@@ -357,6 +435,9 @@ void Renderer::use(const Camera &cam) {
   modelShader.uniform("eye_position", cam.get_position());
 
   buildingShader.uniform("view", cam.view_matrix());
+
+  gridShader.uniform("view", cam.view_matrix());
+  gridShader.uniform("eye_position", cam.get_position());
 
   // Drop the translation so we cannot move out of the sky box
   auto noTranslationView = cam.view_matrix();
@@ -485,6 +566,29 @@ void Renderer::render(SkyBox &skyBox) {
 
   textureCache.useCubeMap(skyBox.getTextureId());
   skyBox.getMesh().render();
+  glDepthMask(GL_TRUE);
+}
+
+void Renderer::render(CoordinateGrid &coordinateGrid) {
+  const auto &renderInfo = coordinateGrid.getRenderInfo();
+  glEnable(GL_LINE_SMOOTH);
+  glBlendFunc(GL_ONE, GL_ONE);
+  glBlendEquation(GL_FUNC_ADD);
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+
+  gridShader.bind();
+
+  // TODO: Make configurable
+  gridShader.uniform("intensity", 0.3f);
+
+  glBindVertexArray(renderInfo.vao);
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glDrawArrays(GL_LINES, 0, renderInfo.size);
+
+  glDisable(GL_LINE_SMOOTH);
+  glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
 }
 

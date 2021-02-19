@@ -42,6 +42,7 @@
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
+#include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
@@ -56,6 +57,7 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
 
   Shader areaShader;
   Shader buildingShader;
+  Shader gridShader;
   Shader modelShader;
   Shader skyBoxShader;
 
@@ -77,6 +79,8 @@ public:
   Area::RenderInfo allocate(const parser::Area &area);
   Mesh allocateFloor(float size);
   void resize(Floor &f, float size);
+  CoordinateGrid::RenderInfo allocateCoordinateGrid(float size, int stepSize);
+  void resize(CoordinateGrid &grid, float size, int stepSize);
 
   void startTransparent();
   void endTransparent();
@@ -91,6 +95,7 @@ public:
   void renderTransparent(const Model &m);
   void render(Floor &f);
   void render(SkyBox &skyBox);
+  void render(CoordinateGrid &coordinateGrid);
 };
 
 } // namespace netsimulyzer

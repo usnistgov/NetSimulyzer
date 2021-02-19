@@ -48,6 +48,7 @@
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
+#include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QApplication>
 #include <QElapsedTimer>
@@ -85,10 +86,12 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   QTimer timer{this};
   QElapsedTimer frameTimer;
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
+  bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
   std::unique_ptr<Floor> floor;
+  std::unique_ptr<CoordinateGrid> coordinateGrid;
   SettingsManager::BuildingRenderMode buildingRenderMode =
       settings.get<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode).value();
 
@@ -192,6 +195,22 @@ public:
    * A mode from SettingsManager::BuildingRenderMode
    */
   void setBuildingRenderMode(SettingsManager::BuildingRenderMode mode);
+
+  /**
+   * Enable or disable showing the coordinate grid
+   *
+   * @param enable
+   * True to show the grid, false to hide
+   */
+  void setRenderGrid(bool enable);
+
+  /**
+   * Change the size of the grid squares
+   *
+   * @param stepSize
+   * The new size of each grid square in ns-3 units
+   */
+  void changeGridStepSize(int stepSize);
 
 signals:
   void timeChanged(double simulationTime, double increment);

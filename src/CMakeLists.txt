@@ -44,6 +44,7 @@ target_sources(netsimulyzer PRIVATE
         render/model/ModelCache.h render/model/ModelCache.cpp
         render/renderer/Renderer.h render/renderer/Renderer.cpp
         render/shader/Shader.h render/shader/Shader.cpp
+        render/helper/CoordinateGrid.h render/helper/CoordinateGrid.cpp
         render/helper/SkyBox.h render/helper/SkyBox.cpp
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp

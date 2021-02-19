@@ -180,6 +180,10 @@ void SceneWidget::initializeGL() {
   floor = std::make_unique<Floor>(renderer.allocateFloor(100.0f));
   floor->setPosition({0.0f, -0.5f, 0.0f});
 
+  coordinateGrid = std::make_unique<CoordinateGrid>(
+      renderer.allocateCoordinateGrid(100.0f, settings.get<int>(SettingsManager::Key::RenderGridStep).value()));
+  coordinateGrid->setHeight(-0.1f);
+
   auto s = size();
   glViewport(0, 0, s.width(), s.height());
 
@@ -233,7 +237,11 @@ void SceneWidget::paintGL() {
     renderer.render(buildings, Renderer::BuildingEdgeMode::Render);
   // else in the transparent section
 
-  // Keep this last
+  // Keep this next to `startTransparent()`
+  // has it's own transparency implementation
+  if (renderGrid)
+    renderer.render(*coordinateGrid);
+  // Keep this after all opaque items
   renderer.startTransparent();
 
   // Other condition in opaque section
@@ -376,8 +384,10 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
                            std::abs(config.minLocation.y), std::abs(config.maxLocation.y)});
 
   // Don't resize beneath the default
-  if (newSize > 100.0f)
+  if (newSize > 100.0f) {
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
+    renderer.resize(*coordinateGrid, newSize + 50.0f, settings.get<int>(SettingsManager::Key::RenderGridStep).value());
+  }
 
   if (configuration.msPerFrame)
     timeStep = configuration.msPerFrame.value();
@@ -501,6 +511,16 @@ void SceneWidget::setSkyboxRenderState(bool enable) {
 
 void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {
   buildingRenderMode = mode;
+}
+void SceneWidget::setRenderGrid(bool enable) {
+  renderGrid = enable;
+}
+
+void SceneWidget::changeGridStepSize(int stepSize) {
+  makeCurrent();
+  // Keep the same square size, but change the grid step
+  renderer.resize(*coordinateGrid, coordinateGrid->getRenderInfo().squareSize, stepSize);
+  doneCurrent();
 }
 
 } // namespace netsimulyzer

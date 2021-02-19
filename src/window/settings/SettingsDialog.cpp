@@ -35,6 +35,9 @@ void SettingsDialog::loadSettings() {
   const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
 
+  ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
+  ui.checkBoxShowGrid->setChecked(settings.get<bool>(Key::RenderGrid).value());
+
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   // Time Step is session based (so no setting to load)
@@ -52,6 +55,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   ui.comboBuildingRender->addItem("Transparent", static_cast<int>(SettingsManager::BuildingRenderMode::Transparent));
   ui.comboBuildingRender->addItem("Opaque", static_cast<int>(SettingsManager::BuildingRenderMode::Opaque));
+
+  ui.comboGridSize->addItem("1", 1);
+  ui.comboGridSize->addItem("5", 5);
+  ui.comboGridSize->addItem("10", 10);
 
   using Key = SettingsManager::Key;
   ui.keyForward->setDefaultKey(settings.getDefault<int>(Key::CameraKeyForward));
@@ -84,6 +91,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
+  QObject::connect(ui.buttonResetShowGrid, &QPushButton::clicked, this, &SettingsDialog::defaultShowGrid);
+  QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -119,6 +128,8 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
+    ui.buttonResetShowGrid->click();
+    ui.buttonResetGridSize->click();
 
     ui.buttonResetPlay->click();
     break;
@@ -211,6 +222,18 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit buildingRenderModeChanged(static_cast<int>(buildingRenderMode));
     }
 
+    auto enableGrid = ui.checkBoxShowGrid->isChecked();
+    if (enableGrid != settings.get<bool>(Key::RenderGrid)) {
+      settings.set(Key::RenderGrid, enableGrid);
+      emit renderGridChanged(enableGrid);
+    }
+
+    const auto gridStepSize = ui.comboGridSize->currentData().toInt();
+    if (gridStepSize != settings.get<int>(Key::RenderGridStep)) {
+      settings.set(Key::RenderGridStep, gridStepSize);
+      emit gridStepSizeChanged(gridStepSize);
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -281,6 +304,15 @@ void SettingsDialog::defaultBuildingEffect() {
 
 void SettingsDialog::defaultTimeStep() {
   ui.spinTimeStep->setValue(static_cast<int>(passedTimeStep));
+}
+
+void SettingsDialog::defaultShowGrid() {
+  ui.checkBoxShowGrid->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderGrid));
+}
+
+void SettingsDialog::defaultGridStep() {
+  const auto step = settings.getDefault<int>(SettingsManager::Key::RenderGridStep);
+  ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(step));
 }
 
 void SettingsDialog::selectResourcePath() {
