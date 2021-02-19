@@ -1,4 +1,4 @@
-# Blender v2.82 (sub 7) OBJ File: 'fallback.blend'
+# Blender v2.91.2 OBJ File: 'fallback.blend'
 # www.blender.org
 mtllib fallback.mtl
 o Icosphere
@@ -187,7 +187,7 @@ vn 0.3313 -0.9435 0.0000
 vn -0.0385 -0.6617 0.7488
 vn 0.1876 -0.7947 0.5773
 vn 0.4713 -0.6617 0.5831
-usemtl None
+usemtl visualizer.highlight
 s off
 f 1/1/1 14/2/1 13/3/1
 f 2/4/2 14/5/2 16/6/2
@@ -949,7 +949,7 @@ vn -0.4486 -0.7071 -0.5466
 vn -0.3333 -0.7071 -0.6236
 vn -0.2053 -0.7071 -0.6767
 vn -0.0693 -0.7071 -0.7037
-usemtl None
+usemtl visualizer.base
 s off
 f 43/64/81 44/65/81 46/66/81 45/67/81
 f 45/67/82 46/66/82 48/68/82 47/69/82
