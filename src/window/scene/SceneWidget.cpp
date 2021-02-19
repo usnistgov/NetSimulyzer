@@ -279,21 +279,6 @@ void SceneWidget::resizeGL(int w, int h) {
 void SceneWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
-
-  //  if (event->key() == pauseKey) {
-  //    if (playMode == PlayMode::Play) {
-  //      pause();
-  //      return;
-  //    }
-  //
-  //    // If playing moves time forward, make sure we don't go past the end time
-  //    auto forwardOkay = timeIncrement > 0.0 && simulationTime < config.endTime;
-  //    // If playing moves time backward, make sure we don't go past 0ms (the beginning)
-  //    auto backwardOkay = timeIncrement < 0.0 && simulationTime > 0.0;
-  //    if (forwardOkay || backwardOkay) {
-  //      play();
-  //    }
-  //  }
 }
 
 void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
