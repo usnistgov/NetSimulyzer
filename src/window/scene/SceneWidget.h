@@ -76,7 +76,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   enum class PlayMode { Paused, Play };
 
   SettingsManager settings;
-  Camera camera;
+  Camera camera{glm::vec3{0.0f, 2.0f, 0.0f}};
   QPoint initialCursorPosition{width() / 2, height() / 2};
   QPoint lastCursorPosition{width() / 2, height() / 2};
   bool isInitialMove = true;

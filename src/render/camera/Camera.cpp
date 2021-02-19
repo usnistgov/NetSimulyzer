@@ -37,7 +37,7 @@
 
 namespace netsimulyzer {
 
-Camera::Camera() {
+Camera::Camera(const glm::vec3 &initialPosition) {
   update();
   SettingsManager settings;
   using Key = SettingsManager::Key;
@@ -55,6 +55,8 @@ Camera::Camera() {
   move_speed = *settings.get<float>(Key::MoveSpeed);
   turnSpeed = *settings.get<float>(Key::KeyboardTurnSpeed);
   mouseTurnSpeed = *settings.get<float>(Key::MouseTurnSpeed);
+
+  setPosition(initialPosition);
 }
 
 void Camera::update() {

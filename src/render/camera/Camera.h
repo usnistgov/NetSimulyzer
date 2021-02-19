@@ -85,7 +85,7 @@ private:
   move_state mobility = move_state::frozen;
 
 public:
-  Camera();
+  Camera(const glm::vec3 &initialPosition = {0.0f, 0.0f, 0.0f});
 
   void update();
   [[nodiscard]] glm::mat4 view_matrix() const;
