@@ -130,6 +130,7 @@ protected:
 
 public:
   explicit SceneWidget(QWidget *parent = nullptr, const Qt::WindowFlags &f = Qt::WindowFlags());
+  ~SceneWidget() override;
   void setConfiguration(parser::GlobalConfiguration configuration);
   void reset();
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
