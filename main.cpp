@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
   // a QSettings object
   QCoreApplication::setOrganizationName("NIST");
   QCoreApplication::setOrganizationDomain("nist.gov");
-  QCoreApplication::setApplicationName(NETSIMULYZER_VERSION);
+  QCoreApplication::setApplicationName(NETSIMULYZER_APPLICATION_NAME);
 
   // Prevent up from using odd formats
   // Note: everything becomes a string as a result
