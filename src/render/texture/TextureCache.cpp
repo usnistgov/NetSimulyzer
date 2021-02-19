@@ -32,6 +32,7 @@
  */
 
 #include "TextureCache.h"
+#include <QColor>
 #include <QDebug>
 #include <QDir>
 #include <QImage>
@@ -75,10 +76,21 @@ void TextureCache::setResourceDirectory(const QDir &value) {
   resourceDirectory = value;
 }
 
-texture_id TextureCache::loadFallback(QImage &texture) {
+TextureCache::~TextureCache() {
+  clear();
+}
+
+bool TextureCache::init() {
+  if (!initializeOpenGLFunctions())
+    return false;
+
+  // Generate a fallback texture
+  QImage fallback{64, 64, QImage::Format::Format_ARGB32};
+  fallback.fill(QColorConstants::Magenta);
+
   Texture t;
-  t.width = texture.width();
-  t.height = texture.height();
+  t.width = fallback.width();
+  t.height = fallback.height();
 
   glGenTextures(1, &t.id);
   glBindTexture(GL_TEXTURE_2D, t.id);
@@ -88,23 +100,17 @@ texture_id TextureCache::loadFallback(QImage &texture) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width(), texture.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE,
-               texture.constBits());
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t.width, t.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, fallback.constBits());
 
   glGenerateMipmap(GL_TEXTURE_2D);
 
   glBindTexture(GL_TEXTURE_2D, 0u);
 
   textures.emplace_back(t);
-  const auto fallbackIndex = textures.size() - 1;
-  indexMap.emplace("fallback", fallbackIndex);
+  fallbackTexture = textures.size() - 1;
+  indexMap.emplace("fallback", fallbackTexture);
 
-  fallbackTexture = fallbackIndex;
-  return fallbackIndex;
-}
-
-TextureCache::~TextureCache() {
-  clear();
+  return true;
 }
 
 texture_id TextureCache::load(const std::string &filename) {
@@ -116,21 +122,12 @@ texture_id TextureCache::load(const std::string &filename) {
   }
 
   auto result = findTexture(resourceDirectory, QString::fromStdString(filename));
-  if (!result && fallbackTexture)
-    return *fallbackTexture;
-  else if (!result && !fallbackTexture) {
-    std::cerr << "No fallback texture loaded! Nothing to fallback on\n";
-    std::abort();
-  }
+  if (!result)
+    return fallbackTexture;
 
   QImage image{result->canonicalFilePath()};
-  if (image.isNull()) {
-    if (fallbackTexture)
-      return *fallbackTexture;
-
-    std::cerr << "No fallback texture found!\n";
-    std::abort();
-  }
+  if (image.isNull())
+    return fallbackTexture;
 
   unsigned int glFormat;
   switch (image.format()) {
@@ -145,13 +142,8 @@ texture_id TextureCache::load(const std::string &filename) {
     image = image.convertToFormat(QImage::Format_ARGB32);
     glFormat = GL_RGBA;
 
-    if (image.isNull()) {
-      if (fallbackTexture)
-        return *fallbackTexture;
-
-      std::cerr << "No fallback texture found!\n";
-      std::abort();
-    }
+    if (image.isNull())
+      return fallbackTexture;
   }
 
   Texture t;
@@ -219,7 +211,6 @@ void TextureCache::clear() {
 
   textures.clear();
   indexMap.clear();
-  fallbackTexture.reset();
 }
 
 void TextureCache::use(texture_id index) {
@@ -233,7 +224,7 @@ void TextureCache::useCubeMap(unsigned int id) {
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 }
 
-const std::optional<texture_id> &TextureCache::getFallbackTexture() const {
+texture_id TextureCache::getFallbackTexture() const {
   return fallbackTexture;
 }
 

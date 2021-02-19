@@ -163,8 +163,7 @@ void SceneWidget::initializeGL() {
     std::cerr << "Failed Initializing Texture Cache\n";
     std::abort();
   }
-  QImage fallback{":/texture/resources/textures/plain.png"};
-  textures.loadFallback(fallback);
+
   models.init("models/fallback.obj");
   renderer.init();
 

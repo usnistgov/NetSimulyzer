@@ -3,7 +3,6 @@
         <file>application.png</file>
     </qresource>
     <qresource prefix="/texture">
-        <file>resources/textures/plain.png</file>
         <file>resources/textures/skybox/right.png</file>
         <file>resources/textures/skybox/left.png</file>
         <file>resources/textures/skybox/top.png</file>

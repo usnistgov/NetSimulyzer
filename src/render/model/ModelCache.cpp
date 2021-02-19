@@ -162,11 +162,8 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
         // Strips back to the last '/' character (i.e. '/home/evan/projects' -> 'projects')
         auto filepath = pathCppString.substr(pathCppString.rfind('\\') + 1);
         m.textureId = textureCache.load(filepath);
-      } else if (fallbackTexture.has_value()) {
-        m.textureId = *fallbackTexture;
       } else {
-        std::cerr << "No fallback texture defined!\n";
-        abort();
+        m.textureId = fallbackTexture;
       }
     } else {
       aiColor3D color;

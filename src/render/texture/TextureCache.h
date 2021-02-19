@@ -54,7 +54,7 @@ using texture_id = std::size_t;
 class TextureCache : protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<std::string, std::size_t> indexMap;
   std::vector<Texture> textures;
-  std::optional<texture_id> fallbackTexture;
+  texture_id fallbackTexture;
   QDir resourceDirectory;
 
 public:
@@ -69,17 +69,14 @@ public:
 
   ~TextureCache() override;
 
-  bool init() {
-    return initializeOpenGLFunctions();
-  }
+  bool init();
 
   void setResourceDirectory(const QDir &value);
-  texture_id loadFallback(QImage &texture);
   texture_id load(const std::string &filename);
   unsigned int load(const CubeMap &cubeMap);
   [[nodiscard]] const Texture &get(texture_id index);
 
-  [[nodiscard]] const std::optional<texture_id> &getFallbackTexture() const;
+  [[nodiscard]] texture_id getFallbackTexture() const;
 
   const Texture &operator[](texture_id index) {
     return get(index);
