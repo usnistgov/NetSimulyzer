@@ -47,6 +47,7 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
 
   const auto playbackSpeed = SettingsManager{}.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
   ui.buttonPlaybackSpeed->setText(QStringLiteral("%1ms").arg(playbackSpeed));
+  timeStepDialog.setValue(playbackSpeed);
 
   // Pull the system fixed width font and use it for the numeric time
   ui.labelTime->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
