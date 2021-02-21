@@ -71,6 +71,7 @@ void FileParser::parse(const char *path) {
 }
 
 void FileParser::reset() {
+  globalConfiguration = {};
   nodes.clear();
   buildings.clear();
   decorations.clear();
