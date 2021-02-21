@@ -296,14 +296,6 @@ signals:
   void playKeyChanged(int key);
 
   /**
-   * Signal emitted when the user saves a new time step
-   *
-   * @param key
-   * The number of milliseconds to advance per frame
-   */
-  void timeStepSet(double value);
-
-  /**
    * Signal emitted when the user saves a new Resource Directory.
    *
    * @param dir

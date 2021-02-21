@@ -248,8 +248,11 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit resourcePathChanged(resourcePath);
     }
 
-    // Since we don't have a setting for this, just assume it's always different
-    emit timeStepSet(static_cast<double>(ui.spinTimeStep->value()));
+    auto oldTimeStep = settings.get<int>(Key::PlaybackTimeStepPreference).value();
+    if (ui.spinTimeStep->value() != oldTimeStep) {
+      settings.set(Key::PlaybackTimeStepPreference, ui.spinTimeStep->value());
+      // No signal
+    }
 
     settings.sync();
 

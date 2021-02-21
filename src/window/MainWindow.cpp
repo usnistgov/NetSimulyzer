@@ -97,6 +97,8 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&playbackWidget, &PlaybackWidget::play, &render, &SceneWidget::play);
   QObject::connect(&playbackWidget, &PlaybackWidget::pause, &render, &SceneWidget::pause);
+  // Playback widget value is above user preference in priority
+  QObject::connect(&playbackWidget, &PlaybackWidget::timeStepChanged, &render, &SceneWidget::setTimeStep);
 
   QObject::connect(&playbackWidget, &PlaybackWidget::timeSet, &render, &SceneWidget::setTime);
 
@@ -176,8 +178,6 @@ MainWindow::MainWindow() : QMainWindow() {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::timeStepSet, &render, &SceneWidget::setTimeStep);
-
   QObject::connect(&settingsDialog, &SettingsDialog::resourcePathChanged, &render, &SceneWidget::setResourcePath);
 
   QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &SceneWidget::resetCamera);
@@ -228,10 +228,10 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
   render.setConfiguration(config);
 
   playbackWidget.setMaxTime(config.endTime);
-  if (config.msPerFrame)
-    settingsDialog.setTimeStep(config.msPerFrame.value());
-  else
-    settingsDialog.setTimeStep(10.0);
+
+  const int timeStepPreference = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
+  render.setTimeStep(config.msPerFrame.value_or(timeStepPreference));
+  playbackWidget.setTimeStep(config.msPerFrame.value_or(timeStepPreference));
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();

@@ -496,7 +496,7 @@ void SceneWidget::setTime(double value) {
   emit timeChanged(simulationTime, diff);
 }
 
-void SceneWidget::setTimeStep(double value) {
+void SceneWidget::setTimeStep(int value) {
   timeStep = value;
 }
 

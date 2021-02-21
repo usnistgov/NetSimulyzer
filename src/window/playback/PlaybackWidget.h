@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "PlaybackTimeStepDialog.h"
 #include "ui_PlaybackWidget.h"
 #include <QIcon>
 #include <QString>
@@ -51,12 +52,14 @@ private:
   bool playing{false};
   const QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
   const QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
+  PlaybackTimeStepDialog timeStepDialog{this};
 
 public:
   explicit PlaybackWidget(QWidget *parent = nullptr);
 
   void setMaxTime(double value);
   void setTime(double simulationTime);
+  void setTimeStep(int value);
   void sliderMoved(int value);
   void reset();
   void enableControls();
@@ -69,6 +72,7 @@ signals:
   void play();
   void pause();
   void timeSet(double time);
+  void timeStepChanged(int value);
 };
 
 } // namespace netsimulyzer

@@ -33,6 +33,7 @@
 
 #include "PlaybackWidget.h"
 #include "src/conversion.h"
+#include "src/settings/SettingsManager.h"
 #include <QFontDatabase>
 #include <QObject>
 #include <QPushButton>
@@ -43,6 +44,9 @@ namespace netsimulyzer {
 PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
   ui.buttonPlayPause->setIcon(playIcon);
+
+  const auto playbackSpeed = SettingsManager{}.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
+  ui.buttonPlaybackSpeed->setText(QStringLiteral("%1ms").arg(playbackSpeed));
 
   // Pull the system fixed width font and use it for the numeric time
   ui.labelTime->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
@@ -59,6 +63,14 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   });
 
   QObject::connect(ui.timelineSlider, &QSlider::valueChanged, this, &PlaybackWidget::sliderMoved);
+
+  QObject::connect(ui.buttonPlaybackSpeed, &QPushButton::clicked, [this]() {
+    timeStepDialog.show();
+  });
+  QObject::connect(&timeStepDialog, &PlaybackTimeStepDialog::timeStepChanged, [this](int newValue) {
+    ui.buttonPlaybackSpeed->setText(QStringLiteral("%1ms").arg(newValue));
+    emit timeStepChanged(newValue);
+  });
 }
 
 void PlaybackWidget::setMaxTime(double value) {
@@ -71,6 +83,11 @@ void PlaybackWidget::setMaxTime(double value) {
 void PlaybackWidget::setTime(double simulationTime) {
   ui.timelineSlider->setValue(static_cast<int>(simulationTime));
   ui.labelTime->setText(toDisplayTime(simulationTime) + " / " + formattedMaxTime);
+}
+
+void PlaybackWidget::setTimeStep(int value) {
+  ui.buttonPlaybackSpeed->setText(QStringLiteral("%1ms").arg(value));
+  timeStepDialog.setValue(value);
 }
 
 void PlaybackWidget::sliderMoved(int value) {

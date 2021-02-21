@@ -101,7 +101,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
    * Amount of time to advance/rewind `simulationTime`
    * per frame in milliseconds.
    */
-  double timeStep = 10.0;
+  int timeStep = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
 
   double simulationTime = 0.0;
 
@@ -178,7 +178,7 @@ public:
    * The time increment, in milliseconds
    */
   void setTime(double value);
-  void setTimeStep(double value);
+  void setTimeStep(int value);
   QSize sizeHint() const override;
 
   /**
