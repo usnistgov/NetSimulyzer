@@ -83,7 +83,7 @@ undo::NodeOrientationChangeEvent Node::handle(const parser::NodeOrientationChang
   undo.orientation = model.getRotate();
   undo.event = e;
 
-  this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], e.targetOrientation[1]);
+  this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], -e.targetOrientation[1]);
 
   return undo;
 }

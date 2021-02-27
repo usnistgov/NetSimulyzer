@@ -39,7 +39,7 @@ namespace netsimulyzer {
 
 Decoration::Decoration(const Model &model, const parser::Decoration &ns3Model) : model(model), ns3Model(ns3Model) {
   this->model.setPosition(toRenderCoordinate(ns3Model.position));
-  this->model.setRotate(ns3Model.orientation[0], ns3Model.orientation[2], ns3Model.orientation[1]);
+  this->model.setRotate(ns3Model.orientation[0], ns3Model.orientation[2], -ns3Model.orientation[1]);
 
   if (ns3Model.height) {
     const auto bounds = model.getBounds();
@@ -70,7 +70,7 @@ undo::DecorationOrientationChangeEvent Decoration::handle(const parser::Decorati
   undo.orientation = model.getRotate();
   undo.event = e;
 
-  this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], e.targetOrientation[1]);
+  this->model.setRotate(e.targetOrientation[0], e.targetOrientation[2], -e.targetOrientation[1]);
 
   return undo;
 }

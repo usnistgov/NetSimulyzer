@@ -37,7 +37,7 @@ namespace netsimulyzer {
 
 glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate) {
   // Yes this is the right order
-  return {coordinate.x, coordinate.z, coordinate.y};
+  return {coordinate.x, coordinate.z, -coordinate.y};
 }
 
 glm::vec3 toRenderColor(const parser::Ns3Color3 &color) {
