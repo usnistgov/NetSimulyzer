@@ -249,8 +249,8 @@
     "configuration": {
       "type": "object",
       "properties": {
-        "ms-per-frame": {
-          "type": "number",
+        "time-step": {
+          "type": "integer",
           "minimum": 0
         }
       }

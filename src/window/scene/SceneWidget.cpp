@@ -388,10 +388,7 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
     renderer.resize(*coordinateGrid, newSize + 50.0f, settings.get<int>(SettingsManager::Key::RenderGridStep).value());
   }
 
-  if (configuration.msPerFrame)
-    timeStep = configuration.msPerFrame.value();
-  else
-    timeStep = 10.0;
+  // time step handled by the MainWindow
 }
 
 void SceneWidget::reset() {

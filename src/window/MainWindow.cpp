@@ -230,8 +230,8 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
   playbackWidget.setMaxTime(config.endTime);
 
   const int timeStepPreference = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
-  render.setTimeStep(config.msPerFrame.value_or(timeStepPreference));
-  playbackWidget.setTimeStep(config.msPerFrame.value_or(timeStepPreference));
+  render.setTimeStep(config.timeStep.value_or(timeStepPreference));
+  playbackWidget.setTimeStep(config.timeStep.value_or(timeStepPreference));
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();

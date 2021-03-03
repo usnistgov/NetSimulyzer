@@ -188,8 +188,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
-  if (object.contains("ms-per-frame")) {
-    fileParser.globalConfiguration.msPerFrame = object["ms-per-frame"].get<double>();
+  if (object.contains("time-step")) {
+    fileParser.globalConfiguration.timeStep = object["time-step"].get<int>();
   }
 }
 
