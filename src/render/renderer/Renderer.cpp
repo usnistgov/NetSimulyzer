@@ -272,21 +272,21 @@ Area::RenderInfo Renderer::allocate(const parser::Area &area) {
         // Bottom Left
         convertedPoints[1].x, convertedPoints[1].y, convertedPoints[1].z,               // 2
         convertedPoints[1].x - borderWidth, convertedPoints[1].y, convertedPoints[1].z, // 3
-        convertedPoints[1].x, convertedPoints[1].y, convertedPoints[1].z - borderWidth, // 4
+        convertedPoints[1].x, convertedPoints[1].y, convertedPoints[1].z + borderWidth, // 4
 
         // Bottom Right
         convertedPoints[2].x, convertedPoints[2].y, convertedPoints[2].z,               // 5
-        convertedPoints[2].x, convertedPoints[2].y, convertedPoints[2].z - borderWidth, // 6
+        convertedPoints[2].x, convertedPoints[2].y, convertedPoints[2].z + borderWidth, // 6
         convertedPoints[2].x + borderWidth, convertedPoints[2].y, convertedPoints[2].z, // 7
 
         // Top Right
         convertedPoints[3].x, convertedPoints[3].y, convertedPoints[3].z,               // 8
         convertedPoints[3].x + borderWidth, convertedPoints[3].y, convertedPoints[3].z, // 9
-        convertedPoints[3].x, convertedPoints[3].y, convertedPoints[3].z + borderWidth, // 10
+        convertedPoints[3].x, convertedPoints[3].y, convertedPoints[3].z - borderWidth, // 10
 
         // Top Left (Again)
         convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z,               // 11 (same as 0)
-        convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z + borderWidth, // 12
+        convertedPoints[0].x, convertedPoints[0].y, convertedPoints[0].z - borderWidth, // 12
         convertedPoints[0].x - borderWidth, convertedPoints[0].y, convertedPoints[0].z, // 13 (same as 1)
     };
 
