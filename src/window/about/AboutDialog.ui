@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>688</height>
+    <width>658</width>
+    <height>634</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,15 +32,15 @@
      <item>
       <widget class="QLabel" name="labelLogo">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>256</width>
-         <height>185</height>
+         <width>255</width>
+         <height>255</height>
         </size>
        </property>
        <property name="baseSize">

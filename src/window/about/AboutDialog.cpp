@@ -43,7 +43,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   ui.setupUi(this);
 
   ui.labelLogo->setPixmap(QPixmap{":/application/application.png"});
-  ui.labelLogo->setFixedSize(256, 185);
+  ui.labelLogo->setFixedSize(255, 255);
 
   QString compliedArchitecture;
   // Only useful for detection for x86 based architectures
