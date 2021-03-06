@@ -71,9 +71,9 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   compiler = "Unknown Compiler";
 #endif
 
-  ui.labelApplicationName->setText(NETSIMULYZER_VERSION);
+  ui.labelApplicationName->setText(NETSIMULYZER_APPLICATION_NAME);
   ui.labelVersion->setText("v" NETSIMULYZER_VERSION " (" + compliedArchitecture + ", " + releaseType + ')');
-  ui.labelTarget->setText(NETSIMULYZER_VERSION " for " + QSysInfo::prettyProductName());
+  ui.labelTarget->setText(NETSIMULYZER_APPLICATION_NAME " for " + QSysInfo::prettyProductName());
   ui.labelCompiler->setText(compiler);
 
   ui.plainTextEditLicense->setPlainText(
