@@ -111,7 +111,7 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
 
   tie.qtSeries->setUseOpenGL(false);
 
-  tie.qtSeries->setColor(QColor::fromRgb(model.red, model.green, model.blue, model.alpha));
+  tie.qtSeries->setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
   tie.qtSeries->setName(QString::fromStdString(model.legend));
 
   // X Axis
@@ -164,7 +164,7 @@ ChartManager::CategoryValueTie ChartManager::makeTie(const parser::CategoryValue
   tie.model = model;
   tie.qtSeries = new QtCharts::QLineSeries(this);
 
-  tie.qtSeries->setColor(QColor::fromRgb(model.red, model.green, model.blue, model.alpha));
+  tie.qtSeries->setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
   tie.qtSeries->setName(QString::fromStdString(model.legend));
 
   // X Axis (values)

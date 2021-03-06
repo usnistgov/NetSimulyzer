@@ -144,10 +144,7 @@ struct XYSeries {
   std::string legend;
   Connection connection = Connection::Line;
   LabelMode labelMode = LabelMode::Shown;
-  uint8_t red = 0u;
-  uint8_t green = 0u;
-  uint8_t blue = 0u;
-  uint8_t alpha = 255u;
+  Ns3Color3 color;
   ValueAxis xAxis;
   ValueAxis yAxis;
 };
@@ -162,10 +159,7 @@ struct CategoryValueSeries {
   double autoUpdateIncrement;
   std::string name;
   std::string legend;
-  uint8_t red = 0u;
-  uint8_t green = 0u;
-  uint8_t blue = 0u;
-  uint8_t alpha = 255u;
+  Ns3Color3 color;
   ValueAxis xAxis;
   CategoryAxis yAxis;
 };

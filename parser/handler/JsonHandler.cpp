@@ -101,9 +101,9 @@ parser::Area::DrawMode drawModeFromString(const std::string &mode) {
 parser::Ns3Color3 colorFromObject(const util::json::JsonObject &object) {
   parser::Ns3Color3 color;
 
-  color.red = object["red"].get<int>();
-  color.green = object["green"].get<int>();
-  color.blue = object["blue"].get<int>();
+  color.red = object["red"].get<uint8_t>();
+  color.green = object["green"].get<uint8_t>();
+  color.blue = object["blue"].get<uint8_t>();
 
   return color;
 }
@@ -411,10 +411,7 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
   series.legend = object["legend"].get<std::string>();
   series.visible = object["visible"].get<bool>();
 
-  series.alpha = object["color"].object()["alpha"].get<int>();
-  series.blue = object["color"].object()["blue"].get<int>();
-  series.green = object["color"].object()["green"].get<int>();
-  series.red = object["color"].object()["red"].get<int>();
+  series.color = colorFromObject(object["color"].object());
 
   auto connection = object["connection"].get<std::string>();
   if (connection == "none")
@@ -449,10 +446,7 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   series.legend = object["legend"].get<std::string>();
   series.visible = object["visible"].get<bool>();
 
-  series.alpha = object["color"].object()["alpha"].get<int>();
-  series.blue = object["color"].object()["blue"].get<int>();
-  series.green = object["color"].object()["green"].get<int>();
-  series.red = object["color"].object()["red"].get<int>();
+  series.color = colorFromObject(object["color"].object());
 
   series.xAxis = valueAxisFromObject(object["x-axis"].object());
   series.yAxis = categoryAxisFromObject(object["y-axis"].object());
