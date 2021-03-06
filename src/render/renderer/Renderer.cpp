@@ -534,7 +534,6 @@ void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMod
 
 void Renderer::render(const Model &m) {
   modelShader.bind();
-  modelShader.uniform("saturation_factor", 1.5f);
   modelShader.uniform("model", m.getModelMatrix());
   modelCache.get(m.getModelId()).render(modelShader, m);
 }
@@ -546,7 +545,6 @@ void Renderer::renderTransparent(const Model &m) {
     return;
 
   modelShader.bind();
-  modelShader.uniform("saturation_factor", 1.0f);
   modelShader.uniform("model", m.getModelMatrix());
   renderInfo.renderTransparent(modelShader, m);
 }
@@ -556,7 +554,6 @@ void Renderer::render(Floor &f) {
   modelShader.uniform("model", f.getModelMatrix());
   modelShader.uniform("useTexture", false);
   modelShader.uniform("material_color", f.getMesh().getMaterial().color.value());
-  modelShader.uniform("saturation_factor", 0.8f);
   f.render();
 }
 

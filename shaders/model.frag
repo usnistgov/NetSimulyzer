@@ -50,28 +50,8 @@ uniform bool useTexture;
 uniform sampler2D texture_sampler;
 uniform Material material;
 uniform vec3 eye_position;
-uniform float saturation_factor = 1.0f;
 
 uniform vec3 material_color;
-
-// `hsv` & `rgb` Significantly optimized from the article http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
-// Although somewhat esoteric...
-
-vec3 hsv(vec3 rgb_color) {
-    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    vec4 p = mix(vec4(rgb_color.bg, K.wz), vec4(rgb_color.gb, K.xy), step(rgb_color.b, rgb_color.g));
-    vec4 q = mix(vec4(p.xyw, rgb_color.r), vec4(rgb_color.r, p.yzx), step(p.x, rgb_color.r));
-
-    float d = q.x - min(q.w, q.y);
-    const float e = 1.0e-10;
-    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-}
-
-vec3 rgb(vec3 hsv_color) {
-    const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(hsv_color.xxx + K.xyz) * 6.0 - K.www);
-    return hsv_color.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv_color.y);
-}
 
 vec4 lightByDirection(Light base, vec3 direction) {
     vec4 ambient_color = vec4(base.color, 1.0) * base.ambient_intensity;
@@ -158,9 +138,4 @@ void main()
 
     // Apply lighting
     final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
-
-    // Adjust final saturation, based on `saturation_factor`
-    vec3 hsv = hsv(final_color.rgb);
-    hsv[1] = clamp(hsv[1] * saturation_factor, 0.0, 1.0);
-    final_color.rgb = rgb(hsv);
 }
