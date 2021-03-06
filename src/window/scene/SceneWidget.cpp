@@ -438,8 +438,14 @@ void SceneWidget::focusNode(uint32_t nodeId) {
     return;
   }
 
+  const auto &bounds = iter->second.getModel().getBounds();
   auto position = iter->second.getModel().getPosition();
+
+  // Put us slightly away from the model
   position.z += 5.0f;
+
+  // Put us at the middle of the model (height wise)
+  position.y += (bounds.max.y - bounds.min.y) / 2.0f;
   camera.setPosition(position);
   camera.resetRotation();
 }

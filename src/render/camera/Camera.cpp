@@ -164,6 +164,10 @@ void Camera::move(float delta_time) {
   else if (active.upDown == active_directions::verticalDirection::down)
     position -= up * velocity;
 
+  // Do not allow the camera to drop beneath the ground plane
+  if (position.y < minHeight)
+    position.y = minHeight;
+
   // No need to `update()` if turns are not involved
   if (active.turn == active_directions::side::none)
     return;
@@ -209,6 +213,11 @@ glm::vec3 Camera::get_position() const {
 
 void Camera::setPosition(const glm::vec3 &value) {
   position = value;
+
+  // Do not allow the camera to drop beneath the ground plane
+  if (position.y < minHeight)
+    position.y = minHeight;
+
   update();
 }
 

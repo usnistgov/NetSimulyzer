@@ -70,6 +70,7 @@ private:
   glm::vec3 world_up{0.0f, 1.0f, 0.0f};
 
   float fieldOfView = 45.0f;
+  const float minHeight = 0.0f;
 
   float yaw{-90.0f};
   float pitch{0.0f};
