@@ -1,5 +1,5 @@
 # NetSimulyzer
-A 3D visualizer for ns-3 scenarios.
+A flexible 3D visualizer for displaying, debugging, presenting, and understanding *ns-3* scenarios.
 
 ![Application Screenshot](docs/source/_static/application-windows.png)
 
