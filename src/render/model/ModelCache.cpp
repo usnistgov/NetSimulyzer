@@ -159,7 +159,7 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
 
       if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
         std::string pathCppString{path.data};
-        // Strips back to the last '/' character (i.e. '/home/evan/projects' -> 'projects')
+        // Strips back to the last '\' character (i.e. 'C:\Users\Evan\projects' -> 'projects')
         auto filepath = pathCppString.substr(pathCppString.rfind('\\') + 1);
         m.textureId = textureCache.load(filepath);
       } else {
