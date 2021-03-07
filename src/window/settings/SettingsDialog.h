@@ -53,7 +53,7 @@ class SettingsDialog : public QDialog {
    * Scale to divide the value of the Move Speed slider
    * to produce the actual move speed
    */
-  const float moveSpeedScale = 1000.0f;
+  const float moveSpeedScale = 10000.0f;
 
   /**
    * Scale to divide the value of the turn speed sliders
