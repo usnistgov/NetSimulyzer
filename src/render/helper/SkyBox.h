@@ -6,7 +6,7 @@ namespace netsimulyzer {
 
 class SkyBox {
   Mesh mesh;
-  unsigned int textureId;
+  unsigned long textureId;
 
 public:
   explicit SkyBox(unsigned long texture);
