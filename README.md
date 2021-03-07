@@ -3,9 +3,38 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
 
 ![Application Screenshot](docs/source/_static/application-windows.png)
 
+# Table of Contents
 
-## Requirements
+* [About](#about)
+* [Requirements](#requirements)
+* [Download Prebuilt Releases](#download-prebuilt-releases)
+* [Resources](#resources)
+  * [Supported Model Formats](#supported-model-formats)
+  * [Supported Texture Formats](#supported-texture-formats)
+  * [Resource Path](#resource-path)
+* [Controls](#controls)
+  * [Camera](#camera)
+  * [Playback](#playback)
+  * [Chart](#chart)
+* [Building From Source](#building-from-source)
+    * [Cloning](#cloning)
+    * [Building](#building)
+    * [CMake Options](#cmake-options)
+    * [Running CMake](#running-cmake)
+    * [Running](#running)
 
+
+# About
+This is the application which displays *ns-3* scenarios run with
+the companion *ns-3* module [found here](https://github.com/usnistgov/NetSimulyzer-ns3-module).
+
+# Requirements
+
+## Run Requirements
+* A graphics card supporting OpenGL 3.3
+  * Most integrated GPUs (i.e. Intel/AMD CPU Graphics) should work too
+
+## Build Requirements
 * A C++ 17 compliant compiler
   * Minimum supported compilers:
     * GCC 7.3.0
@@ -15,97 +44,40 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
 * Qt 5.12
 * Optional: Doxygen
 
-## Initial Setup
+# Download Prebuilt Releases
+Download prebuilt binaries from the [Releases](https://github.com/usnistgov/NetSimulyzer/releases)
+tab on GitHub.
 
-### Cloning
-Clone the repository _recursively_ to collect the dependencies as well as the source
+# Resources
+The application comes with some 3D models, but if you wish to add
+custom models, check below to see what formats are supported.
 
-```shell
-git clone --recursive {your ssh/https link}
-```
-
-Note: If you already cloned the project the normal way
-You may pull the dependencies by running
-
-```shell
-git submodule update --recursive
-```
-
-### Building
-Move into the project's root directory, and make a new directory called `build` and cd into it
-```shell
-mkdir build
-cd build
-```
-
-#### CMake Options
-To configure the build, any of the below may be passed to CMake with `-D` in the form `cmake -DNAME=VALUE`.
-
-All of the following are optional
-
-* `ENABLE_DOXYGEN`: Default `False`, set to `True` to build the API docs to the `doxygen/` directory in the build directory
-
-##### Running CMake
-
-Run `cmake` and specify the source directory, build type, and and desired build options from above. Then run the build tool.
-```shell
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build . --parallel
-```
-
-### Running
-After building the application may launched from the project root directory with the following command:
-```shell
-cd ../
-./build/netsimulyzer
-```
-
-## Resources
-
-### Supported Model Formats
+## Supported Model Formats
 For the list of supported formats, see the [assimp wiki](https://github.com/assimp/assimp#supported-file-formats)
 
-### Supported Texture Formats
+## Supported Texture Formats
 Anything supported by [QImage](https://doc.qt.io/qt-5/qimage.html) should work.
 Some more exotic formats may undergo conversion at load time.
 Build in debug mode to check compatibility
 
-### Resource Paths
-When the Visualizer is first launched it well search the directory the application is
+## Resource Path
+When the NetSimulyzer is first launched it well search the directory the application is
 in and the current working directory for the `resources/` directory.
-If that fails, the Visualizer will prompt for the location of the `resources/` directory.
+If that fails, the NetSimulyzer will prompt for the location of the `resources/` directory.
 
-By default the Visualizer will search from the `resources/` directory the following:
+By default the NetSimulyzer will search from the `resources/` directory the following:
 
 Models should have the path to the model relative to the root of the resources directory
-(e.g. `models/fallback.obj`)
+(e.g. `models/smartphone.obj`)
 
 Textures will be searched for recursively in the `resources/` directory, and _must have unique names_.
 If two textures have the same name, it is undefined which one will be selected.
 
 All searches for textures in models will follow the texture rules above.
 
-#### Non-distributable Resources
+# Controls
 
-To add the models not available for public release into the project `cd` into the `resources/`
-directory and clone the
-['Visualization Resources Non-Distributable'](https://gitlab.nist.gov/wnd-publicsafety/visualization-resources_non-distributable)
-project.
-
-```shell
-# From the project root
-cd resources/
-
-# Substitute with HTTPS if you prefer
-# clones into a new directory 'extras/' for convenience
-git clone git@gitlab.nist.gov:wnd-publicsafety/visualization-resources_non-distributable.git extras
-```
-
-The models may be referenced like so: `extras/models/props/Smartphone.obj`
-
-## Controls
-
-### Camera
+## Camera
 The camera may be rotated by clicking and holding the left mouse button on the scene.
 
 The camera may be moved by horizontally with `W`, `A`, `S`, & `D`,
@@ -129,12 +101,12 @@ The camera may be moved by horizontally with `W`, `A`, `S`, & `D`,
 
 The camera controls may be changed from the 'Camera Settings' option in the 'Camera' menu
 
-### Playback
+## Playback
 The simulation starts in a paused state, the scene will still render, but time will not advance until it is unpaused.
 
 `P`: Pause/Resume scenario playback.
 
-### Chart
+## Chart
 `Left Mouse` + Move: Move the chart view
 
 `+` or `=`: Zoom In
@@ -146,3 +118,54 @@ The simulation starts in a paused state, the scene will still render, but time w
 `Arrow Keys`: Scroll Chart
 
 Currently, these keys cannot be configured.
+
+# Building From Source
+
+## Cloning
+Clone the repository _recursively_ to collect the dependencies as well as the source
+
+```shell
+# Use one of the below commands
+
+# HTTPS (if unsure, use this one)
+git clone --recursive https://github.com/usnistgov/NetSimulyzer.git
+
+# SSH
+git clone --recursive git@github.com:usnistgov/NetSimulyzer.git
+```
+
+Note: If you already cloned the project the normal way
+You may pull the dependencies by running
+
+```shell
+git submodule update --recursive
+```
+
+## Building
+Move into the project's root directory, and make a new directory called `build` and cd into it
+```shell
+mkdir build
+cd build
+```
+
+### CMake Options
+To configure the build, any of the below may be passed to CMake with `-D` in the form `cmake -DNAME=VALUE`.
+
+All of the following are optional
+
+* `ENABLE_DOXYGEN`: Default `False`, set to `True` to build the API docs to the `doxygen/` directory in the build directory
+
+#### Running CMake
+
+Run `cmake` and specify the source directory, build type, and and desired build options from above. Then run the build tool.
+```shell
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --parallel
+```
+
+## Running
+After building the application may launched from the project root directory with the following command:
+```shell
+cd ../
+./build/netsimulyzer
+```
