@@ -85,7 +85,7 @@ private:
       {Key::SettingsVersion, {"application/version", {}}},
       {Key::LastLoadPath, {"application/lastLoadPath", {}}},
       {Key::ResourcePath, {"resources/resourcePath", {}}},
-      {Key::MoveSpeed, {"camera/moveSpeed", 0.05f}},
+      {Key::MoveSpeed, {"camera/moveSpeed", 0.02f}},
       {Key::KeyboardTurnSpeed, {"camera/keyboardTurnSpeed", 0.1f}},
       {Key::MouseTurnSpeed, {"camera/mouseTurnSpeed", 0.5f}},
       {Key::FieldOfView, {"camera/fieldOfView", 45.0f}},
