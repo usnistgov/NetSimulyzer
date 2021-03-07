@@ -1,6 +1,9 @@
 # NetSimulyzer
 A 3D visualizer for ns-3 scenarios.
 
+![Application Screenshot](docs/source/_static/application-windows.png)
+
+
 ## Requirements
 
 * A C++ 17 compliant compiler
