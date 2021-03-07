@@ -147,9 +147,9 @@ void ModelRenderInfo::loadMaterials(aiScene const *scene) {
     material->Get(AI_MATKEY_NAME, name);
 
     // Check for configurable materials
-    if (std::strcmp(name.data, "visualizer.base") == 0) {
+    if (std::strcmp(name.data, "netsimulyzer.base") == 0) {
       m.materialType = MaterialType::Base;
-    } else if (std::strcmp(name.data, "visualizer.highlight") == 0)
+    } else if (std::strcmp(name.data, "netsimulyzer.highlight") == 0)
       m.materialType = MaterialType::Highlight;
     else
       m.materialType = MaterialType::Unclassified;

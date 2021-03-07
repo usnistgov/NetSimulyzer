@@ -1,7 +1,7 @@
 # Blender MTL File: 'None'
 # Material Count: 3
 
-newmtl dark(Clone)
+newmtl dark
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.224000 0.235000 0.275000
@@ -11,7 +11,7 @@ Ni 1.450000
 d 1.000000
 illum 1
 
-newmtl visualizer.base
+newmtl netsimulyzer.base
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.939000 0.953000 1.000000
@@ -21,7 +21,7 @@ Ni 1.450000
 d 1.000000
 illum 1
 
-newmtl visualizer.highlight
+newmtl netsimulyzer.highlight
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.580000 0.569000 0.769000
