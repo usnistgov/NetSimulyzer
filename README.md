@@ -22,6 +22,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
     * [CMake Options](#cmake-options)
     * [Running CMake](#running-cmake)
     * [Running](#running)
+    * [Building the Documentation]
 
 
 # About
@@ -169,3 +170,28 @@ After building the application may launched from the project root directory with
 cd ../
 ./build/netsimulyzer
 ```
+
+## Building the Documentation
+[Sphinx](https://www.sphinx-doc.org/en/master/) is required to build the documentation.
+
+To run Sphinx to build the documentation, cd into the `docs` directory
+and run `make [type]` for the type of documentation you wish to build.
+
+```shell
+# From the project root directory
+cd docs
+
+# HTML (Several Pages)
+make html
+
+# HTML (One Page)
+make singlehtml
+
+# PDF
+make latexpdf
+
+# To list other options, just run make
+make
+```
+
+The built documentation will now be found in `doc/build/[type]`.
