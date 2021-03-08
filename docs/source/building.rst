@@ -138,7 +138,7 @@ Installing Qt
     Select "add/remove component", then expand the components for the Qt version installed on the system and add QtCharts.
 
 2)  Set the environment variable
-    for example ```CMAKE_PREFIX_PATH=/Users/rouil/Qt/5.15.0/clang_64/```.
+    for example ```CMAKE_PREFIX_PATH=/Users/{Your Username}/Qt/5.15.0/clang_64/```.
     This is needed to build the application.
 
 
@@ -147,7 +147,7 @@ Building the Application
 
 .. code-block:: Bash
 
-  git clone --recursive git@gitlab.nist.gov:wnd-publicsafety/visualization.git
+  git clone --recursive git@github.com:usnistgov/NetSimulyzer.git
   mkdir build
   cd build
   cmake -DCMAKE_BUILD_TYPE=Release ..
