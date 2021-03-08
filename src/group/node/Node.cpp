@@ -64,6 +64,10 @@ const Model &Node::getModel() const {
   return model;
 }
 
+const parser::Node &Node::getNs3Model() const {
+  return ns3Node;
+}
+
 bool Node::visible() const {
   return ns3Node.visible;
 }

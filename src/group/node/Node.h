@@ -48,6 +48,7 @@ class Node {
 public:
   Node(const Model &model, parser::Node ns3Node);
   [[nodiscard]] const Model &getModel() const;
+  [[nodiscard]] const parser::Node &getNs3Model() const;
   [[nodiscard]] bool visible() const;
   undo::MoveEvent handle(const parser::MoveEvent &e);
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
