@@ -8,6 +8,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
 * [About](#about)
 * [Requirements](#requirements)
 * [Download Prebuilt Releases](#download-prebuilt-releases)
+* [Download Pre-Run Examples](#download-pre-run-examples)
 * [Resources](#resources)
   * [Supported Model Formats](#supported-model-formats)
   * [Supported Texture Formats](#supported-texture-formats)
@@ -48,6 +49,14 @@ the companion *ns-3* module [found here](https://github.com/usnistgov/NetSimulyz
 # Download Prebuilt Releases
 Download prebuilt binaries from the [Releases](https://github.com/usnistgov/NetSimulyzer/releases)
 tab on GitHub.
+
+# Download Pre-Run Examples
+Pre-run examples from the [ns-3](https://github.com/usnistgov/NetSimulyzer-ns3-module)
+module may be found in the `examples/` directory of the Windows release on the
+[Releases](https://github.com/usnistgov/NetSimulyzer/releases) page.
+
+For other platforms, the examples are provided in a separate ZIP/TAR files
+also included on the [Releases](https://github.com/usnistgov/NetSimulyzer/releases) page.
 
 # Resources
 The application comes with some 3D models, but if you wish to add
