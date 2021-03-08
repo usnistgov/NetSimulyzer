@@ -188,7 +188,7 @@ void SceneWidget::initializeGL() {
 
   mainLight.ambientIntensity = 0.9f;
   mainLight.color = {1.0f, 1.0f, 1.0f};
-  mainLight.direction = {2.0f, -1.0f, -2.0f};
+  mainLight.direction = {-2.0f, -1.0f, -2.0f};
   mainLight.diffuseIntensity = 0.5f;
   renderer.render(mainLight);
 
