@@ -23,7 +23,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
     * [CMake Options](#cmake-options)
     * [Running CMake](#running-cmake)
     * [Running](#running)
-    * [Building the Documentation]
+    * [Building the Documentation](#building-the-documentation)
 
 
 # About
