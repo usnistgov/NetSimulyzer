@@ -39,6 +39,13 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# Tell Sphinx to use 'index.rst' as the root, rather than
+# whatever other default
+# See: https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-root_doc
+master_doc = 'index'
+
+# It seems some versions of Sphinx use this instead of `master-doc`
+root_doc = master_doc
 
 # -- Options for HTML output -------------------------------------------------
 
