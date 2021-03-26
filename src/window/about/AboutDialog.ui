@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>About Visualizer</string>
+   <string>About</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../../resources.qrc">
