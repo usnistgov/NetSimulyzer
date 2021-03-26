@@ -48,6 +48,11 @@ public:
     unsigned int vbo = 0u;
     unsigned int ibo = 0u;
     unsigned int ibo_size = 0u;
+
+    unsigned int lineVao = 0u;
+    unsigned int lineVbo = 0u;
+    unsigned int lineIbo = 0u;
+    unsigned int lineIboSize = 0u;
   };
 
 private:

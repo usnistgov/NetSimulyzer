@@ -38,9 +38,11 @@
 #include <QMessageBox>
 #include <QString>
 #include <QTextStream>
+#include <array>
 #include <cassert>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 namespace netsimulyzer {
 
@@ -202,6 +204,57 @@ Building::RenderInfo Renderer::allocate(const parser::Building &building) {
   glGenBuffers(1, &info.vbo);
   glBindBuffer(GL_ARRAY_BUFFER, info.vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+
+  // Location
+  glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+  glEnableVertexAttribArray(0u);
+
+  // Border Lines
+
+  // add a very slight offset
+  // so lines do not directly
+  // intersect the walls
+  const float offset = 0.01f;
+
+  // clang-format off
+  const std::array<float, 24> borderVertices {
+      min.x - offset, min.y - offset, min.z - offset, // 0
+      max.x + offset, min.y - offset, min.z - offset, // 1
+      max.x + offset, min.y - offset, max.z + offset, // 2
+      min.x - offset, min.y - offset, max.z + offset, // 3
+      min.x - offset, max.y + offset, min.z - offset, // 4
+      max.x + offset, max.y + offset, min.z - offset, // 5
+      max.x + offset, max.y + offset, max.z + offset, // 6
+      min.x - offset, max.y + offset, max.z + offset  // 7
+  };
+  const std::array<unsigned int, 24> lineIndices {
+      0u, 1u, // Bottom
+      1u, 2u,
+      2u, 3u,
+      3u, 0u,
+      4u, 5u, // Top
+      5u, 6u,
+      6u, 7u,
+      7u, 4u,
+      0u, 4u, // Sides
+      1u, 5u,
+      2u, 6u,
+      3u, 7u,
+  };
+  // clang-format on
+
+  glGenVertexArrays(1, &info.lineVao);
+  glBindVertexArray(info.lineVao);
+
+  info.lineIboSize = lineIndices.size();
+
+  glGenBuffers(1, &info.lineIbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, info.lineIbo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), lineIndices.data(), GL_STATIC_DRAW);
+
+  glGenBuffers(1, &info.lineVbo);
+  glBindBuffer(GL_ARRAY_BUFFER, info.lineVbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * borderVertices.size(), borderVertices.data(), GL_STATIC_DRAW);
 
   // Location
   glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
@@ -513,10 +566,11 @@ void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMod
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
       glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
 
+      glBindVertexArray(renderInfo.lineVao);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.lineIbo);
       // TODO: Make configurable
       buildingShader.uniform("color", glm::vec3{0.0, 0.0, 0.0});
-      // TODO: Use separate geometry
-      glDrawElements(GL_LINE_STRIP, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+      glDrawElements(GL_LINES, renderInfo.lineIboSize, GL_UNSIGNED_INT, nullptr);
     }
   } else {
     for (const auto &building : buildings) {
