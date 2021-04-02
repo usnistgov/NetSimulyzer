@@ -110,6 +110,7 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
   QObject::connect(ui.actionSettings, &QAction::triggered, [this]() {
+    scene.pause();
     settingsDialog.show();
   });
 
@@ -183,6 +184,7 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &scene, &SceneWidget::resetCamera);
 
   QObject::connect(ui.actionAbout, &QAction::triggered, [this]() {
+    scene.pause();
     AboutDialog dialog{this};
     dialog.exec();
   });
