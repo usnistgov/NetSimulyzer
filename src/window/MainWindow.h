@@ -68,7 +68,7 @@ private:
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
   ScenarioLogWidget logWidget{this};
-  SceneWidget render{this};
+  SceneWidget scene{this};
   PlaybackWidget playbackWidget{this};
   Ui::MainWindow ui{};
 

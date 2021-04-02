@@ -52,7 +52,7 @@ namespace netsimulyzer {
 MainWindow::MainWindow() : QMainWindow() {
   ui.setupUi(this);
   setWindowTitle(NETSIMULYZER_APPLICATION_NAME);
-  setCentralWidget(&render);
+  setCentralWidget(&scene);
 
   ui.nodesDock->setWidget(&nodeWidget);
   ui.logDock->setWidget(&logWidget);
@@ -77,35 +77,35 @@ MainWindow::MainWindow() : QMainWindow() {
   // should we choose to do so
   ui.statusbar->insertWidget(0, &statusLabel);
 
-  QObject::connect(&render, &SceneWidget::timeChanged, this, &MainWindow::timeChanged);
-  QObject::connect(&render, &SceneWidget::timeChanged, &charts, &ChartManager::timeChanged);
-  QObject::connect(&render, &SceneWidget::timeChanged, &logWidget, &ScenarioLogWidget::timeChanged);
-  QObject::connect(&render, &SceneWidget::timeChanged, [this](double time, double /* increment */) {
+  QObject::connect(&scene, &SceneWidget::timeChanged, this, &MainWindow::timeChanged);
+  QObject::connect(&scene, &SceneWidget::timeChanged, &charts, &ChartManager::timeChanged);
+  QObject::connect(&scene, &SceneWidget::timeChanged, &logWidget, &ScenarioLogWidget::timeChanged);
+  QObject::connect(&scene, &SceneWidget::timeChanged, [this](double time, double /* increment */) {
     playbackWidget.setTime(time);
   });
 
   QObject::connect(ui.actionPlayPause, &QAction::triggered, [this]() {
     if (playbackWidget.isPlaying()) {
       playbackWidget.setPaused();
-      render.pause();
+      scene.pause();
       return;
     }
 
     playbackWidget.setPlaying();
-    render.play();
+    scene.play();
   });
 
-  QObject::connect(&playbackWidget, &PlaybackWidget::play, &render, &SceneWidget::play);
-  QObject::connect(&playbackWidget, &PlaybackWidget::pause, &render, &SceneWidget::pause);
+  QObject::connect(&playbackWidget, &PlaybackWidget::play, &scene, &SceneWidget::play);
+  QObject::connect(&playbackWidget, &PlaybackWidget::pause, &scene, &SceneWidget::pause);
   // Playback widget value is above user preference in priority
-  QObject::connect(&playbackWidget, &PlaybackWidget::timeStepChanged, &render, &SceneWidget::setTimeStep);
+  QObject::connect(&playbackWidget, &PlaybackWidget::timeStepChanged, &scene, &SceneWidget::setTimeStep);
 
-  QObject::connect(&playbackWidget, &PlaybackWidget::timeSet, &render, &SceneWidget::setTime);
+  QObject::connect(&playbackWidget, &PlaybackWidget::timeSet, &scene, &SceneWidget::setTime);
 
-  QObject::connect(&render, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
-  QObject::connect(&render, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
+  QObject::connect(&scene, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
+  QObject::connect(&scene, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &render, &SceneWidget::focusNode);
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
@@ -113,7 +113,7 @@ MainWindow::MainWindow() : QMainWindow() {
     settingsDialog.show();
   });
 
-  auto &camera = render.getCamera();
+  auto &camera = scene.getCamera();
   QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [&camera](float value) {
     camera.setMoveSpeed(value);
   });
@@ -128,7 +128,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&settingsDialog, &SettingsDialog::fieldOfViewChanged, [this, &camera](float value) {
     camera.setFieldOfView(value);
-    render.updatePerspective();
+    scene.updatePerspective();
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::forwardKeyChanged, [&camera](int key) {
@@ -164,23 +164,23 @@ MainWindow::MainWindow() : QMainWindow() {
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::renderSkyboxChanged, [this](bool enable) {
-    render.setSkyboxRenderState(enable);
+    scene.setSkyboxRenderState(enable);
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::buildingRenderModeChanged, [this](int mode) {
-    render.setBuildingRenderMode(SettingsManager::BuildingRenderModeFromInt(mode));
+    scene.setBuildingRenderMode(SettingsManager::BuildingRenderModeFromInt(mode));
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &render, &SceneWidget::setRenderGrid);
-  QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &render, &SceneWidget::changeGridStepSize);
+  QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
+  QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::resourcePathChanged, &render, &SceneWidget::setResourcePath);
+  QObject::connect(&settingsDialog, &SettingsDialog::resourcePathChanged, &scene, &SceneWidget::setResourcePath);
 
-  QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &render, &SceneWidget::resetCamera);
+  QObject::connect(ui.actionResetCameraPosition, &QAction::triggered, &scene, &SceneWidget::resetCamera);
 
   QObject::connect(ui.actionAbout, &QAction::triggered, [this]() {
     AboutDialog dialog{this};
@@ -216,7 +216,7 @@ void MainWindow::load() {
   loading = true;
   ui.actionLoad->setEnabled(false);
   statusLabel.setText("Loading scenario: " + fileName);
-  render.reset();
+  scene.reset();
   nodeWidget.reset();
   playbackWidget.reset();
   emit startLoading(fileName);
@@ -225,17 +225,17 @@ void MainWindow::load() {
 void MainWindow::finishLoading(const QString &fileName, unsigned long long milliseconds) {
   auto parser = loadWorker.getParser();
   const auto config = parser.getConfiguration();
-  render.setConfiguration(config);
+  scene.setConfiguration(config);
 
   playbackWidget.setMaxTime(config.endTime);
 
   const int timeStepPreference = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
-  render.setTimeStep(config.timeStep.value_or(timeStepPreference));
+  scene.setTimeStep(config.timeStep.value_or(timeStepPreference));
   playbackWidget.setTimeStep(config.timeStep.value_or(timeStepPreference));
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();
-  render.add(parser.getAreas(), parser.getBuildings(), parser.getDecorations(), parser.getNodes());
+  scene.add(parser.getAreas(), parser.getBuildings(), parser.getDecorations(), parser.getNodes());
 
   for (const auto &node : nodes) {
     nodeWidget.addNode(node);
@@ -254,7 +254,7 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
 
   // Events
   const auto &sceneEvents = parser.getSceneEvents();
-  render.enqueueEvents(sceneEvents);
+  scene.enqueueEvents(sceneEvents);
 
   const auto &chartEvents = parser.getChartsEvents();
   charts.enqueueEvents(chartEvents);
