@@ -11,7 +11,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl visualizer.highlight
+newmtl netsimulyzer.highlight
 Ns 225.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.065687 0.035701 0.800000
