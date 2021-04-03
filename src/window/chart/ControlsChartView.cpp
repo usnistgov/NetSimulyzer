@@ -123,3 +123,42 @@ void ControlsChartView::mouseReleaseEvent(QMouseEvent *event) {
 
 ControlsChartView::ControlsChartView(QWidget *parent) : QChartView(parent) {
 }
+
+void ControlsChartView::wheelEvent(QWheelEvent *event) {
+  const auto delta = event->angleDelta().y();
+  if (delta == 0) {
+    QGraphicsView::wheelEvent(event);
+    return;
+  }
+
+  const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
+  const auto alt = event->modifiers() & Qt::KeyboardModifier::AltModifier;
+
+  if (delta > 0) {
+    // Horizontal zoom
+    if (ctrl) {
+      auto area = chart()->plotArea();
+      area.setWidth(area.width() / zoomFactor);
+      chart()->zoomIn(area);
+    } else if (alt) { // Vertical Zoom
+      auto area = chart()->plotArea();
+      area.setHeight(area.height() / zoomFactor);
+      chart()->zoomIn(area);
+    } else // Horizontal & Vertical zoom
+      chart()->zoom(zoomFactor);
+  } else { // delta < 0
+    // Horizontal zoom
+    if (ctrl) {
+      auto area = chart()->plotArea();
+      area.setWidth(area.width() * zoomFactor);
+      chart()->zoomIn(area);
+    } else if (alt) { // Vertical Zoom
+      auto area = chart()->plotArea();
+      area.setHeight(area.height() * zoomFactor);
+      chart()->zoomIn(area);
+    } else // Horizontal & Vertical zoom
+      chart()->zoom(1.0 / zoomFactor);
+  }
+
+  QGraphicsView::wheelEvent(event);
+}
