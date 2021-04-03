@@ -56,6 +56,16 @@ class ControlsChartView : public QtCharts::QChartView {
    */
   QPoint lastMousePosition;
 
+  /**
+   * The amount to scale the graph when zooming
+   */
+  const double zoomFactor = 2.0;
+
+  /**
+   * The amount to move the chart scrolling
+   */
+  const double scrollMagnitude = 10.0;
+
 protected:
   void keyPressEvent(QKeyEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;

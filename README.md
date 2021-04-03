@@ -120,8 +120,12 @@ The simulation starts in a paused state, the scene will still render, but time w
 `Left Mouse` + Move: Move the chart view
 
 `+` or `=`: Zoom In
+  * Hold `Ctrl` (Windows/Linux) or `cmd` (macOS) to zoom horizontally only
+  * Hold `Alt` to zoom vertically only
 
 `-`: Zoom Out
+  * Hold `Ctrl` (Windows/Linux) or `cmd` (macOS) to zoom horizontally only
+  * Hold `Alt` to zoom vertically only
 
 `R`: Reset Zoom
 

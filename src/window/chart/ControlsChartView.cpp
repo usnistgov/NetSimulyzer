@@ -35,17 +35,37 @@
 #include <QtCharts/QChart>
 
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
-  // Amount to scroll the chart when an arrow key is pressed
-  const qreal scrollMagnitude = 10.0;
+  const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
+  const auto alt = event->modifiers() & Qt::KeyboardModifier::AltModifier;
 
   switch (event->key()) {
   case Qt::Key_Plus:
     [[fallthrough]];
   case Qt::Key_Equal: // Allow the + key next to Backspace to be used (without Shift)
-    chart()->zoomIn();
+    // Horizontal zoom
+    if (ctrl) {
+      auto area = chart()->plotArea();
+      area.setWidth(area.width() / zoomFactor);
+      chart()->zoomIn(area);
+    } else if (alt) { // Vertical Zoom
+      auto area = chart()->plotArea();
+      area.setHeight(area.height() / zoomFactor);
+      chart()->zoomIn(area);
+    } else // Horizontal & Vertical zoom
+      chart()->zoom(zoomFactor);
     break;
   case Qt::Key_Minus:
-    chart()->zoomOut();
+    // Horizontal zoom
+    if (ctrl) {
+      auto area = chart()->plotArea();
+      area.setWidth(area.width() * zoomFactor);
+      chart()->zoomIn(area);
+    } else if (alt) { // Vertical Zoom
+      auto area = chart()->plotArea();
+      area.setHeight(area.height() * zoomFactor);
+      chart()->zoomIn(area);
+    } else // Horizontal & Vertical zoom
+      chart()->zoom(1.0 / zoomFactor);
     break;
   case Qt::Key_R:
     chart()->zoomReset();
