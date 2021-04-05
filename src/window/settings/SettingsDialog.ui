@@ -13,6 +13,12 @@
   <property name="windowTitle">
    <string>Application Settings</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QCheckBox::indicator {
+     width: 20px;
+     height: 20px;
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>8</number>
@@ -40,62 +46,29 @@
         <x>0</x>
         <y>0</y>
         <width>508</width>
-        <height>797</height>
+        <height>828</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="23" column="11">
-        <widget class="QLabel" name="labelResources">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
+       <item row="14" column="11">
+        <widget class="QLabel" name="labelGraphics">
          <property name="font">
           <font>
            <pointsize>16</pointsize>
           </font>
          </property>
          <property name="text">
-          <string>Resources</string>
+          <string>Graphics</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
-       <item row="21" column="13">
-        <widget class="QPushButton" name="buttonResetPlay">
+       <item row="9" column="0" colspan="2">
+        <widget class="QLabel" name="labelRight">
          <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0" colspan="2">
-        <widget class="QLabel" name="labelDown">
-         <property name="text">
-          <string>Down</string>
-         </property>
-        </widget>
-       </item>
-       <item row="22" column="13">
-        <widget class="QPushButton" name="buttonResetTimeStep">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="13">
-        <widget class="QPushButton" name="buttonResetLeftTurn">
-         <property name="text">
-          <string>Default</string>
+          <string>Right</string>
          </property>
         </widget>
        </item>
@@ -103,73 +76,6 @@
         <widget class="QLabel" name="labelSamples">
          <property name="text">
           <string>Samples (MSAA)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="11">
-        <widget class="QComboBox" name="comboBuildingRender"/>
-       </item>
-       <item row="18" column="11">
-        <layout class="QHBoxLayout" name="layoutShowGrid">
-         <item>
-          <spacer name="hsGridLeft">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBoxShowGrid">
-           <property name="styleSheet">
-            <string notr="true">QCheckBox::indicator {
-     width: 20px;
-     height: 20px;
-}</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="hsGridRIght">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="0" colspan="4">
-        <widget class="QLabel" name="labelMoveSpeed">
-         <property name="text">
-          <string>Move Speed</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="13">
-        <widget class="QPushButton" name="buttonResetSamples">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0" colspan="2">
-        <widget class="QLabel" name="labelTurnLeft">
-         <property name="text">
-          <string>Turn Left</string>
          </property>
         </widget>
        </item>
@@ -187,34 +93,6 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyTurnRight">
-         <property name="keySequence">
-          <string>E</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="13">
-        <widget class="QPushButton" name="buttonResetBuildingRender">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="18" column="0">
-        <widget class="QLabel" name="labelShowGrid">
-         <property name="text">
-          <string>Show Grid</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="13">
-        <widget class="QPushButton" name="buttonResetRight">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
        <item row="13" column="13">
         <widget class="QPushButton" name="buttonResetDown">
          <property name="text">
@@ -229,25 +107,54 @@
          </property>
         </widget>
        </item>
-       <item row="21" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyPlay">
-         <property name="keySequence">
-          <string>X</string>
+       <item row="16" column="0">
+        <widget class="QLabel" name="labelSkybox">
+         <property name="text">
+          <string>SkyBox</string>
          </property>
         </widget>
        </item>
-       <item row="14" column="11">
-        <widget class="QLabel" name="labelGraphics">
-         <property name="font">
-          <font>
-           <pointsize>16</pointsize>
-          </font>
-         </property>
+       <item row="12" column="13">
+        <widget class="QPushButton" name="buttonResetUp">
          <property name="text">
-          <string>Graphics</string>
+          <string>Default</string>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
+        </widget>
+       </item>
+       <item row="11" column="0" colspan="2">
+        <widget class="QLabel" name="labelTurnRight">
+         <property name="text">
+          <string>Turn Right</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="13">
+        <widget class="QPushButton" name="buttonResetKeyboardTurnSpeed">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="23" column="11">
+        <widget class="QSpinBox" name="spinTimeStep">
+         <property name="suffix">
+          <string notr="true">ms</string>
+         </property>
+         <property name="minimum">
+          <number>-10000</number>
+         </property>
+         <property name="maximum">
+          <number>10000</number>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="23" column="0">
+        <widget class="QLabel" name="labelTimeStep">
+         <property name="text">
+          <string>Time Step Preference</string>
          </property>
         </widget>
        </item>
@@ -276,52 +183,15 @@
          </property>
         </widget>
        </item>
-       <item row="24" column="0" colspan="3">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Resource Directory</string>
+       <item row="25" column="11">
+        <widget class="QLineEdit" name="lineEditResource">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="22" column="11">
-        <widget class="QSpinBox" name="spinTimeStep">
-         <property name="suffix">
-          <string notr="true">ms</string>
-         </property>
-         <property name="minimum">
-          <number>-10000</number>
-         </property>
-         <property name="maximum">
-          <number>10000</number>
-         </property>
-         <property name="value">
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="13">
-        <widget class="QPushButton" name="buttonResetKeyboardTurnSpeed">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyForward">
-         <property name="keySequence">
-          <string>W</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="4">
-        <widget class="QLabel" name="labelKeyboardTurnSpeed">
-         <property name="text">
-          <string>Keyboard Turn Speed</string>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="13">
-        <widget class="QPushButton" name="buttonResetSkybox">
+       <item row="4" column="13">
+        <widget class="QPushButton" name="buttonResetMouseTurnSpeed">
          <property name="text">
           <string>Default</string>
          </property>
@@ -331,6 +201,85 @@
         <widget class="QLabel" name="labelMouseTurnSpeed">
          <property name="text">
           <string>Mouse Turn Speed</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="13">
+        <widget class="QPushButton" name="buttonResetLeft">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="22" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyPlay">
+         <property name="keySequence">
+          <string>X</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyTurnRight">
+         <property name="keySequence">
+          <string>E</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyTurnLeft">
+         <property name="keySequence">
+          <string>Q</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="13">
+        <widget class="QPushButton" name="buttonResetSamples">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="4">
+        <widget class="QLabel" name="labelMoveSpeed">
+         <property name="text">
+          <string>Move Speed</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0" colspan="2">
+        <widget class="QLabel" name="labelTurnLeft">
+         <property name="text">
+          <string>Turn Left</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="13">
+        <widget class="QPushButton" name="buttonResetMoveSpeed">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="11">
+        <widget class="QSlider" name="sliderKeyboardTurnSpeed">
+         <property name="maximum">
+          <number>20</number>
+         </property>
+         <property name="pageStep">
+          <number>5</number>
+         </property>
+         <property name="value">
+          <number>5</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="2">
+        <widget class="QLabel" name="labelBackward">
+         <property name="text">
+          <string>Backward</string>
          </property>
         </widget>
        </item>
@@ -367,10 +316,7 @@
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QCheckBox::indicator {
-     width: 20px;
-     height: 20px;
-}</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string/>
@@ -392,33 +338,6 @@
          </item>
         </layout>
        </item>
-       <item row="4" column="11">
-        <widget class="QSlider" name="sliderMouseTurnSpeed">
-         <property name="maximum">
-          <number>20</number>
-         </property>
-         <property name="pageStep">
-          <number>5</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyUp">
-         <property name="keySequence">
-          <string>Z</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="13">
-        <widget class="QPushButton" name="buttonResetForward">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="0" colspan="2">
         <widget class="QLabel" name="labelForward">
          <property name="text">
@@ -426,22 +345,65 @@
          </property>
         </widget>
        </item>
-       <item row="24" column="11">
-        <widget class="QLineEdit" name="lineEditResource">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
+       <item row="19" column="11">
+        <layout class="QHBoxLayout" name="layoutShowGrid">
+         <item>
+          <spacer name="hsGridLeft">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxShowGrid">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="hsGridRIght">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
-       <item row="18" column="13">
-        <widget class="QPushButton" name="buttonResetShowGrid">
+       <item row="13" column="0" colspan="2">
+        <widget class="QLabel" name="labelDown">
          <property name="text">
-          <string>Default</string>
+          <string>Down</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="13">
-        <widget class="QPushButton" name="buttonResetMouseTurnSpeed">
+       <item row="15" column="11">
+        <widget class="QComboBox" name="comboSamples"/>
+       </item>
+       <item row="6" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyForward">
+         <property name="keySequence">
+          <string>W</string>
+         </property>
+        </widget>
+       </item>
+       <item row="22" column="13">
+        <widget class="QPushButton" name="buttonResetPlay">
          <property name="text">
           <string>Default</string>
          </property>
@@ -454,17 +416,59 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="2">
-        <widget class="QLabel" name="labelLeft">
+       <item row="5" column="0" colspan="4">
+        <widget class="QLabel" name="labelFieldOfView">
          <property name="text">
-          <string>Left</string>
+          <string>Field of View</string>
          </property>
         </widget>
        </item>
-       <item row="22" column="0">
-        <widget class="QLabel" name="labelTimeStep">
+       <item row="16" column="13">
+        <widget class="QPushButton" name="buttonResetSkybox">
          <property name="text">
-          <string>Time Step Preference</string>
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyBackward">
+         <property name="keySequence">
+          <string>S</string>
+         </property>
+        </widget>
+       </item>
+       <item row="25" column="13">
+        <widget class="QPushButton" name="buttonResource">
+         <property name="text">
+          <string>Browse</string>
+         </property>
+        </widget>
+       </item>
+       <item row="25" column="0" colspan="3">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Resource Directory</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="4">
+        <widget class="QLabel" name="labelKeyboardTurnSpeed">
+         <property name="text">
+          <string>Keyboard Turn Speed</string>
+         </property>
+        </widget>
+       </item>
+       <item row="20" column="0">
+        <widget class="QLabel" name="labelGridSize">
+         <property name="text">
+          <string>Grid Step Size</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="13">
+        <widget class="QPushButton" name="buttonResetForward">
+         <property name="text">
+          <string>Default</string>
          </property>
         </widget>
        </item>
@@ -484,38 +488,7 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="13">
-        <widget class="QPushButton" name="buttonResetMoveSpeed">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="0">
-        <widget class="QLabel" name="labelSkybox">
-         <property name="text">
-          <string>SkyBox</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="13">
-        <widget class="QPushButton" name="buttonResetLeft">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="0">
-        <widget class="QLabel" name="labelRenderBuildings">
-         <property name="text">
-          <string>Building Effect</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="11">
-        <widget class="QComboBox" name="comboSamples"/>
-       </item>
-       <item row="20" column="11">
+       <item row="21" column="11">
         <widget class="QLabel" name="labelPlayback">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -542,31 +515,103 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="13">
-        <widget class="QPushButton" name="buttonResetUp">
+       <item row="9" column="13">
+        <widget class="QPushButton" name="buttonResetRight">
          <property name="text">
           <string>Default</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyBackward">
+       <item row="8" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyLeft">
          <property name="keySequence">
-          <string>S</string>
+          <string>A</string>
          </property>
         </widget>
        </item>
-       <item row="11" column="0" colspan="2">
-        <widget class="QLabel" name="labelTurnRight">
+       <item row="20" column="13">
+        <widget class="QPushButton" name="buttonResetGridSize">
          <property name="text">
-          <string>Turn Right</string>
+          <string>Default</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyTurnLeft">
+       <item row="17" column="11">
+        <widget class="QComboBox" name="comboBuildingRender"/>
+       </item>
+       <item row="4" column="11">
+        <widget class="QSlider" name="sliderMouseTurnSpeed">
+         <property name="maximum">
+          <number>20</number>
+         </property>
+         <property name="pageStep">
+          <number>5</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="2">
+        <widget class="QLabel" name="labelLeft">
+         <property name="text">
+          <string>Left</string>
+         </property>
+        </widget>
+       </item>
+       <item row="23" column="13">
+        <widget class="QPushButton" name="buttonResetTimeStep">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyRight">
          <property name="keySequence">
-          <string>Q</string>
+          <string>D</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="13">
+        <widget class="QPushButton" name="buttonResetShowGrid">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="22" column="0">
+        <widget class="QLabel" name="labelPlay">
+         <property name="text">
+          <string>Play/Pause</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyDown">
+         <property name="keySequence">
+          <string>X</string>
+         </property>
+        </widget>
+       </item>
+       <item row="17" column="13">
+        <widget class="QPushButton" name="buttonResetBuildingRender">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="0">
+        <widget class="QLabel" name="labelShowGrid">
+         <property name="text">
+          <string>Show Grid</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="11">
+        <widget class="SingleKeySequenceEdit" name="keyUp">
+         <property name="keySequence">
+          <string>Z</string>
          </property>
         </widget>
        </item>
@@ -591,90 +636,96 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyRight">
-         <property name="keySequence">
-          <string>D</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="11">
-        <widget class="QSlider" name="sliderKeyboardTurnSpeed">
-         <property name="maximum">
-          <number>20</number>
-         </property>
-         <property name="pageStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>5</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0" colspan="2">
-        <widget class="QLabel" name="labelRight">
+       <item row="10" column="13">
+        <widget class="QPushButton" name="buttonResetLeftTurn">
          <property name="text">
-          <string>Right</string>
+          <string>Default</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyLeft">
-         <property name="keySequence">
-          <string>A</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="2">
-        <widget class="QLabel" name="labelBackward">
+       <item row="17" column="0">
+        <widget class="QLabel" name="labelRenderBuildings">
          <property name="text">
-          <string>Backward</string>
+          <string>Building Effect</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="4">
-        <widget class="QLabel" name="labelFieldOfView">
+       <item row="24" column="11">
+        <widget class="QLabel" name="labelResources">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+          </font>
+         </property>
          <property name="text">
-          <string>Field of View</string>
+          <string>Resources</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
-       <item row="21" column="0">
-        <widget class="QLabel" name="labelPlay">
-         <property name="text">
-          <string>Play/Pause</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="11">
-        <widget class="SingleKeySequenceEdit" name="keyDown">
-         <property name="keySequence">
-          <string>X</string>
-         </property>
-        </widget>
-       </item>
-       <item row="24" column="13">
-        <widget class="QPushButton" name="buttonResource">
-         <property name="text">
-          <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-       <item row="19" column="0">
-        <widget class="QLabel" name="labelGridSize">
-         <property name="text">
-          <string>Grid Step Size</string>
-         </property>
-        </widget>
-       </item>
-       <item row="19" column="11">
+       <item row="20" column="11">
         <widget class="QComboBox" name="comboGridSize"/>
        </item>
-       <item row="19" column="13">
-        <widget class="QPushButton" name="buttonResetGridSize">
+       <item row="18" column="0">
+        <widget class="QLabel" name="labelRenderBuildingOutlines">
+         <property name="text">
+          <string>Show Building Outlines</string>
+         </property>
+        </widget>
+       </item>
+       <item row="18" column="11">
+        <layout class="QHBoxLayout" name="layoutBuildingOutlines">
+         <item>
+          <spacer name="hsBuildingOutlinesLeft">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxBuildingOutlines">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="hsBuildingOutlinesRight">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="18" column="13">
+        <widget class="QPushButton" name="buttonResetBuildingOutlines">
          <property name="text">
           <string>Default</string>
          </property>

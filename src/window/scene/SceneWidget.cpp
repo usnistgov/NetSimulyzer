@@ -233,8 +233,17 @@ void SceneWidget::paintGL() {
   renderer.render(areas);
 
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Opaque)
-    renderer.render(buildings, Renderer::BuildingEdgeMode::Render);
+    renderer.render(buildings);
   // else in the transparent section
+
+  if (renderBuildingOutlines) {
+    // Black outlines for opaque buildings
+    // White for transparent
+    if (buildingRenderMode == SettingsManager::BuildingRenderMode::Opaque)
+      renderer.renderOutlines(buildings, glm::vec3{0.0f, 0.0f, 0.0f});
+    else
+      renderer.renderOutlines(buildings, glm::vec3{1.0f, 1.0f, 1.0f});
+  }
 
   // Keep this next to `startTransparent()`
   // has it's own transparency implementation
@@ -245,7 +254,7 @@ void SceneWidget::paintGL() {
 
   // Other condition in opaque section
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
-    renderer.render(buildings, Renderer::BuildingEdgeMode::DoNotRender);
+    renderer.render(buildings);
 
   for (auto &[key, node] : nodes) {
     renderer.renderTransparent(node.getModel());
@@ -520,10 +529,14 @@ void SceneWidget::setSkyboxRenderState(bool enable) {
 void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {
   buildingRenderMode = mode;
 }
+
+void SceneWidget::setBuildingRenderOutlines(bool enable) {
+  renderBuildingOutlines = enable;
+}
+
 void SceneWidget::setRenderGrid(bool enable) {
   renderGrid = enable;
 }
-
 void SceneWidget::changeGridStepSize(int stepSize) {
   makeCurrent();
   // Keep the same square size, but change the grid step

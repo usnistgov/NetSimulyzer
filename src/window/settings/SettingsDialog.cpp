@@ -35,6 +35,8 @@ void SettingsDialog::loadSettings() {
   const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
 
+  ui.checkBoxBuildingOutlines->setChecked(settings.get<bool>(Key::RenderBuildingOutlines).value());
+
   ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
   ui.checkBoxShowGrid->setChecked(settings.get<bool>(Key::RenderGrid).value());
 
@@ -91,6 +93,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
+  QObject::connect(ui.buttonResetBuildingOutlines, &QPushButton::clicked, this,
+                   &SettingsDialog::defaultBuildingOutlines);
   QObject::connect(ui.buttonResetShowGrid, &QPushButton::clicked, this, &SettingsDialog::defaultShowGrid);
   QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
 
@@ -128,6 +132,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
+    ui.buttonResetBuildingOutlines->click();
     ui.buttonResetShowGrid->click();
     ui.buttonResetGridSize->click();
 
@@ -222,6 +227,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit buildingRenderModeChanged(static_cast<int>(buildingRenderMode));
     }
 
+    auto renderBuildingOutlines = ui.checkBoxBuildingOutlines->isChecked();
+    if (renderBuildingOutlines != settings.get<bool>(Key::RenderBuildingOutlines)) {
+      settings.set(Key::RenderBuildingOutlines, renderBuildingOutlines);
+      emit buildingRenderOutlinesChanged(renderBuildingOutlines);
+    }
+
     auto enableGrid = ui.checkBoxShowGrid->isChecked();
     if (enableGrid != settings.get<bool>(Key::RenderGrid)) {
       settings.set(Key::RenderGrid, enableGrid);
@@ -303,6 +314,10 @@ void SettingsDialog::defaultBuildingEffect() {
   const auto defaultBuildingMode =
       settings.getDefault<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode);
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(defaultBuildingMode)));
+}
+
+void SettingsDialog::defaultBuildingOutlines() {
+  ui.checkBoxBuildingOutlines->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderBuildingOutlines));
 }
 
 void SettingsDialog::defaultTimeStep() {

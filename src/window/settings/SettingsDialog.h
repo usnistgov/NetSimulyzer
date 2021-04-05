@@ -114,6 +114,12 @@ class SettingsDialog : public QDialog {
   void defaultBuildingEffect();
 
   /**
+   * Sets the "Render Building Outlines" checkbox
+   * to its default
+   */
+  void defaultBuildingOutlines();
+
+  /**
    * Set the default value for the time step spinner.
    *
    * Sets the value passed to `setTimeStep` if one was provided
@@ -268,6 +274,15 @@ signals:
    * Enum value from SettingsManager::BuildingRenderMode
    */
   void buildingRenderModeChanged(int value);
+
+  /**
+   * Signal emitted when the user changes the
+   * Building outline mode.
+   *
+   * @param value
+   * Indicator for building outlines to be rendered or not.
+   */
+  void buildingRenderOutlinesChanged(bool enable);
 
   /**
    * Signal emitted when the user changes the

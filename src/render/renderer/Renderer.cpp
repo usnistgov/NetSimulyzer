@@ -552,37 +552,31 @@ void Renderer::render(const std::vector<Area> &areas) {
   }
 }
 
-void Renderer::render(std::vector<Building> &buildings, BuildingEdgeMode edgeMode) {
+void Renderer::render(const std::vector<Building> &buildings) {
   buildingShader.bind();
+  for (const auto &building : buildings) {
+    if (!building.visible())
+      continue;
+    const auto &renderInfo = building.getRenderInfo();
+    buildingShader.uniform("color", building.getColor());
 
-  if (edgeMode == BuildingEdgeMode::Render) {
-    for (const auto &building : buildings) {
-      if (!building.visible())
-        continue;
-      const auto &renderInfo = building.getRenderInfo();
-      buildingShader.uniform("color", building.getColor());
+    glBindVertexArray(renderInfo.vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
+    glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+  }
+}
 
-      glBindVertexArray(renderInfo.vao);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
-      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
+void Renderer::renderOutlines(const std::vector<Building> &buildings, const glm::vec3 &color) {
+  buildingShader.bind();
+  for (const auto &building : buildings) {
+    if (!building.visible())
+      continue;
+    const auto &renderInfo = building.getRenderInfo();
 
-      glBindVertexArray(renderInfo.lineVao);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.lineIbo);
-      // TODO: Make configurable
-      buildingShader.uniform("color", glm::vec3{0.0, 0.0, 0.0});
-      glDrawElements(GL_LINES, renderInfo.lineIboSize, GL_UNSIGNED_INT, nullptr);
-    }
-  } else {
-    for (const auto &building : buildings) {
-      if (!building.visible())
-        continue;
-      const auto &renderInfo = building.getRenderInfo();
-      buildingShader.uniform("color", building.getColor());
-
-      glBindVertexArray(renderInfo.vao);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.ibo);
-      glDrawElements(GL_TRIANGLES, renderInfo.ibo_size, GL_UNSIGNED_INT, nullptr);
-    }
+    glBindVertexArray(renderInfo.lineVao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderInfo.lineIbo);
+    buildingShader.uniform("color", color);
+    glDrawElements(GL_LINES, renderInfo.lineIboSize, GL_UNSIGNED_INT, nullptr);
   }
 }
 

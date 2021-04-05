@@ -172,6 +172,8 @@ MainWindow::MainWindow() : QMainWindow() {
     scene.setBuildingRenderMode(SettingsManager::BuildingRenderModeFromInt(mode));
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::buildingRenderOutlinesChanged, &scene,
+                   &SceneWidget::setBuildingRenderOutlines);
   QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 

@@ -87,6 +87,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   QElapsedTimer frameTimer;
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
+  bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -195,6 +196,14 @@ public:
    * A mode from SettingsManager::BuildingRenderMode
    */
   void setBuildingRenderMode(SettingsManager::BuildingRenderMode mode);
+
+  /**
+   * Set if building outlines should be rendered or not
+   * @param enable
+   * True: render outlines
+   * False: do not render outlines
+   */
+  void setBuildingRenderOutlines(bool enable);
 
   /**
    * Enable or disable showing the coordinate grid
