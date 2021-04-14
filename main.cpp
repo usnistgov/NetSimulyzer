@@ -51,6 +51,15 @@
 #include <project.h>
 #include <QDebug>
 
+// Signals to Qt that titles beginning with ampersands (&)
+// should be generated from the characters following the
+// ampersand.
+//
+// Since this is not declared in any Qt header files, we have to do
+// it ourselves.
+// See: https://doc.qt.io/qt-5/qkeysequence.html#qt_set_sequence_auto_mnemonic
+void qt_set_sequence_auto_mnemonic(bool b);
+
 struct ParsedSettingsVersion {
   unsigned int major;
   unsigned int minor;
@@ -200,6 +209,10 @@ int main(int argc, char *argv[]) {
   // Default QSurfaceFormat must be set before QApplication
   // on some platforms
   QApplication application(argc, argv);
+
+  // Enable auto mnemonics on all platforms
+  // since our widget titles use them
+  qt_set_sequence_auto_mnemonic(true);
 
   // Must me checked after the QApplication is constructed
   // since this may create dialogs
