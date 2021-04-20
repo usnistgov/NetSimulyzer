@@ -37,6 +37,7 @@
 #include <QDir>
 #include <QImage>
 #include <QString>
+#include <Qt>
 #include <iostream>
 #include <utility>
 
@@ -86,7 +87,7 @@ bool TextureCache::init() {
 
   // Generate a fallback texture
   QImage fallback{64, 64, QImage::Format::Format_ARGB32};
-  fallback.fill(QColorConstants::Magenta);
+  fallback.fill(Qt::GlobalColor::magenta);
 
   Texture t;
   t.width = fallback.width();
