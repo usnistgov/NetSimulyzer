@@ -52,9 +52,11 @@ public:
   [[nodiscard]] bool visible() const;
   undo::MoveEvent handle(const parser::MoveEvent &e);
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
+  undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
 
   void handle(const undo::MoveEvent &e);
   void handle(const undo::NodeOrientationChangeEvent &e);
+  void handle(const undo::NodeColorChangeEvent &e);
 };
 
 } // namespace netsimulyzer

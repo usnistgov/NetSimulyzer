@@ -100,8 +100,11 @@ public:
   [[nodiscard]] ModelBounds getBounds() const;
 
   void setBaseColor(const glm::vec3 &value);
+  void unsetBaseColor();
   [[nodiscard]] const std::optional<glm::vec3> &getBaseColor() const;
+
   void setHighlightColor(const glm::vec3 &value);
+  void unsetHighlightColor();
   [[nodiscard]] const std::optional<glm::vec3> &getHighlightColor() const;
 
   void rebuildModelMatrix();

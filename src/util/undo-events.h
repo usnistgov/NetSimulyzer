@@ -108,6 +108,20 @@ struct DecorationOrientationChangeEvent {
   parser::DecorationOrientationChangeEvent event;
 };
 
+struct NodeColorChangeEvent {
+  /**
+   * The original color before `event` was applied.
+   * If no color was specified before, then this optional
+   * is also unset set.
+   */
+  std::optional<glm::vec3> originalColor;
+
+  /**
+   * The event which generated this undo event
+   */
+  parser::NodeColorChangeEvent event;
+};
+
 /**
  * An event which undoes a `parser::XYSeriesAddValue`
  */
@@ -146,7 +160,7 @@ struct StreamAppendEvent {
   parser::StreamAppendEvent event;
 };
 
-using SceneUndoEvent = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
+using SceneUndoEvent = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent,
                                     DecorationOrientationChangeEvent, XYSeriesAddValue, StreamAppendEvent>;
 
 using ChartUndoEvent = std::variant<XYSeriesAddValue, CategorySeriesAddValue>;

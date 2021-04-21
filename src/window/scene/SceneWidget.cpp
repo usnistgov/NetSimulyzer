@@ -78,7 +78,8 @@ void SceneWidget::handleEvents() {
     if (arg.time > simulationTime)
       return false;
 
-    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent>) {
+    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
+                  std::is_same_v<T, parser::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
@@ -113,7 +114,8 @@ void SceneWidget::handleUndoEvents() {
     if (simulationTime > arg.event.time)
       return false;
 
-    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent>) {
+    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent> ||
+                  std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
         return false;

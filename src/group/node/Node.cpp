@@ -92,11 +92,50 @@ undo::NodeOrientationChangeEvent Node::handle(const parser::NodeOrientationChang
   return undo;
 }
 
+undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
+  undo::NodeColorChangeEvent undo;
+  undo.event = e;
+
+  if (e.type == parser::NodeColorChangeEvent::ColorType::Base) {
+    undo.originalColor = model.getBaseColor();
+
+    if (!e.targetColor.has_value())
+      model.unsetBaseColor();
+    else
+      model.setBaseColor(toRenderColor(e.targetColor.value()));
+
+  } else { // Highlight
+    undo.originalColor = model.getHighlightColor();
+
+    if (!e.targetColor.has_value())
+      model.unsetHighlightColor();
+    else
+      model.setHighlightColor(toRenderColor(e.targetColor.value()));
+  }
+
+  return undo;
+}
+
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
 }
+
 void Node::handle(const undo::NodeOrientationChangeEvent &e) {
   model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
+}
+
+void Node::handle(const undo::NodeColorChangeEvent &e) {
+  if (e.event.type == parser::NodeColorChangeEvent::ColorType::Base) {
+    if (e.originalColor.has_value())
+      model.setBaseColor(e.originalColor.value());
+    else
+      model.unsetBaseColor();
+  } else { // Highlight
+    if (e.originalColor.has_value())
+      model.setHighlightColor(e.originalColor.value());
+    else
+      model.unsetHighlightColor();
+  }
 }
 
 } // namespace netsimulyzer

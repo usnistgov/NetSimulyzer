@@ -426,6 +426,58 @@
             "if": {
               "properties": {
                 "type": {
+                  "const": "node-color"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "color-type": {
+                  "type": "string",
+                  "enum": [
+                    "base",
+                    "highlight"
+                  ]
+                },
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "color-type"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
                   "const": "decoration-position"
                 }
               }

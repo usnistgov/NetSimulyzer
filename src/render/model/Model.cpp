@@ -112,12 +112,20 @@ void Model::setBaseColor(const glm::vec3 &value) {
   baseColor.emplace(value);
 }
 
+void Model::unsetBaseColor() {
+  baseColor.reset();
+}
+
 const std::optional<glm::vec3> &Model::getBaseColor() const {
   return baseColor;
 }
 
 void Model::setHighlightColor(const glm::vec3 &value) {
   highlightColor.emplace(value);
+}
+
+void Model::unsetHighlightColor() {
+  highlightColor.reset();
 }
 
 const std::optional<glm::vec3> &Model::getHighlightColor() const {

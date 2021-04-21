@@ -151,6 +151,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
       parseMoveEvent(object);
     else if (type == "node-orientation")
       parseNodeOrientationEvent(object);
+    else if (type == "node-color")
+      parseNodeColorChangeEvent(object);
     else if (type == "decoration-position")
       parseDecorationMoveEvent(object);
     else if (type == "decoration-orientation")
@@ -373,6 +375,27 @@ void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &
   event.targetOrientation[0] = object["x"].get<double>();
   event.targetOrientation[1] = object["y"].get<double>();
   event.targetOrientation[2] = object["z"].get<double>();
+
+  updateEndTime(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
+void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object) {
+  parser::NodeColorChangeEvent event;
+
+  event.nodeId = object["id"].get<unsigned int>();
+  event.time = object["milliseconds"].get<double>();
+
+  auto type = object["color-type"].get<std::string>();
+  if (type == "base")
+    event.type = parser::NodeColorChangeEvent::ColorType::Base;
+  else if (type == "highlight")
+    event.type = parser::NodeColorChangeEvent::ColorType::Highlight;
+  else
+    std::cerr << "Error: unhandled 'color-type': \"" << type << "\" in `NodeColorChangeEvent`\n";
+
+  if (object.contains("color"))
+    event.targetColor = colorFromObject(object["color"].object());
 
   updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);

@@ -269,6 +269,38 @@ struct DecorationOrientationChangeEvent {
 };
 
 /**
+ * Event that changes (or unsets) a configurable color of a Node
+ */
+struct NodeColorChangeEvent {
+  /**
+   * The possible color types the event may affect.
+   */
+  enum class ColorType { Base, Highlight };
+
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Node to change the color of
+   */
+  unsigned int nodeId = 0u;
+
+  /**
+   * Which color type the change affects
+   */
+  ColorType type{ColorType::Base};
+
+  /**
+   * The color to change the Node to. If the color was unset, then
+   * this optional is not set.
+   */
+  std::optional<Ns3Color3> targetColor;
+};
+
+/**
  * Event that appends a value to an existing series
  */
 struct XYSeriesAddValue {
@@ -353,8 +385,8 @@ using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChange
 /**
  * Events which affect the rendered scene
  */
-using SceneEvent =
-    std::variant<MoveEvent, NodeOrientationChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
+using SceneEvent = std::variant<MoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationMoveEvent,
+                                DecorationOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model

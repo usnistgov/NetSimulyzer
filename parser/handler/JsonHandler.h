@@ -211,6 +211,13 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseDecorationOrientationEvent(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a NodeColorChange event
+   *
+   * @param object
+   */
+  void parseNodeColorChangeEvent(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a series append event
    *
    * @param object
