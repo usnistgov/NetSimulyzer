@@ -159,14 +159,14 @@ Note: Run ``cmake -DCMAKE_BUILD_TYPE=Debug ..`` to create a debug build.
 Building for Linux
 ------------------
 
-Install Qt
-^^^^^^^^^^
+Install Packages
+^^^^^^^^^^^^^^^^
 
-Make sure Qt is available on your system. To install the following packages
+Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
-Ubuntu: ``qt5-default libqt5charts5-dev``
+Ubuntu: ``cmake pkg-config qt5-default libqt5charts5-dev``
 
-Arch: ``qt5-base qt5-charts``
+Arch: ``cmake pkgconf qt5-base qt5-charts``
 
 Setup Build Directory
 ^^^^^^^^^^^^^^^^^^^^^

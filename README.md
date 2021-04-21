@@ -18,6 +18,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
   * [Playback](#playback)
   * [Chart](#chart)
 * [Building From Source](#building-from-source)
+    * [Linux Packages](#linux-packages)
     * [Cloning](#cloning)
     * [Building](#building)
     * [CMake Options](#cmake-options)
@@ -134,6 +135,15 @@ Scroll Down, or `-`: Zoom Out
 Currently, these keys cannot be configured.
 
 # Building From Source
+
+## Linux Packages
+If you are not building for Linux, then skip to [Cloning](#cloning).
+
+Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
+
+Ubuntu: `cmake pkg-config qt5-default libqt5charts5-dev`
+
+Arch: `cmake pkgconf qt5-base qt5-charts`
 
 ## Cloning
 Clone the repository _recursively_ to collect the dependencies as well as the source
