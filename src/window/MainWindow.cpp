@@ -223,6 +223,7 @@ void MainWindow::load() {
   scene.reset();
   nodeWidget.reset();
   playbackWidget.reset();
+  charts.reset();
   emit startLoading(fileName);
 }
 
@@ -246,7 +247,6 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
   }
 
   // Charts
-  charts.reset();
   charts.addSeries(parser.getXYSeries(), parser.getSeriesCollections(), parser.getCategoryValueSeries());
 
   // Log Streams
