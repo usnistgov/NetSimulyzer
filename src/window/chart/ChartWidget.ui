@@ -34,7 +34,11 @@
      <widget class="QComboBox" name="comboBoxSeries"/>
     </item>
     <item>
-     <widget class="ControlsChartView" name="chartView"/>
+     <widget class="ControlsChartView" name="chartView">
+      <property name="renderHints">
+       <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
