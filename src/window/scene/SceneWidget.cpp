@@ -309,16 +309,18 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   if (!camera.mouseControlsEnabled())
     return;
 
-  if (event->buttons() & Qt::LeftButton) {
-    setCursor(Qt::BlankCursor);
+  if (!(event->buttons() & Qt::LeftButton))
+    return;
 
-    // Keep this position since we're about to move it
-    initialCursorPosition = {event->x(), event->y()};
+  mousePressed = true;
+  setCursor(Qt::BlankCursor);
 
-    isInitialMove = true;
-    QCursor::setPos(mapToGlobal({width() / 2, height() / 2}));
-    camera.setMobility(Camera::move_state::mobile);
-  }
+  // Keep this position since we're about to move it
+  initialCursorPosition = {event->x(), event->y()};
+
+  isInitialMove = true;
+  QCursor::setPos(mapToGlobal({width() / 2, height() / 2}));
+  camera.setMobility(Camera::move_state::mobile);
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
@@ -326,19 +328,21 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   if (!camera.mouseControlsEnabled())
     return;
 
-  if (!(event->buttons() & Qt::LeftButton)) {
-    unsetCursor();
-    camera.setMobility(Camera::move_state::frozen);
+  if (event->buttons() & Qt::LeftButton || !mousePressed)
+    return;
 
-    // Put the cursor back where it was when we started
-    QCursor::setPos(mapToGlobal(initialCursorPosition));
-    isInitialMove = true;
-  }
+  mousePressed = false;
+  unsetCursor();
+  camera.setMobility(Camera::move_state::frozen);
+
+  // Put the cursor back where it was when we started
+  QCursor::setPos(mapToGlobal(initialCursorPosition));
+  isInitialMove = true;
 }
 
 void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
-  if (!(event->buttons() & Qt::LeftButton) || !camera.mouseControlsEnabled())
+  if (!mousePressed || !camera.mouseControlsEnabled())
     return;
 
   const QPoint widgetCenter{width() / 2, height() / 2};
