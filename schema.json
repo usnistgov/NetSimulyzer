@@ -264,9 +264,12 @@
             },
             "patch": {
               "type": "integer"
+            },
+            "suffix": {
+              "type": "string"
             }
           },
-          "required": ["major", "minor", "patch"]
+          "required": ["major", "minor", "patch", "suffix"]
         }
       },
       "required": ["module-version"]

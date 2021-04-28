@@ -190,8 +190,19 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
+  auto &config = fileParser.globalConfiguration;
+
+  const auto &jsonVersion = object["module-version"].object();
+  config.moduleVersion.major = jsonVersion["major"].get<long>();
+  config.moduleVersion.minor = jsonVersion["minor"].get<long>();
+  config.moduleVersion.patch = jsonVersion["patch"].get<long>();
+
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  if (jsonVersion.contains("suffix"))
+    config.moduleVersion.suffix = jsonVersion["suffix"].get<std::string>();
+
   if (object.contains("time-step")) {
-    fileParser.globalConfiguration.timeStep = object["time-step"].get<int>();
+    config.timeStep = object["time-step"].get<int>();
   }
 }
 
@@ -631,9 +642,16 @@ bool JsonHandler::EndObject(rapidjson::SizeType) {
 
   // Special case, "configuration" is parsed
   // as a normal unit
-  if (currentSection == Section::Configuration && oldTop.key == "configuration") {
-    parseConfiguration(oldTop.value.object());
-    return true;
+  if (currentSection == Section::Configuration) {
+
+    if (oldTop.key == "module-version") {
+      currentTop.value.object().insert("module-version", oldTop.value);
+      return true;
+    } else if (oldTop.key == "configuration") {
+      parseConfiguration(oldTop.value.object());
+      return true;
+    }
+    return false;
   }
 
   // All other sections have one parse call per item

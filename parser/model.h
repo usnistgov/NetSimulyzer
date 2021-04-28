@@ -52,7 +52,15 @@ struct Ns3Color3 {
   uint8_t blue = 0u;
 };
 
+struct Ns3ModuleVersion {
+  long major;
+  long minor;
+  long patch;
+  std::string suffix;
+};
+
 struct GlobalConfiguration {
+  Ns3ModuleVersion moduleVersion;
   double endTime = 0.0;
   std::optional<int> timeStep;
   Ns3Coordinate minLocation;
