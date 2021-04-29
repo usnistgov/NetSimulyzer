@@ -133,7 +133,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Designed by members of the Wireless Network Division (WND) At the National Institute of Standards and Technology (NIST)</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Designed and developed by Evan Black and members of the Wireless Network Division (WND) At the National Institute of Standards and Technology (NIST)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
