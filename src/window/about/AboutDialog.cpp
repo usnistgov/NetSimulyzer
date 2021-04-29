@@ -59,6 +59,12 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   releaseType = "Debug";
 #endif
 
+#ifdef NETSIMULYZER_DEVELOPMENT_VERSION
+  ui.labelPreRelease->show();
+#else
+  ui.labelPreRelease->hide();
+#endif
+
   QString compiler;
 #if defined(__clang__) && defined(__clang_version__)
   compiler = "clang++ " + QString(__clang_version__);

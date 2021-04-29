@@ -34,6 +34,9 @@ project(NetSimulyzer
         VERSION 1.0.0
         LANGUAGES C CXX)
 
+# Flag indicating weather this is a tagged version or not
+# Be sure to set to FALSE when tagging a release version
+set(IS_DEV_VERSION TRUE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
@@ -78,6 +81,10 @@ add_executable(netsimulyzer
 target_compile_features(netsimulyzer PRIVATE cxx_std_17)
 
 target_compile_options(netsimulyzer PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
+
+if (IS_DEV_VERSION)
+    target_compile_definitions(netsimulyzer PRIVATE NETSIMULYZER_DEVELOPMENT_VERSION)
+endif ()
 
 target_link_libraries(netsimulyzer PRIVATE parser)
 target_link_libraries(netsimulyzer PRIVATE assimp)

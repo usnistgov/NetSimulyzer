@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>658</width>
+    <width>680</width>
     <height>634</height>
    </rect>
   </property>
@@ -96,6 +96,19 @@
          </property>
          <property name="text">
           <string>Version</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelPreRelease">
+         <property name="font">
+          <font>
+           <pointsize>13</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a pre-release version of the NetSimulyzer.&lt;/p&gt;&lt;p&gt;It has more features, but may be less stable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
