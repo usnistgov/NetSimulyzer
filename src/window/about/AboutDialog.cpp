@@ -65,14 +65,14 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   ui.labelPreRelease->hide();
 #endif
 
-  QString compiler;
+  QString compiler{"Compiler: "};
 #if defined(__clang__) && defined(__clang_version__)
-  compiler = "clang++ " + QString(__clang_version__);
+  compiler += "clang++ " + QString(__clang_version__);
 #elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
-  compiler = "g++ " + QString::number(__GNUC__) + '.' + QString::number(__GNUC_MINOR__) + '.' +
+  compiler += "g++ " + QString::number(__GNUC__) + '.' + QString::number(__GNUC_MINOR__) + '.' +
              QString::number(__GNUC_PATCHLEVEL__);
 #elif defined(_MSC_VER)
-  compiler = "MSVC " + QString::number(_MSC_VER);
+  compiler += "MSVC " + QString::number(_MSC_VER);
 #else
   compiler = "Unknown Compiler";
 #endif
