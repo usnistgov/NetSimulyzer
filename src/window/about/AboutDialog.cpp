@@ -78,7 +78,11 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
 #endif
 
   ui.labelApplicationName->setText(NETSIMULYZER_APPLICATION_NAME);
-  ui.labelVersion->setText("v" NETSIMULYZER_VERSION " (" + compliedArchitecture + ", " + releaseType + ')');
+  ui.labelVersion->setText("v" NETSIMULYZER_VERSION
+#ifdef NETSIMULYZER_DEVELOPMENT_VERSION
+                               "-pre"
+#endif
+                           " (" + compliedArchitecture + ", " + releaseType + ')');
   ui.labelTarget->setText(NETSIMULYZER_APPLICATION_NAME " for " + QSysInfo::prettyProductName());
   ui.labelCompiler->setText(compiler);
 
