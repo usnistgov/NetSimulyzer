@@ -33,6 +33,9 @@
 
 #include "ControlsChartView.h"
 #include <QtCharts/QChart>
+#include <QMenu>
+#include <QPixmap>
+#include <QFileDialog>
 
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
@@ -161,4 +164,18 @@ void ControlsChartView::wheelEvent(QWheelEvent *event) {
   }
 
   QGraphicsView::wheelEvent(event);
+}
+
+void ControlsChartView::contextMenuEvent(QContextMenuEvent *event){
+    QMenu menu;
+    menu.addAction("Save as Image", [this](){
+        const auto image = grab();
+        const auto fileName = QFileDialog::getSaveFileName(this, "Save Chart Image", "", "Images (*.png *.jpeg)");
+        if (fileName.isEmpty()){
+            return;
+        }
+        image.save(fileName);
+    });
+    menu.exec(event->globalPos());
+
 }
