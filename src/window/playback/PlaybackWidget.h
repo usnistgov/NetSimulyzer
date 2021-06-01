@@ -54,6 +54,13 @@ private:
   const QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
   PlaybackTimeStepDialog timeStepDialog{this};
 
+  /**
+   * Ignore the slider move event,
+   * used to prevent duplicate events when the time
+   * is set outside the controller
+   */
+  bool ignoreMove{false};
+
 public:
   explicit PlaybackWidget(QWidget *parent = nullptr);
 

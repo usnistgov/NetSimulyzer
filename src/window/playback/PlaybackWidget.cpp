@@ -82,8 +82,10 @@ void PlaybackWidget::setMaxTime(double value) {
 }
 
 void PlaybackWidget::setTime(double simulationTime) {
+  ignoreMove = true;
   ui.timelineSlider->setValue(static_cast<int>(simulationTime));
   ui.labelTime->setText(toDisplayTime(simulationTime) + " / " + formattedMaxTime);
+  ignoreMove = false;
 }
 
 void PlaybackWidget::setTimeStep(int value) {
@@ -92,6 +94,8 @@ void PlaybackWidget::setTimeStep(int value) {
 }
 
 void PlaybackWidget::sliderMoved(int value) {
+  if (ignoreMove)
+    return;
   setTime(static_cast<double>(value));
   emit timeSet(static_cast<double>(value));
 }
