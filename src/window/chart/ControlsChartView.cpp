@@ -178,11 +178,15 @@ void ControlsChartView::contextMenuEvent(QContextMenuEvent *event){
         }
         image.save(fileName);
     });
-    menu.exec(event->globalPos());
 
     menu.addAction("Copy Chart Image to Clipboard", [this](){
         auto image = grab();
+        auto clipboard = QGuiApplication::clipboard();
+        clipboard->setPixmap(image);
     });
+
+    menu.exec(event->globalPos());
+
 
 }
 
