@@ -198,6 +198,10 @@ void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
   config.moduleVersion.patch = jsonVersion["patch"].get<long>();
 
   // TODO: compatibility with v1.0.0, remove for v1.1.0
+  if (object.contains("max-time-ms"))
+    config.endTime = object["max-time-ms"].get<double>();
+
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
   if (jsonVersion.contains("suffix"))
     config.moduleVersion.suffix = jsonVersion["suffix"].get<std::string>();
 
