@@ -42,8 +42,9 @@ parser::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
     return parser::ValueAxis::BoundMode::Fixed;
   else if (mode == "highest value")
     return parser::ValueAxis::BoundMode::HighestValue;
-  else
-    assert(!"Unhandled ValueAxis::BoundMode mode");
+
+  std::cerr << "Unsupported ValueAxis::BoundMode mode '" << mode << "'. Using 'HighestValue' instead\n";
+  return parser::ValueAxis::BoundMode::HighestValue;
 }
 
 parser::ValueAxis::Scale scaleFromString(const std::string &mode) {
@@ -51,8 +52,9 @@ parser::ValueAxis::Scale scaleFromString(const std::string &mode) {
     return parser::ValueAxis::Scale::Linear;
   else if (mode == "logarithmic")
     return parser::ValueAxis::Scale::Logarithmic;
-  else
-    assert(!"Unhandled ValueAxis::Scale mode");
+
+  std::cerr << "Unsupported ValueAxis::Scale mode '" << mode << "'. Using 'Linear' instead\n";
+  return parser::ValueAxis::Scale::Linear;
 }
 
 parser::ValueAxis valueAxisFromObject(const util::json::JsonObject &object) {
@@ -94,8 +96,9 @@ parser::Area::DrawMode drawModeFromString(const std::string &mode) {
     return parser::Area::DrawMode::Solid;
   else if (mode == "hidden")
     return parser::Area::DrawMode::Hidden;
-  else
-    assert(!"Unhandled Area::DrawMode mode");
+
+  std::cerr << "Unsupported Area::DrawMode mode '" << mode << "'. Using 'Solid' instead\n";
+  return parser::Area::DrawMode::Solid;
 }
 
 parser::Ns3Color3 colorFromObject(const util::json::JsonObject &object) {
