@@ -33,6 +33,8 @@
 
 #pragma once
 
+#include <QPointF>
+#include <QVector>
 #include <array>
 #include <glm/vec3.hpp>
 #include <model.h>
@@ -132,6 +134,25 @@ struct XYSeriesAddValue {
   parser::XYSeriesAddValue event;
 };
 
+struct XYSeriesAddValues {
+  /**
+   * The event which generated this undo event
+   */
+  parser::XYSeriesAddValues event;
+};
+
+struct XYSeriesClear {
+  /**
+   * The event which generated this undo event
+   */
+  parser::XYSeriesClear event;
+
+  /**
+   * The list of points on the chart before it was cleared
+   */
+  QVector<QPointF> points;
+};
+
 /**
  * An event which undoes a `parser::CategorySeriesAddValue`
  */
@@ -163,7 +184,7 @@ struct StreamAppendEvent {
 using SceneUndoEvent = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent,
                                     DecorationOrientationChangeEvent, XYSeriesAddValue, StreamAppendEvent>;
 
-using ChartUndoEvent = std::variant<XYSeriesAddValue, CategorySeriesAddValue>;
+using ChartUndoEvent = std::variant<XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, CategorySeriesAddValue>;
 
 using LogUndoEvent = std::variant<StreamAppendEvent>;
 

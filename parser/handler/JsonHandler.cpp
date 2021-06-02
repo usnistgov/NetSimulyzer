@@ -159,6 +159,10 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
       parseDecorationOrientationEvent(object);
     else if (type == "xy-series-append")
       parseSeriesAppend(object);
+    else if (type == "xy-series-append-array")
+      parseSeriesAppendArray(object);
+    else if (type == "xy-series-clear")
+      parseSeriesClear(object);
     else if (type == "category-series-append")
       parseCategorySeriesAppend(object);
     else if (type == "stream-append")
@@ -421,8 +425,40 @@ void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
 
   event.time = object["milliseconds"].get<double>();
   event.seriesId = object["series-id"].get<int>();
-  event.x = object["x"].get<double>();
-  event.y = object["y"].get<double>();
+  event.point.x = object["x"].get<double>();
+  event.point.y = object["y"].get<double>();
+
+  updateEndTime(event.time);
+  fileParser.chartEvents.emplace_back(event);
+}
+
+void JsonHandler::parseSeriesAppendArray(const util::json::JsonObject &object) {
+  parser::XYSeriesAddValues event;
+
+  event.time = object["milliseconds"].get<double>();
+  event.seriesId = object["series-id"].get<int>();
+
+  auto points = object["points"].array();
+
+  // Ignore events with empty point arrays
+  if (points.empty()) {
+    std::cerr << "Ignoring empty `xy-series-append-array` event\n";
+    return;
+  }
+
+  for (const auto &point : points) {
+    event.points.emplace_back(parser::XYPoint{point.object()["x"].get<double>(), point.object()["y"].get<double>()});
+  }
+
+  updateEndTime(event.time);
+  fileParser.chartEvents.emplace_back(event);
+}
+
+void JsonHandler::parseSeriesClear(const util::json::JsonObject &object) {
+  parser::XYSeriesClear event;
+
+  event.time = object["milliseconds"].get<double>();
+  event.seriesId = object["series-id"].get<int>();
 
   updateEndTime(event.time);
   fileParser.chartEvents.emplace_back(event);

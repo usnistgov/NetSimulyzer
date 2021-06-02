@@ -226,6 +226,22 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseSeriesAppend(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a series append event with multiple points
+   *
+   * @param object
+   * The object from the 'events' section with the 'xy-series-append-array' type
+   */
+  void parseSeriesAppendArray(const util::json::JsonObject &object);
+
+  /**
+   * Parse and emplace a series clear event
+   *
+   * @param object
+   * The object from the 'events' section with the 'xy-series-clear' type
+   */
+  void parseSeriesClear(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a category value append event
    *
    * @param object

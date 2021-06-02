@@ -275,15 +275,45 @@ void ChartManager::timeAdvanced(double time) {
     if constexpr (std::is_same_v<T, parser::XYSeriesAddValue>) {
       const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
       if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-        updateRange(s.xAxis, e.x);
+        updateRange(s.xAxis, e.point.x);
       }
       if (s.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-        updateRange(s.yAxis, e.y);
+        updateRange(s.yAxis, e.point.y);
       }
-      updateCollectionRanges(e.seriesId, e.x, e.y);
-      s.qtSeries->append(e.x, e.y);
-      events.pop_front();
+      updateCollectionRanges(e.seriesId, e.point.x, e.point.y);
+      s.qtSeries->append(e.point.x, e.point.y);
       undoEvents.emplace_back(undo::XYSeriesAddValue{e});
+      events.pop_front();
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, parser::XYSeriesAddValues>) {
+      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+
+      for (const auto &point : e.points) {
+        if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
+          updateRange(s.xAxis, point.x);
+        }
+        if (s.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
+          updateRange(s.yAxis, point.y);
+        }
+
+        updateCollectionRanges(e.seriesId, point.x, point.y);
+        s.qtSeries->append(point.x, point.y);
+      }
+
+      undoEvents.emplace_back(undo::XYSeriesAddValues{e});
+      events.pop_front();
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, parser::XYSeriesClear>) {
+      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+      auto points = s.qtSeries->pointsVector();
+      s.qtSeries->clear();
+
+      undoEvents.emplace_back(undo::XYSeriesClear{e, std::move(points)});
+      events.pop_front();
       return true;
     }
 
@@ -299,8 +329,8 @@ void ChartManager::timeAdvanced(double time) {
       s.lastUpdatedTime = time;
       s.qtSeries->append(e.value, e.category);
       updateCollectionRanges(e.seriesId, e.value, e.category);
-      events.pop_front();
       undoEvents.emplace_back(undo::CategorySeriesAddValue{e});
+      events.pop_front();
       return true;
     }
 
@@ -368,6 +398,24 @@ void ChartManager::timeRewound(double time) {
       auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
 
       s.qtSeries->remove(s.qtSeries->count() - 1);
+
+      events.emplace_front(e.event);
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, undo::XYSeriesAddValues>) {
+      auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
+      const auto count = e.event.points.size();
+
+      s.qtSeries->removePoints(s.qtSeries->count() - count, count);
+
+      events.emplace_front(e.event);
+      return true;
+    }
+
+    if constexpr (std::is_same_v<T, undo::XYSeriesClear>) {
+      auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
+      s.qtSeries->replace(e.points);
 
       events.emplace_front(e.event);
       return true;

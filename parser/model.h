@@ -309,6 +309,15 @@ struct NodeColorChangeEvent {
 };
 
 /**
+ * Convenience struct for packaging points.
+ * Does not correspond to anything in the ns-3 module
+ */
+struct XYPoint {
+  double x;
+  double y;
+};
+
+/**
  * Event that appends a value to an existing series
  */
 struct XYSeriesAddValue {
@@ -324,14 +333,47 @@ struct XYSeriesAddValue {
   uint32_t seriesId = 0u;
 
   /**
-   * The x value to append to the series
+   * The point to append to the series
    */
-  double x = 0.0;
+  XYPoint point;
+};
+
+/**
+ * Event that appends several values to an existing series
+ */
+struct XYSeriesAddValues {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
 
   /**
-   * The y value to append to the series
+   * The series to append the values to
    */
-  double y = 0.0;
+  uint32_t seriesId = 0u;
+
+  /**
+   * The points to add to the series.
+   * Should be added in order
+   */
+  std::vector<XYPoint> points;
+};
+
+/**
+ * Event signaling that the series should be cleared
+ */
+struct XYSeriesClear {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The series to clear
+   */
+  uint32_t seriesId = 0u;
 };
 
 /**
@@ -388,7 +430,7 @@ struct StreamAppendEvent {
  * Variant defined for every event model
  */
 using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, DecorationOrientationChangeEvent,
-                           XYSeriesAddValue, StreamAppendEvent>;
+                           XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, StreamAppendEvent>;
 
 /**
  * Events which affect the rendered scene
@@ -399,7 +441,7 @@ using SceneEvent = std::variant<MoveEvent, NodeOrientationChangeEvent, NodeColor
 /**
  * Event types specific to the charts model
  */
-using ChartEvent = std::variant<XYSeriesAddValue, CategorySeriesAddValue>;
+using ChartEvent = std::variant<XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, CategorySeriesAddValue>;
 
 /**
  * Events which affect the Scenario Log
