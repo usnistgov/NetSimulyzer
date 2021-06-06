@@ -745,6 +745,16 @@ bool JsonHandler::EndArray(rapidjson::SizeType) {
 bool JsonHandler::Key(const char *value, rapidjson::SizeType length, bool) {
   jsonStack.push({std::string(value, length)});
 
+  // Only Check for sections for keys immediately
+  // descending from the root object.
+  // 2 deep so the stack looks like:
+  // ----------------
+  // |  current key |
+  // ----------------
+  // |     root     |
+  // ----------------
+  if (jsonStack.size() != 2u)
+    return true;
   auto possibleSection = isSection(value);
   if (possibleSection != Section::None) {
     currentSection = possibleSection;
