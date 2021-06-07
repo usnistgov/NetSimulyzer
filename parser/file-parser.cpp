@@ -61,13 +61,17 @@ void FileParser::parse(const char *path) {
   rapidjson::Reader reader;
 
   reader.Parse(stream, handler);
-  std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) { return left.id < right.id; });
+  std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) {
+    return left.id < right.id;
+  });
 
-  std::sort(buildings.begin(), buildings.end(),
-            [](const Building &left, const Building &right) { return left.id < right.id; });
+  std::sort(buildings.begin(), buildings.end(), [](const Building &left, const Building &right) {
+    return left.id < right.id;
+  });
 
-  std::sort(decorations.begin(), decorations.end(),
-            [](const Decoration &left, const Decoration &right) { return left.id < right.id; });
+  std::sort(decorations.begin(), decorations.end(), [](const Decoration &left, const Decoration &right) {
+    return left.id < right.id;
+  });
 }
 
 void FileParser::reset() {
@@ -103,6 +107,10 @@ const std::vector<Area> &FileParser::getAreas() const {
 
 const std::vector<Decoration> &FileParser::getDecorations() const {
   return decorations;
+}
+
+const std::vector<WiredLink> &FileParser::getLinks() const {
+  return wiredLinks;
 }
 
 const std::vector<SceneEvent> &FileParser::getSceneEvents() const {

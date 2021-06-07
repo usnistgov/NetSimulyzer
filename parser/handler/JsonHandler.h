@@ -49,7 +49,7 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   /**
    * The possible section in the document
    */
-  enum class Section { None, Areas, Buildings, Configuration, Decorations, Events, Nodes, Series, Streams };
+  enum class Section { None, Areas, Buildings, Configuration, Decorations, Events, Links, Nodes, Series, Streams };
 
   parser::FileParser &fileParser;
 
@@ -177,6 +177,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * The object from the 'areas' section
    */
   void parseArea(const util::json::JsonObject &object);
+
+  /**
+   * Parse and emplace a point-to-point wired link
+   *
+   * @param object
+   * The object from the 'links' section with type 'point-to-point'
+   */
+  void parseP2PLink(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a move event

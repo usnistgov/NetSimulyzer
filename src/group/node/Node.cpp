@@ -72,12 +72,30 @@ bool Node::visible() const {
   return ns3Node.visible;
 }
 
+glm::vec3 Node::getCenter() const {
+  auto position = model.getPosition();
+  const auto &bounds = model.getBounds();
+  position.y += ns3Node.height.value_or(bounds.max.y - bounds.min.y) * model.getScale() / 2.0f;
+
+  return position;
+}
+
+void Node::addWiredLink(WiredLink *link) {
+  wiredLinks.emplace_back(link);
+  link->notifyNodeMoved(ns3Node.id, getCenter());
+}
+
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo::MoveEvent undo;
   undo.position = model.getPosition();
   undo.event = e;
 
-  this->model.setPosition(toRenderCoordinate(e.targetPosition) + offset);
+  auto target = toRenderCoordinate(e.targetPosition) + offset;
+  this->model.setPosition(target);
+
+  for (auto link : wiredLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
 
   return undo;
 }
@@ -118,6 +136,10 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
+
+  for (auto link : wiredLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
 }
 
 void Node::handle(const undo::NodeOrientationChangeEvent &e) {

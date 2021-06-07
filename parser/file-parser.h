@@ -101,6 +101,14 @@ public:
   [[nodiscard]] const std::vector<Decoration> &getDecorations() const;
 
   /**
+   *  Gets the collection of links from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The wired links specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<WiredLink> &getLinks() const;
+
+  /**
    * Gets the collection of events for the Scene from the parsed file
    * `parse()` should be called first.
    *
@@ -188,6 +196,11 @@ private:
    * The areas defined by the 'areas' JSON collection
    */
   std::vector<Area> areas;
+
+  /**
+   * The wired links defined by the 'links' JSON collection
+   */
+  std::vector<WiredLink> wiredLinks;
 
   /**
    * The events for the rendered scene defined by the 'events' JSON collection

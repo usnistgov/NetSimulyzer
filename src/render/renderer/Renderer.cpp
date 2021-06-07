@@ -361,6 +361,27 @@ Area::RenderInfo Renderer::allocate(const parser::Area &area) {
   return info;
 }
 
+WiredLink::RenderInfo Renderer::allocate(const parser::WiredLink &link) {
+  WiredLink::RenderInfo info;
+
+  info.size = static_cast<int>(link.nodes.size());
+
+  glGenVertexArrays(1, &info.vao);
+  glBindVertexArray(info.vao);
+
+  glGenBuffers(1, &info.vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, info.vbo);
+
+  // Location data is set when this link is added to each node
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * link.nodes.size(), nullptr, GL_DYNAMIC_DRAW);
+
+  // Location
+  glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+  glEnableVertexAttribArray(0u);
+
+  return info;
+}
+
 Mesh Renderer::allocateFloor(float size) {
   unsigned int floorIndices[]{0u, 2u, 1u, 1u, 2u, 3u};
   std::array<float, 3> normal{0.0f, -1.0f, 1.0f};
@@ -635,6 +656,23 @@ void Renderer::render(CoordinateGrid &coordinateGrid) {
   glDisable(GL_LINE_SMOOTH);
   glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
+}
+
+void Renderer::render(const std::vector<WiredLink> &wiredLinks) {
+  glEnable(GL_LINE_SMOOTH);
+
+  buildingShader.bind();
+  // TODO: Make configurable
+  buildingShader.uniform("color", {0.0f, 0.0f, 0.0f});
+
+  for (const auto &wiredLink : wiredLinks) {
+    const auto &renderInfo = wiredLink.getRenderInfo();
+    glBindVertexArray(renderInfo.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+    glDrawArrays(GL_LINES, 0, renderInfo.size);
+  }
+
+  glDisable(GL_LINE_SMOOTH);
 }
 
 } // namespace netsimulyzer

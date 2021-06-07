@@ -31,39 +31,45 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
+#include "WiredLink.h"
+#include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
-#include "../../render/model/Model.h"
-#include "../../util/undo-events.h"
-#include "src/group/link/WiredLink.h"
-#include <glm/glm.hpp>
-#include <model.h>
-#include <vector>
+WiredLink::WiredLink(const WiredLink::RenderInfo &renderInfo, parser::WiredLink model)
+    : renderInfo(renderInfo), model(std::move(model)) {
+  initializeOpenGLFunctions();
+}
 
-namespace netsimulyzer {
+WiredLink::~WiredLink() {
+  glDeleteBuffers(1, &renderInfo.vbo);
+  glDeleteVertexArrays(1, &renderInfo.vao);
+}
 
-class Node {
-  Model model;
-  parser::Node ns3Node;
-  glm::vec3 offset;
-  std::vector<WiredLink *> wiredLinks;
+void WiredLink::notifyNodeMoved(unsigned int nodeId, glm::vec3 position) {
+  std::size_t nodeIndex = 0u;
+  for (auto i = 0u; i < model.nodes.size(); i++) {
+    if (model.nodes[i] == nodeId)
+      nodeIndex = i;
+  }
 
-public:
-  Node(const Model &model, parser::Node ns3Node);
-  [[nodiscard]] const Model &getModel() const;
-  [[nodiscard]] const parser::Node &getNs3Model() const;
-  [[nodiscard]] bool visible() const;
-  [[nodiscard]] glm::vec3 getCenter() const;
+  glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
+  glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 3 * nodeIndex, sizeof(float) * 3,
+                  reinterpret_cast<void *>(glm::value_ptr(position)));
+}
 
-  void addWiredLink(WiredLink *link);
+WiredLink::WiredLink(WiredLink &&other) noexcept {
+  renderInfo = other.renderInfo;
+  model = other.model;
 
-  undo::MoveEvent handle(const parser::MoveEvent &e);
-  undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
-  undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
+  // Clear the other RenderInfo so the destructor
+  // doesn't delete the OpenGL buffers
+  other.renderInfo.vao = 0;
+  other.renderInfo.vbo = 0;
+  other.renderInfo.size = 0;
 
-  void handle(const undo::MoveEvent &e);
-  void handle(const undo::NodeOrientationChangeEvent &e);
-  void handle(const undo::NodeColorChangeEvent &e);
-};
+  initializeOpenGLFunctions();
+}
 
-} // namespace netsimulyzer
+const WiredLink::RenderInfo &WiredLink::getRenderInfo() const {
+  return renderInfo;
+}

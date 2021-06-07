@@ -240,7 +240,7 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();
-  scene.add(parser.getAreas(), parser.getBuildings(), parser.getDecorations(), parser.getNodes());
+  scene.add(parser.getAreas(), parser.getBuildings(), parser.getDecorations(), parser.getLinks(), parser.getNodes());
 
   for (const auto &node : nodes) {
     nodeWidget.addNode(node);

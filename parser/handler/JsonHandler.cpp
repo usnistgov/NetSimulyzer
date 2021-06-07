@@ -112,26 +112,27 @@ parser::Ns3Color3 colorFromObject(const util::json::JsonObject &object) {
 }
 
 constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
-  {
-    if (key == "areas")
-      return Section::Areas;
-    else if (key == "buildings")
-      return Section::Buildings;
-    else if (key == "configuration")
-      return Section::Configuration;
-    else if (key == "decorations")
-      return Section::Decorations;
-    else if (key == "events")
-      return Section::Events;
-    else if (key == "nodes")
-      return Section::Nodes;
-    else if (key == "series")
-      return Section::Series;
-    else if (key == "streams")
-      return Section::Streams;
-    else
-      return Section::None;
-  }
+
+  if (key == "areas")
+    return Section::Areas;
+  else if (key == "buildings")
+    return Section::Buildings;
+  else if (key == "configuration")
+    return Section::Configuration;
+  else if (key == "decorations")
+    return Section::Decorations;
+  else if (key == "events")
+    return Section::Events;
+  else if (key == "links")
+    return Section::Links;
+  else if (key == "nodes")
+    return Section::Nodes;
+  else if (key == "series")
+    return Section::Series;
+  else if (key == "streams")
+    return Section::Streams;
+  else
+    return Section::None;
 }
 
 void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonObject &object) {
@@ -173,6 +174,9 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
     else
       std::cerr << "Unhandled Event type: " << type << '\n';
   } break;
+  case Section::Links:
+    parseP2PLink(object);
+    break;
   case Section::Nodes:
     parseNode(object);
     break;
@@ -344,6 +348,24 @@ void JsonHandler::parseArea(const util::json::JsonObject &object) {
   area.borderColor.blue = object["border-color"].object()["blue"].get<int>();
 
   fileParser.areas.emplace_back(area);
+}
+
+void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
+  parser::WiredLink link;
+
+  const auto &nodes = object["node-ids"].array();
+
+  if (nodes.size() != 2u) {
+    std::cerr << "Error: Links of type 'point-to-point' must have exactly 2 nodes, got: " << nodes.size()
+              << " Ignoring.\n";
+    return;
+  }
+
+  for (const auto &nodeId : nodes) {
+    link.nodes.emplace_back(nodeId.get<unsigned int>());
+  }
+
+  fileParser.wiredLinks.emplace_back(link);
 }
 
 void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {

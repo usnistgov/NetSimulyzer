@@ -247,6 +247,8 @@ void SceneWidget::paintGL() {
       renderer.renderOutlines(buildings, glm::vec3{1.0f, 1.0f, 1.0f});
   }
 
+  renderer.render(wiredLinks);
+
   // Keep this next to `startTransparent()`
   // has it's own transparency implementation
   if (renderGrid)
@@ -411,6 +413,7 @@ void SceneWidget::reset() {
   buildings.clear();
   nodes.clear();
   decorations.clear();
+  wiredLinks.clear();
   events.clear();
   undoEvents.clear();
   simulationTime = 0.0;
@@ -418,7 +421,7 @@ void SceneWidget::reset() {
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
                       const std::vector<parser::Decoration> &decorationModels,
-                      const std::vector<parser::Node> &nodeModels) {
+                      const std::vector<parser::WiredLink> &links, const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
@@ -441,6 +444,22 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   nodes.reserve(nodeModels.size());
   for (const auto &node : nodeModels) {
     nodes.try_emplace(node.id, Model{models.load(node.model)}, node);
+  }
+
+  for (const auto &link : links) {
+    auto &newLink = wiredLinks.emplace_back(renderer.allocate(link), link);
+
+    for (const auto nodeId : link.nodes) {
+      const auto &node = nodes.find(nodeId);
+
+      if (node == nodes.end()) {
+        QMessageBox::critical(this, "Wired Link References Unknown Node",
+                              "A wired link references an unknown Node with ID: " + QString::number(nodeId));
+        std::terminate();
+      }
+
+      node->second.addWiredLink(&newLink);
+    }
   }
 
   doneCurrent();

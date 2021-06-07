@@ -42,6 +42,7 @@
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
+#include "src/group/link/WiredLink.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QOpenGLFunctions_3_3_Core>
@@ -76,6 +77,7 @@ public:
 
   Building::RenderInfo allocate(const parser::Building &building);
   Area::RenderInfo allocate(const parser::Area &area);
+  WiredLink::RenderInfo allocate(const parser::WiredLink &link);
   Mesh allocateFloor(float size);
   void resize(Floor &f, float size);
   CoordinateGrid::RenderInfo allocateCoordinateGrid(float size, int stepSize);
@@ -96,6 +98,7 @@ public:
   void render(Floor &f);
   void render(SkyBox &skyBox);
   void render(CoordinateGrid &coordinateGrid);
+  void render(const std::vector<WiredLink> &wiredLinks);
 };
 
 } // namespace netsimulyzer

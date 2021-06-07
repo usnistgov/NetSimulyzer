@@ -33,37 +33,28 @@
 
 #pragma once
 
-#include "../../render/model/Model.h"
-#include "../../util/undo-events.h"
-#include "src/group/link/WiredLink.h"
-#include <glm/glm.hpp>
+#include <QOpenGLFunctions_3_3_Core>
+#include <glm/vec3.hpp>
 #include <model.h>
-#include <vector>
 
-namespace netsimulyzer {
+class WiredLink : protected QOpenGLFunctions_3_3_Core {
+public:
+  struct RenderInfo {
+    unsigned int vao = 0u;
+    unsigned int vbo = 0u;
+    int size = 0;
+  };
 
-class Node {
-  Model model;
-  parser::Node ns3Node;
-  glm::vec3 offset;
-  std::vector<WiredLink *> wiredLinks;
+private:
+  RenderInfo renderInfo;
+  parser::WiredLink model;
 
 public:
-  Node(const Model &model, parser::Node ns3Node);
-  [[nodiscard]] const Model &getModel() const;
-  [[nodiscard]] const parser::Node &getNs3Model() const;
-  [[nodiscard]] bool visible() const;
-  [[nodiscard]] glm::vec3 getCenter() const;
+  WiredLink(const RenderInfo &renderInfo, parser::WiredLink model);
+  ~WiredLink() override;
+  WiredLink(const WiredLink &) = delete;
+  WiredLink(WiredLink &&other) noexcept;
 
-  void addWiredLink(WiredLink *link);
-
-  undo::MoveEvent handle(const parser::MoveEvent &e);
-  undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
-  undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
-
-  void handle(const undo::MoveEvent &e);
-  void handle(const undo::NodeOrientationChangeEvent &e);
-  void handle(const undo::NodeColorChangeEvent &e);
+  void notifyNodeMoved(unsigned int nodeId, glm::vec3 position);
+  [[nodiscard]] const RenderInfo &getRenderInfo() const;
 };
-
-} // namespace netsimulyzer

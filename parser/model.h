@@ -119,6 +119,10 @@ struct Area {
   std::vector<Ns3Coordinate> points;
 };
 
+struct WiredLink {
+  std::vector<unsigned int> nodes;
+};
+
 // ----- Chart Models -----
 
 struct ValueAxis {
