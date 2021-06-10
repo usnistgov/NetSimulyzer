@@ -36,11 +36,14 @@
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
 #include <QByteArray>
+#include <QFileDialog>
 #include <QKeyEvent>
+#include <QMenu>
 #include <QMessageBox>
 #include <QObject>
 #include <QOpenGLDebugMessage>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QPixmap>
 #include <QSettings>
 #include <QTextStream>
 #include <Qt>
@@ -363,6 +366,20 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 
   lastCursorPosition = widgetCenter;
   QCursor::setPos(mapToGlobal(widgetCenter));
+}
+
+void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
+  QMenu menu;
+  menu.addAction("Save as Image", [this]() {
+    const auto image = grab();
+    const auto fileName = QFileDialog::getSaveFileName(this, "Save as Image", "", "Images (*.png *.jpeg)");
+    if (fileName.isEmpty()) {
+      return;
+    }
+    image.save(fileName);
+  });
+
+  menu.exec(event->globalPos());
 }
 
 SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWidget(parent, f) {

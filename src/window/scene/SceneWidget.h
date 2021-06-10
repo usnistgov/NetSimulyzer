@@ -134,6 +134,7 @@ protected:
   void mousePressEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
+  void contextMenuEvent(QContextMenuEvent *event) override;
 
 public:
   explicit SceneWidget(QWidget *parent = nullptr, const Qt::WindowFlags &f = Qt::WindowFlags());
