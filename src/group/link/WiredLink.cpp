@@ -70,6 +70,20 @@ WiredLink::WiredLink(WiredLink &&other) noexcept {
   initializeOpenGLFunctions();
 }
 
+WiredLink &WiredLink::operator=(WiredLink &&other) noexcept {
+  renderInfo = other.renderInfo;
+  model = other.model;
+
+  // Clear the other RenderInfo so the destructor
+  // doesn't delete the OpenGL buffers
+  other.renderInfo.vao = 0;
+  other.renderInfo.vbo = 0;
+  other.renderInfo.size = 0;
+
+  initializeOpenGLFunctions();
+  return *this;
+}
+
 const WiredLink::RenderInfo &WiredLink::getRenderInfo() const {
   return renderInfo;
 }

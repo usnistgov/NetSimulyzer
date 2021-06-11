@@ -466,17 +466,23 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   for (const auto &link : links) {
     auto &newLink = wiredLinks.emplace_back(renderer.allocate(link), link);
 
+    // Flag to ignore links with non-configured nodes
+    // should be picked up by the ns-3 module, but just in case
+    bool ignoreLink = false;
     for (const auto nodeId : link.nodes) {
       const auto &node = nodes.find(nodeId);
 
       if (node == nodes.end()) {
-        QMessageBox::critical(this, "Wired Link References Unknown Node",
-                              "A wired link references an unknown Node with ID: " + QString::number(nodeId));
-        std::terminate();
+        std::cerr << "A wired link references an unknown Node with ID: " << nodeId << " ignoring link\n";
+        ignoreLink = true;
+        continue;
       }
 
       node->second.addWiredLink(&newLink);
     }
+
+    if (ignoreLink)
+      wiredLinks.erase(wiredLinks.end() - 1);
   }
 
   doneCurrent();

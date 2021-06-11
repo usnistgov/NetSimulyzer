@@ -54,6 +54,7 @@ public:
   ~WiredLink() override;
   WiredLink(const WiredLink &) = delete;
   WiredLink(WiredLink &&other) noexcept;
+  WiredLink& operator=(WiredLink &&other) noexcept;
 
   void notifyNodeMoved(unsigned int nodeId, glm::vec3 position);
   [[nodiscard]] const RenderInfo &getRenderInfo() const;
