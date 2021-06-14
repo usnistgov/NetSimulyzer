@@ -463,6 +463,7 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
     nodes.try_emplace(node.id, Model{models.load(node.model)}, node);
   }
 
+  wiredLinks.reserve(links.size());
   for (const auto &link : links) {
     auto &newLink = wiredLinks.emplace_back(renderer.allocate(link), link);
 
