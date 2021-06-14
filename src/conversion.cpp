@@ -62,18 +62,18 @@ QString toDisplayTime(double value) {
   auto hours = result.quot;
 
   QString displayTime;
-  if (convertedTime > 3'600'000) /* 1 Hour in ms */ {
+  if (convertedTime >= 3'600'000) /* 1 Hour in ms */ {
     displayTime = QString{"%1:%2:%3.%4"}
                       .arg(hours)
                       .arg(minutes, 2, 10, QChar{'0'})
                       .arg(seconds, 2, 10, QChar{'0'})
                       .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime > 60'000L) /* 1 minute in ms */ {
+  } else if (convertedTime >= 60'000L) /* 1 minute in ms */ {
     displayTime = QString{"%1:%2.%3"}
                       .arg(minutes, 2, 10, QChar{'0'})
                       .arg(seconds, 2, 10, QChar{'0'})
                       .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime > 1000L) {
+  } else if (convertedTime >= 1000L) {
     displayTime = QString{"%1.%2"}.arg(seconds, 2, 10, QChar{'0'}).arg(milliseconds, 3, 10, QChar{'0'});
   } else {
     displayTime.append('.' + QString::number(milliseconds));
