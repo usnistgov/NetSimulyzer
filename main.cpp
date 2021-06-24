@@ -190,6 +190,10 @@ int main(int argc, char *argv[]) {
         }
       }
 
+      // Clear the resource directory on update,
+      // just in case the user did not delete the old one.
+      // It will be re-detected below
+      settings.clear(Key::ResourcePath);
       settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
     }
   } else

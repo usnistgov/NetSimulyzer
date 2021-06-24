@@ -70,7 +70,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
   compiler += "clang++ " + QString(__clang_version__);
 #elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
   compiler += "g++ " + QString::number(__GNUC__) + '.' + QString::number(__GNUC_MINOR__) + '.' +
-             QString::number(__GNUC_PATCHLEVEL__);
+              QString::number(__GNUC_PATCHLEVEL__);
 #elif defined(_MSC_VER)
   compiler += "MSVC " + QString::number(_MSC_VER);
 #else
@@ -78,11 +78,7 @@ AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
 #endif
 
   ui.labelApplicationName->setText(NETSIMULYZER_APPLICATION_NAME);
-  ui.labelVersion->setText("v" NETSIMULYZER_VERSION
-#ifdef NETSIMULYZER_DEVELOPMENT_VERSION
-                               "-pre"
-#endif
-                           " (" + compliedArchitecture + ", " + releaseType + ')');
+  ui.labelVersion->setText("v" NETSIMULYZER_VERSION " (" + compliedArchitecture + ", " + releaseType + ')');
   ui.labelTarget->setText(NETSIMULYZER_APPLICATION_NAME " for " + QSysInfo::prettyProductName());
   ui.labelCompiler->setText(compiler);
 
