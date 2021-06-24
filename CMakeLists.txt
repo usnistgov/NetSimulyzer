@@ -36,7 +36,7 @@ project(NetSimulyzer
 
 # Flag indicating weather this is a tagged version or not
 # Be sure to set to FALSE when tagging a release version
-set(IS_DEV_VERSION TRUE)
+set(IS_DEV_VERSION FALSE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
