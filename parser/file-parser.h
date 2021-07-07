@@ -42,6 +42,11 @@ class JsonHandler;
 
 namespace parser {
 
+struct ParseError {
+  std::string message;
+  std::size_t offset;
+};
+
 class FileParser {
   friend JsonHandler;
 
@@ -53,7 +58,7 @@ public:
    * @param path
    * The path to the JSON file
    */
-  void parse(const char *path);
+  std::optional<ParseError> parse(const char *path);
 
   /**
    * Clear stored information from a previous `parse()` call
@@ -172,6 +177,11 @@ public:
   [[nodiscard]] const std::vector<LogStream> &getLogStreams() const;
 
 private:
+  /**
+   * Specific error message from the parser
+   */
+  std::optional<std::string> errorMessage;
+
   /**
    * The overall configuration of the simulation
    */

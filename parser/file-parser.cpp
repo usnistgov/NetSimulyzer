@@ -41,16 +41,15 @@
 
 namespace parser {
 
-void FileParser::parse(const char *path) {
+std::optional<ParseError> FileParser::parse(const char *path) {
 
   // RapidJSON prefers FILE*, so this is a safe wrapper for that
   // Add a 'b' in the mode flags to keep Windows from stupid handling of newlines
   std::unique_ptr<FILE, decltype(&std::fclose)> file{std::fopen(path, "rb"), std::fclose};
 
-  // TODO: Use return with message or something
   if (!file) {
     std::cerr << "Failed to open file: " << path << '\n';
-    std::abort();
+    return {ParseError{"Failed to open file", 0u}};
   }
 
   // Mostly arbitrary buffer size
@@ -61,6 +60,71 @@ void FileParser::parse(const char *path) {
   rapidjson::Reader reader;
 
   reader.Parse(stream, handler);
+
+  if (reader.HasParseError()) {
+    ParseError error;
+    error.offset = reader.GetErrorOffset();
+
+    switch (reader.GetParseErrorCode()) {
+      // Error from the `JsonHandler`
+    case rapidjson::kParseErrorTermination:
+      error.message = errorMessage.value_or("Unknown parsing error");
+      break;
+      // Generic Errors
+    case rapidjson::kParseErrorDocumentEmpty:
+      error.message = "Document empty";
+      break;
+    case rapidjson::kParseErrorDocumentRootNotSingular:
+      error.message = "More than one root element";
+      break;
+    case rapidjson::kParseErrorValueInvalid:
+      error.message = "Invalid value";
+      break;
+    case rapidjson::kParseErrorObjectMissName:
+      error.message = "Object member missing name";
+      break;
+    case rapidjson::kParseErrorObjectMissColon:
+      error.message = "Object property missing colon";
+      break;
+    case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket:
+      error.message = "Missing comma or curly brace after object member";
+      break;
+    case rapidjson::kParseErrorArrayMissCommaOrSquareBracket:
+      error.message = "Missing comma or curly brace after array element";
+      break;
+    case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex:
+      error.message = "Invalid Unicode escape sequence";
+      break;
+    case rapidjson::kParseErrorStringUnicodeSurrogateInvalid:
+      error.message = "Invalid Unicode surrogate pair";
+      break;
+    case rapidjson::kParseErrorStringEscapeInvalid:
+      error.message = "Invalid character escape sequence";
+      break;
+    case rapidjson::kParseErrorStringMissQuotationMark:
+      error.message = "Missing string quotation mark";
+      break;
+    case rapidjson::kParseErrorStringInvalidEncoding:
+      error.message = "Invalid string encoding";
+      break;
+    case rapidjson::kParseErrorNumberTooBig:
+      error.message = "Number too large to be stored in a double";
+      break;
+    case rapidjson::kParseErrorNumberMissFraction:
+      error.message = "Number missing fraction component";
+      break;
+    case rapidjson::kParseErrorNumberMissExponent:
+      error.message = "Number missing exponent component";
+      break;
+    case rapidjson::kParseErrorUnspecificSyntaxError:
+    default:
+      error.message = "Unspecific syntax error";
+      break;
+    }
+
+    return {error};
+  }
+
   std::sort(nodes.begin(), nodes.end(), [](const Node &left, const Node &right) {
     return left.id < right.id;
   });
@@ -72,6 +136,8 @@ void FileParser::parse(const char *path) {
   std::sort(decorations.begin(), decorations.end(), [](const Decoration &left, const Decoration &right) {
     return left.id < right.id;
   });
+
+  return {};
 }
 
 void FileParser::reset() {

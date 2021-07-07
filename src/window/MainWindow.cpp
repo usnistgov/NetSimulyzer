@@ -37,9 +37,9 @@
 #include "src/conversion.h"
 #include "src/window/util/file-operations.h"
 #include <QAction>
-#include <QDebug>
 #include <QDockWidget>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QObject>
 #include <cstdlib>
 #include <iostream>
@@ -65,6 +65,7 @@ MainWindow::MainWindow() : QMainWindow() {
   loadWorker.moveToThread(&loadThread);
   QObject::connect(this, &MainWindow::startLoading, &loadWorker, &LoadWorker::load);
   QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
+  QObject::connect(&loadWorker, &LoadWorker::error, this, &MainWindow::errorLoading);
   loadThread.start();
 
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
@@ -272,6 +273,14 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
 
   playbackWidget.enableControls();
   statusLabel.setText("Ready");
+  loading = false;
+  ui.actionLoad->setEnabled(true);
+}
+
+void MainWindow::errorLoading(const QString &message, unsigned long long offset) {
+  QMessageBox::critical(this, "Parsing Error", message + " at: " + QString::number(offset) + " characters");
+
+  statusLabel.setText("Error loading scenario");
   loading = false;
   ui.actionLoad->setEnabled(true);
 }
