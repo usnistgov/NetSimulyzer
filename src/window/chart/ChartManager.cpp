@@ -109,10 +109,14 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
     break;
   }
 
+  // It seems there's some difficulty with this setting on macOS,
+  // so disable it
+#ifndef __APPLE__
   // Note, this will only work with line/spline/scatter plots
   // if we add more plot types, this will have to be disabled
   // See: https://doc.qt.io/qt-5/qabstractseries.html#useOpenGL-prop
   tie.qtSeries->setUseOpenGL(true);
+#endif
 
   tie.qtSeries->setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
   tie.qtSeries->setName(QString::fromStdString(model.legend));
