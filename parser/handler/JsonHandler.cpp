@@ -96,14 +96,14 @@ parser::ValueAxis valueAxisFromObject(const util::json::JsonObject &object) {
 }
 
 parser::CategoryAxis categoryAxisFromObject(const util::json::JsonObject &object) {
-  requiredFields(object, {"name", "values", "min", "name", "scale"});
+  requiredFields(object, {"name", "values", "name"});
 
   parser::CategoryAxis axis;
   axis.name = object["name"].get<std::string>();
 
   auto &values = object["values"].array();
   for (auto &value : values) {
-    requiredFields(value.object(), {"id,"
+    requiredFields(value.object(), {"id",
                                     "value"});
     parser::CategoryAxis::Category category;
 
@@ -302,7 +302,7 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseBuilding(const util::json::JsonObject &object) {
-  requiredFields(object["orientation"].object(), {"id", "color", "visible", "floors", "bounds"});
+  requiredFields(object, {"id", "color", "visible", "floors", "bounds"});
   parser::Building building;
 
   building.id = object["id"].get<int>();
