@@ -36,6 +36,31 @@
 #include "iostream"
 #include <algorithm>
 #include <cmath>
+#include <exception>
+
+namespace {
+
+class MissingRequiredFieldException : public std::exception {
+  std::string message;
+
+public:
+  explicit MissingRequiredFieldException(const std::string &fieldName)
+      : message("Missing required field: " + fieldName) {
+  }
+
+  [[nodiscard]] const char *what() const noexcept override {
+    return message.c_str();
+  }
+};
+
+void requiredFields(const util::json::JsonObject &object, const std::vector<std::string> &fields) {
+  for (const auto &field : fields) {
+    if (!object.contains(field))
+      throw MissingRequiredFieldException{field};
+  }
+}
+
+} // namespace
 
 parser::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
   if (mode == "fixed")
@@ -58,6 +83,8 @@ parser::ValueAxis::Scale scaleFromString(const std::string &mode) {
 }
 
 parser::ValueAxis valueAxisFromObject(const util::json::JsonObject &object) {
+  requiredFields(object, {"bound-mode", "max", "min", "name", "scale"});
+
   parser::ValueAxis axis;
   axis.boundMode = boundModeFromString(object["bound-mode"].get<std::string>());
   axis.max = object["max"].get<double>();
@@ -69,11 +96,15 @@ parser::ValueAxis valueAxisFromObject(const util::json::JsonObject &object) {
 }
 
 parser::CategoryAxis categoryAxisFromObject(const util::json::JsonObject &object) {
+  requiredFields(object, {"name", "values", "name"});
+
   parser::CategoryAxis axis;
   axis.name = object["name"].get<std::string>();
 
   auto &values = object["values"].array();
   for (auto &value : values) {
+    requiredFields(value.object(), {"id",
+                                    "value"});
     parser::CategoryAxis::Category category;
 
     category.id = value.object()["id"].get<unsigned int>();
@@ -102,6 +133,8 @@ parser::Area::DrawMode drawModeFromString(const std::string &mode) {
 }
 
 parser::Ns3Color3 colorFromObject(const util::json::JsonObject &object) {
+  requiredFields(object, {"red", "green", "blue"});
+
   parser::Ns3Color3 color;
 
   color.red = object["red"].get<uint8_t>();
@@ -201,9 +234,13 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
+  requiredFields(object, {"module-version"});
+
   auto &config = fileParser.globalConfiguration;
 
   const auto &jsonVersion = object["module-version"].object();
+  requiredFields(object["module-version"].object(), {"major", "minor", "patch"});
+
   config.moduleVersion.major = jsonVersion["major"].get<long>();
   config.moduleVersion.minor = jsonVersion["minor"].get<long>();
   config.moduleVersion.patch = jsonVersion["patch"].get<long>();
@@ -222,6 +259,7 @@ void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseNode(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "model", "scale", "orientation", "visible", "position"});
   parser::Node node;
 
   node.id = object["id"].get<unsigned int>();
@@ -233,17 +271,20 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
     node.height = object["height"].get<double>();
   }
 
+  requiredFields(object["orientation"].object(), {"x", "y", "z"});
   node.orientation[0] = object["orientation"].object()["x"].get<double>();
   node.orientation[1] = object["orientation"].object()["y"].get<double>();
   node.orientation[2] = object["orientation"].object()["z"].get<double>();
 
   node.visible = object["visible"].get<bool>();
 
+  requiredFields(object["position"].object(), {"x", "y", "z"});
   node.position.x = object["position"].object()["x"].get<double>();
   node.position.y = object["position"].object()["y"].get<double>();
   node.position.z = object["position"].object()["z"].get<double>();
 
   if (object.contains("offset")) {
+    requiredFields(object["offset"].object(), {"x", "y", "z"});
     node.offset.x = object["offset"].object()["x"].get<double>();
     node.offset.y = object["offset"].object()["y"].get<double>();
     node.offset.z = object["offset"].object()["z"].get<double>();
@@ -261,19 +302,22 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseBuilding(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "color", "visible", "floors", "bounds"});
   parser::Building building;
 
   building.id = object["id"].get<int>();
 
-  building.color.red = object["color"].object()["red"].get<int>();
-  building.color.green = object["color"].object()["green"].get<int>();
-  building.color.blue = object["color"].object()["blue"].get<int>();
+  building.color = colorFromObject(object["color"].object());
 
   building.visible = object["visible"].get<bool>();
   building.floors = object["floors"].get<int>();
 
   building.roomsX = object["rooms"].object()["x"].get<int>();
   building.roomsY = object["rooms"].object()["y"].get<int>();
+
+  requiredFields(object["bounds"].object()["x"].object(), {"min", "max"});
+  requiredFields(object["bounds"].object()["y"].object(), {"min", "max"});
+  requiredFields(object["bounds"].object()["z"].object(), {"min", "max"});
 
   building.min.x = object["bounds"].object()["x"].object()["min"].get<double>();
   building.min.y = object["bounds"].object()["y"].object()["min"].get<double>();
@@ -290,11 +334,13 @@ void JsonHandler::parseBuilding(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "model", "position", "orientation", "scale"});
   parser::Decoration decoration;
 
   decoration.id = object["id"].get<unsigned int>();
   decoration.model = object["model"].get<std::string>();
 
+  requiredFields(object["position"].object(), {"x", "y", "z"});
   decoration.position.x = object["position"].object()["x"].get<double>();
   decoration.position.y = object["position"].object()["y"].get<double>();
   decoration.position.z = object["position"].object()["z"].get<double>();
@@ -305,6 +351,7 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
 
   updateLocationBounds(decoration.position);
 
+  requiredFields(object["orientation"].object(), {"x", "y", "z"});
   decoration.orientation[0] = object["orientation"].object()["x"].get<double>();
   decoration.orientation[1] = object["orientation"].object()["y"].get<double>();
   decoration.orientation[2] = object["orientation"].object()["z"].get<double>();
@@ -315,6 +362,7 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseArea(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "height", "fill-mode", "fill-color", "border-mode", "border-color"});
   parser::Area area;
 
   area.id = object["id"].get<int>();
@@ -322,6 +370,7 @@ void JsonHandler::parseArea(const util::json::JsonObject &object) {
   area.height = object["height"].get<double>();
 
   for (auto &point : object["points"].array()) {
+    requiredFields(point.object(), {"x", "y"});
     parser::Ns3Coordinate coordinate;
 
     coordinate.x = point.object()["x"].get<double>();
@@ -336,21 +385,16 @@ void JsonHandler::parseArea(const util::json::JsonObject &object) {
   }
 
   area.fillMode = drawModeFromString(object["fill-mode"].get<std::string>());
-
-  area.fillColor.red = object["fill-color"].object()["red"].get<int>();
-  area.fillColor.green = object["fill-color"].object()["green"].get<int>();
-  area.fillColor.blue = object["fill-color"].object()["blue"].get<int>();
+  area.fillColor = colorFromObject(object["fill-color"].object());
 
   area.borderMode = drawModeFromString(object["border-mode"].get<std::string>());
-
-  area.borderColor.red = object["border-color"].object()["red"].get<int>();
-  area.borderColor.green = object["border-color"].object()["green"].get<int>();
-  area.borderColor.blue = object["border-color"].object()["blue"].get<int>();
+  area.borderColor = colorFromObject(object["border-color"].object());
 
   fileParser.areas.emplace_back(area);
 }
 
 void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
+  requiredFields(object, {"node-ids"});
   parser::WiredLink link;
 
   const auto &nodes = object["node-ids"].array();
@@ -369,6 +413,7 @@ void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
   parser::MoveEvent event;
 
   event.nodeId = object["id"].get<int>();
@@ -384,6 +429,7 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
   parser::DecorationMoveEvent event;
 
   event.decorationId = object["id"].get<int>();
@@ -399,6 +445,7 @@ void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object)
 }
 
 void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
   parser::NodeOrientationChangeEvent event;
 
   event.nodeId = object["id"].get<int>();
@@ -412,6 +459,7 @@ void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
   parser::DecorationOrientationChangeEvent event;
 
   event.decorationId = object["id"].get<int>();
@@ -425,6 +473,7 @@ void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &
 }
 
 void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "color-type"});
   parser::NodeColorChangeEvent event;
 
   event.nodeId = object["id"].get<unsigned int>();
@@ -446,6 +495,7 @@ void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
+  requiredFields(object, {"milliseconds", "series-id", "x", "y"});
   parser::XYSeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
@@ -458,6 +508,7 @@ void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseSeriesAppendArray(const util::json::JsonObject &object) {
+  requiredFields(object, {"milliseconds", "series-id", "points"});
   parser::XYSeriesAddValues event;
 
   event.time = object["milliseconds"].get<double>();
@@ -480,6 +531,7 @@ void JsonHandler::parseSeriesAppendArray(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseSeriesClear(const util::json::JsonObject &object) {
+  requiredFields(object, {"milliseconds", "series-id"});
   parser::XYSeriesClear event;
 
   event.time = object["milliseconds"].get<double>();
@@ -490,6 +542,7 @@ void JsonHandler::parseSeriesClear(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object) {
+  requiredFields(object, {"milliseconds", "series-id", "category", "value"});
   parser::CategorySeriesAddValue event;
 
   event.time = object["milliseconds"].get<double>();
@@ -502,6 +555,7 @@ void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "legend", "visible", "color", "connection", "labels", "x-axis", "y-axis"});
   parser::XYSeries series;
 
   series.id = object["id"].get<int>();
@@ -537,6 +591,7 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "legend", "visible", "color", "x-axis", "y-axis", "auto-update"});
   parser::CategoryValueSeries series;
 
   series.id = object["id"].get<int>();
@@ -551,6 +606,7 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   series.yAxis = categoryAxisFromObject(object["y-axis"].object());
 
   if (object["auto-update"].get<bool>()) {
+    requiredFields(object, {"auto-update-interval", "auto-update-increment"});
     series.autoUpdate = true;
     series.autoUpdateInterval = object["auto-update-interval"].get<double>();
     series.autoUpdateIncrement = object["auto-update-increment"].get<double>();
@@ -560,6 +616,7 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
 }
 
 void JsonHandler::parseSeriesCollection(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "child-series", "x-axis", "y-axis"});
   parser::SeriesCollection collection;
   collection.id = object["id"].get<int>();
   collection.name = object["name"].get<std::string>();
@@ -575,18 +632,13 @@ void JsonHandler::parseSeriesCollection(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseLogStream(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "name", "visible"});
   parser::LogStream stream;
   stream.id = object["id"].get<int>();
   stream.name = object["name"].get<std::string>();
 
-  if (object.contains("color")) {
-    parser::Ns3Color3 color{};
-    color.blue = object["color"].object()["blue"].get<uint8_t>();
-    color.green = object["color"].object()["green"].get<uint8_t>();
-    color.red = object["color"].object()["red"].get<uint8_t>();
-
-    stream.color = color;
-  }
+  if (object.contains("color"))
+    stream.color = colorFromObject(object["color"].object());
 
   stream.visible = object["visible"].get<bool>();
 
@@ -594,6 +646,7 @@ void JsonHandler::parseLogStream(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
+  requiredFields(object, {"milliseconds", "stream-id", "data"});
   parser::StreamAppendEvent event;
   event.time = object["milliseconds"].get<double>();
   event.streamId = object["stream-id"].get<int>();
@@ -705,24 +758,30 @@ bool JsonHandler::EndObject(rapidjson::SizeType) {
 
   auto &currentTop = jsonStack.top();
 
-  // Special case, "configuration" is parsed
-  // as a normal unit
-  if (currentSection == Section::Configuration) {
+  // Parsing
+  try {
+    // Special case, "configuration" is parsed
+    // as a normal unit
+    if (currentSection == Section::Configuration) {
 
-    if (oldTop.key == "module-version") {
-      currentTop.value.object().insert("module-version", oldTop.value);
-      return true;
-    } else if (oldTop.key == "configuration") {
-      parseConfiguration(oldTop.value.object());
+      if (oldTop.key == "module-version") {
+        currentTop.value.object().insert("module-version", oldTop.value);
+        return true;
+      } else if (oldTop.key == "configuration") {
+        parseConfiguration(oldTop.value.object());
+        return true;
+      }
+      return false;
+    }
+
+    // All other sections have one parse call per item
+    if (isSection(jsonStack.top().key) != Section::None) {
+      do_parse(currentSection, oldTop.value.object());
       return true;
     }
+  } catch (const MissingRequiredFieldException &e) {
+    fileParser.errorMessage = e.what();
     return false;
-  }
-
-  // All other sections have one parse call per item
-  if (isSection(jsonStack.top().key) != Section::None) {
-    do_parse(currentSection, oldTop.value.object());
-    return true;
   }
 
   if (currentTop.value.isArray()) {
@@ -735,6 +794,8 @@ bool JsonHandler::EndObject(rapidjson::SizeType) {
     return true;
   }
 
+  // Shouldn't hit this point, but just in case
+  fileParser.errorMessage = "Unknown parsing error in `EndObject()`";
   return false;
 }
 

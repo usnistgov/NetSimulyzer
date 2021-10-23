@@ -56,6 +56,7 @@ public:
 
 public slots:
   void finishLoading(const QString &fileName, unsigned long long milliseconds);
+  void errorLoading(const QString &message, unsigned long long offset);
 
 signals:
   void startLoading(const QString &fileName);
