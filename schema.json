@@ -574,6 +574,63 @@
             "if": {
               "properties": {
                 "type": {
+                  "const": "xy-series-append-array"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "series-id": {
+                  "type": "integer"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "series-id",
+                "points"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "xy-series-clear"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "series-id": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "series-id"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
                   "const": "category-series-append"
                 }
               }
