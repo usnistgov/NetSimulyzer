@@ -249,6 +249,10 @@
     "configuration": {
       "type": "object",
       "properties": {
+        "max-time-ms": {
+          "type": "integer",
+          "minimum": 0
+        },
         "time-step": {
           "type": "integer",
           "minimum": 0
