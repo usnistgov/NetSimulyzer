@@ -40,6 +40,7 @@
 #include <QtCharts/QLogValueAxis>
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QSplineSeries>
+#include <utility>
 
 namespace netsimulyzer {
 
@@ -150,11 +151,9 @@ void ChartWidget::closeEvent(QCloseEvent *event) {
   QDockWidget::closeEvent(event);
 }
 
-ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager,
-                         const std::vector<ChartManager::DropdownValue> &initialSeries)
-    : QDockWidget(parent), manager(manager) {
+ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries)
+    : QDockWidget(parent), manager(manager), dropdownValues(std::move(initialSeries)) {
   ui.setupUi(this);
-  ui.comboBoxSeries->addItem("Select Series", ChartManager::PlaceholderId);
 
   chart.legend()->setVisible(true);
   chart.legend()->setAlignment(Qt::AlignBottom);
@@ -165,10 +164,8 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager,
 
   ui.chartView->setChart(&chart);
 
-  // Should already be in proper order
-  for (const auto &series : initialSeries) {
-    addSeries(series.name, series.id);
-  }
+  sortDropdown();
+  populateDropdown();
 
   QObject::connect(ui.comboBoxSeries, qOverload<int>(&QComboBox::currentIndexChanged), this,
                    &ChartWidget::seriesSelected);
@@ -177,14 +174,123 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager,
   setVisible(true);
 }
 
-void ChartWidget::addSeries(const QString &name, unsigned int id) {
-  ui.comboBoxSeries->addItem(name, id);
+void ChartWidget::addSeries(ChartManager::DropdownValue dropdownValue) {
+  dropdownValues.emplace_back(dropdownValue);
+}
+
+void ChartWidget::setSeries(std::vector<ChartManager::DropdownValue> values) {
+  dropdownValues = std::move(values);
+  sortDropdown();
+  populateDropdown();
+}
+
+void ChartWidget::sortDropdown() {
+  using SortOrder = SettingsManager::ChartDropdownSortOrder;
+  using DropdownValue = ChartManager::DropdownValue;
+
+  switch (sortOrder) {
+  case SortOrder::Alphabetical:
+    std::sort(dropdownValues.begin(), dropdownValues.end(), [](const DropdownValue &left, const DropdownValue &right) {
+      return QString::localeAwareCompare(left.name, right.name) < 0;
+    });
+    break;
+  case SortOrder::Type:
+    // Sort by type
+    std::sort(dropdownValues.begin(), dropdownValues.end(), [](const auto &left, const auto &right) -> bool {
+      return static_cast<int>(left.type) < static_cast<int>(right.type);
+    });
+
+    // Sort Alphabetically within types
+    std::sort(dropdownValues.begin(), dropdownValues.end(), [](const auto &left, const auto &right) -> bool {
+      // Do not reorder along type boundaries
+      // since we know the elements are in type order
+      // should hold the boundaries in place
+      if (left.type != right.type) {
+        return false;
+      }
+      return QString::localeAwareCompare(left.name, right.name) < 0;
+    });
+
+    break;
+  case SortOrder::Id:
+    std::sort(dropdownValues.begin(), dropdownValues.end(), [](const auto &left, const auto &right) -> bool {
+      return left.id < right.id;
+    });
+    break;
+  case SortOrder::None:
+    // Intentionally Blank
+    break;
+  default:
+    std::cerr << "Unrecognised SortOrder: " << static_cast<int>(sortOrder) << '\n';
+    std::abort();
+    break;
+  }
+}
+
+void ChartWidget::populateDropdown() {
+  using SortOrder = SettingsManager::ChartDropdownSortOrder;
+
+  const auto previousSeries = currentSeries;
+  ui.comboBoxSeries->clear();
+  ui.comboBoxSeries->addItem("Select Series", ChartManager::PlaceholderId);
+
+  // We need the item model to set flags
+  auto model = qobject_cast<QStandardItemModel *>(ui.comboBoxSeries->model());
+
+  // Starter for Type sort order labels
+  ChartManager::SeriesType lastType;
+  if (sortOrder == SortOrder::Type && !dropdownValues.empty()) {
+    lastType = dropdownValues.begin()->type;
+    switch (lastType) {
+    case ChartManager::SeriesType::XY:
+      ui.comboBoxSeries->addItem("XYSeries");
+      break;
+    case ChartManager::SeriesType::CategoryValue:
+      ui.comboBoxSeries->addItem("CategoryValueSeries");
+      break;
+    case ChartManager::SeriesType::Collection:
+      ui.comboBoxSeries->addItem("Collections");
+      break;
+    }
+
+    auto item = model->item(ui.comboBoxSeries->count() - 1);
+    item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+  }
+
+  for (const auto &dropDownValue : dropdownValues) {
+    // If we're sorting by type, add in labels for each type we encounter
+    if (sortOrder == SortOrder::Type && lastType != dropDownValue.type) {
+      switch (dropDownValue.type) {
+      case ChartManager::SeriesType::XY:
+        ui.comboBoxSeries->addItem("XYSeries");
+        break;
+      case ChartManager::SeriesType::CategoryValue:
+        ui.comboBoxSeries->addItem("CategoryValueSeries");
+        break;
+      case ChartManager::SeriesType::Collection:
+        ui.comboBoxSeries->addItem("Collections");
+        break;
+      }
+      auto item = model->item(ui.comboBoxSeries->count() - 1);
+      item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+      ui.comboBoxSeries->show();
+    }
+    lastType = dropDownValue.type;
+    ui.comboBoxSeries->addItem(dropDownValue.name, dropDownValue.id);
+  }
+  ui.comboBoxSeries->setCurrentIndex(ui.comboBoxSeries->findData(previousSeries));
 }
 
 void ChartWidget::reset() {
   clearChart();
-  ui.comboBoxSeries->clear();
-  ui.comboBoxSeries->addItem("Select Series", 0u);
+  dropdownValues.clear();
+  populateDropdown();
+}
+
+void ChartWidget::setSortOrder(SettingsManager::ChartDropdownSortOrder value) {
+  sortOrder = value;
+  sortDropdown();
+  populateDropdown();
 }
 
 void ChartWidget::clearSelected() {

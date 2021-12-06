@@ -46,9 +46,11 @@ public:
     RenderGrid,
     RenderGridStep,
     RenderSkybox,
+    ChartDropdownSortOrder,
   };
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
+  enum class ChartDropdownSortOrder : int { Alphabetical, Type, Id, None };
 
   /**
    * Convert an int to a `BuildingRenderMode` enum value.
@@ -61,6 +63,18 @@ public:
    * The enum value corresponding to `value`
    */
   static BuildingRenderMode BuildingRenderModeFromInt(int value);
+
+  /**
+   * Convert an int to a `ChartDropdownSortOrder` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static ChartDropdownSortOrder ChartDropdownSortOrderFromInt(int value);
 
   /**
    * Defines when retrieving a value fails,
@@ -109,7 +123,7 @@ private:
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
-  };
+      {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};
 
   /**
    * Get the Qt key for the corresponding enum value.
@@ -305,6 +319,21 @@ template <>
   return SettingsManager::BuildingRenderMode::Transparent;
 }
 
+// Specialization for ChartManager::SortOrder enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::ChartDropdownSortOrder
+SettingsManager::getDefault(SettingsManager::Key key) const {
+  const auto &settingKey = getQtKey(key);
+  if (!settingKey.defaultValue.isValid()) {
+    std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
+    std::abort();
+  }
+
+  // TODO: Use the map value
+  return SettingsManager::ChartDropdownSortOrder::Type;
+}
+
 template <>
 [[nodiscard]] inline std::optional<SettingsManager::BuildingRenderMode> SettingsManager::get(Key key,
                                                                                              RetrieveMode mode) const {
@@ -333,6 +362,37 @@ template <>
 }
 
 template <>
+[[nodiscard]] inline std::optional<SettingsManager::ChartDropdownSortOrder>
+SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+
+  if (stringMode == "alphabetical")
+    return {SettingsManager::ChartDropdownSortOrder::Alphabetical};
+  else if (stringMode == "type")
+    return {SettingsManager::ChartDropdownSortOrder::Type};
+  else if (stringMode == "id")
+    return {SettingsManager::ChartDropdownSortOrder::Id};
+  else if (stringMode == "none")
+    return {SettingsManager::ChartDropdownSortOrder::None};
+  else
+    std::cerr << "Unrecognised 'ChartDropdownSortOrder' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<ChartDropdownSortOrder>(Key::ChartDropdownSortOrder);
+
+  return {};
+}
+
+template <>
 inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::BuildingRenderMode &value) {
   const auto &settingKey = getQtKey(key);
 
@@ -345,6 +405,28 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'BuildingRenderMode': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::ChartDropdownSortOrder &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::ChartDropdownSortOrder::Alphabetical:
+    qtSettings.setValue(settingKey.key, "alphabetical");
+    break;
+  case SettingsManager::ChartDropdownSortOrder::Type:
+    qtSettings.setValue(settingKey.key, "type");
+    break;
+  case SettingsManager::ChartDropdownSortOrder::Id:
+    qtSettings.setValue(settingKey.key, "id");
+    break;
+  case SettingsManager::ChartDropdownSortOrder::None:
+    qtSettings.setValue(settingKey.key, "none");
+    break;
+  default:
+    std::cerr << "Unrecognised 'ChartDropdownSortOrder': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

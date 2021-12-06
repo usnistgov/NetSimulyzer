@@ -17,6 +17,25 @@ SettingsManager::BuildingRenderMode SettingsManager::BuildingRenderModeFromInt(i
   }
 }
 
+SettingsManager::ChartDropdownSortOrder SettingsManager::ChartDropdownSortOrderFromInt(int value) {
+  using SortOrder = SettingsManager::ChartDropdownSortOrder;
+
+  switch (value) {
+  case static_cast<int>(SortOrder::Alphabetical):
+    return SortOrder::Alphabetical;
+  case static_cast<int>(SortOrder::Type):
+    return SortOrder::Type;
+  case static_cast<int>(SortOrder::Id):
+    return SortOrder::Id;
+  case static_cast<int>(SortOrder::None):
+    return SortOrder::None;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'Chart Sort Order'!",
+                          "An unrecognised value for 'BChart Sort Order':" + QString{value} + " was provided");
+    std::abort();
+  }
+}
+
 const SettingsManager::SettingValue &SettingsManager::getQtKey(SettingsManager::Key key) const {
   auto iterator = SettingsManager::qtKeyMap.find(key);
   if (iterator == SettingsManager::qtKeyMap.end()) {

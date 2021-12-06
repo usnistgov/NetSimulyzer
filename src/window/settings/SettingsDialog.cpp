@@ -35,6 +35,10 @@ void SettingsDialog::loadSettings() {
   const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
 
+  const auto chartDropdownSortOrder =
+      settings.get<SettingsManager::ChartDropdownSortOrder>(Key::ChartDropdownSortOrder).value();
+  ui.comboSortOrder->setCurrentIndex(ui.comboSortOrder->findData(static_cast<int>(chartDropdownSortOrder)));
+
   ui.checkBoxBuildingOutlines->setChecked(settings.get<bool>(Key::RenderBuildingOutlines).value());
 
   ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
@@ -57,6 +61,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   ui.comboBuildingRender->addItem("Transparent", static_cast<int>(SettingsManager::BuildingRenderMode::Transparent));
   ui.comboBuildingRender->addItem("Opaque", static_cast<int>(SettingsManager::BuildingRenderMode::Opaque));
+
+  using SortOrder = SettingsManager::ChartDropdownSortOrder;
+  ui.comboSortOrder->addItem("Alphabetical", static_cast<int>(SortOrder::Alphabetical));
+  ui.comboSortOrder->addItem("Type", static_cast<int>(SortOrder::Type));
+  ui.comboSortOrder->addItem("Id", static_cast<int>(SortOrder::Id));
+  ui.comboSortOrder->addItem("None", static_cast<int>(SortOrder::None));
 
   ui.comboGridSize->addItem("1", 1);
   ui.comboGridSize->addItem("5", 5);
@@ -89,6 +99,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetRightTurn, &QPushButton::clicked, ui.keyTurnRight, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetUp, &QPushButton::clicked, ui.keyUp, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetDown, &QPushButton::clicked, ui.keyDown, &SingleKeySequenceEdit::setDefault);
+
+  QObject::connect(ui.buttonResetSortOrder, &QPushButton::clicked, this, &SettingsDialog::defaultChartSortOrder);
 
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
@@ -128,6 +140,8 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetRightTurn->click();
     ui.buttonResetUp->click();
     ui.buttonResetDown->click();
+
+    ui.buttonResetSortOrder->click();
 
     ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
@@ -205,6 +219,13 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (downKey != settings.get<int>(Key::CameraKeyDown).value()) {
       settings.set(Key::CameraKeyDown, downKey);
       emit downKeyChanged(downKey);
+    }
+
+    // Charts
+    auto chartSortOrder = SettingsManager::ChartDropdownSortOrderFromInt(ui.comboSortOrder->currentData().toInt());
+    if (chartSortOrder != settings.get<SettingsManager::ChartDropdownSortOrder>(Key::ChartDropdownSortOrder).value()) {
+      settings.set(Key::ChartDropdownSortOrder, chartSortOrder);
+      emit chartSortOrderChanged(static_cast<int>(chartSortOrder));
     }
 
     // Graphics
@@ -299,6 +320,12 @@ void SettingsDialog::defaultMouseTurnSpeed() {
 
 void SettingsDialog::defaultFieldOfView() {
   ui.sliderFieldOfView->setValue(static_cast<int>(settings.getDefault<float>(SettingsManager::Key::FieldOfView)));
+}
+
+void SettingsDialog::defaultChartSortOrder() {
+  const auto defaultValue = static_cast<int>(
+      settings.getDefault<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder));
+  ui.comboSortOrder->setCurrentIndex(ui.comboSortOrder->findData(defaultValue));
 }
 
 void SettingsDialog::defaultSamples() {

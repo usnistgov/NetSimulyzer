@@ -36,16 +36,24 @@
 #include "ChartManager.h"
 #include "ui_ChartWidget.h"
 #include <QDockWidget>
+#include <QString>
 #include <QWidget>
+#include <src/settings/SettingsManager.h>
+#include <vector>
 
 namespace netsimulyzer {
 
 class ChartWidget : public QDockWidget {
   Q_OBJECT
+
   ChartManager &manager;
+  SettingsManager settings{};
   QtCharts::QChart chart;
   Ui::ChartWidget ui{};
   unsigned int currentSeries{ChartManager::PlaceholderId};
+  std::vector<ChartManager::DropdownValue> dropdownValues;
+  SettingsManager::ChartDropdownSortOrder sortOrder =
+      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
 
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
@@ -61,9 +69,13 @@ protected:
   void closeEvent(QCloseEvent *event) override;
 
 public:
-  ChartWidget(QWidget *parent, ChartManager &manager, const std::vector<ChartManager::DropdownValue> &initialSeries);
-  void addSeries(const QString &name, unsigned int id);
+  ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
+  void addSeries(ChartManager::DropdownValue dropdownValue);
+  void setSeries(std::vector<ChartManager::DropdownValue> values);
+  void sortDropdown();
+  void populateDropdown();
   void reset();
+  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
 
   /**
    * Unselects the current series

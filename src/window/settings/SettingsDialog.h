@@ -99,6 +99,11 @@ class SettingsDialog : public QDialog {
   void defaultFieldOfView();
 
   /**
+   * Set the Chart Sort Order input to the default value
+   */
+  void defaultChartSortOrder();
+
+  /**
    * Set the Samples input to the default value
    */
   void defaultSamples();
@@ -256,6 +261,17 @@ signals:
    * The Qt keycode, From `Qt::Key`
    */
   void downKeyChanged(int key);
+
+  /**
+   * Signal emitted when the user changes the Chart sort order.
+   *
+   * @param value
+   * A value from `SettingsManager::ChartDropdownSortOrder` converted to
+   * an `int` for messaging.
+   *
+   * @see SettingsManager::ChartDropdownSortOrderFromInt
+   */
+  void chartSortOrderChanged(int value);
 
   /**
    * Signal emitted when the user changes the

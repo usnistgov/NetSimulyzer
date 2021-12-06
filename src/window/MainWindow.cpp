@@ -165,6 +165,10 @@ MainWindow::MainWindow() : QMainWindow() {
     camera.setKeyDown(key);
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::chartSortOrderChanged, [this](int value) {
+    charts.setSortOrder(SettingsManager::ChartDropdownSortOrderFromInt(value));
+  });
+
   QObject::connect(&settingsDialog, &SettingsDialog::renderSkyboxChanged, [this](bool enable) {
     scene.setSkyboxRenderState(enable);
   });
