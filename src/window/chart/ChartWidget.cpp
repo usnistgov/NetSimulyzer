@@ -52,8 +52,10 @@ void ChartWidget::seriesSelected(int index) {
   currentSeries = selectedSeriesId;
 
   // ID for the "Select Series" element
-  if (selectedSeriesId == ChartManager::PlaceholderId)
+  if (selectedSeriesId == ChartManager::PlaceholderId) {
+    setWindowTitle("Chart Widget");
     return;
+  }
 
   auto &s = manager.getSeries(selectedSeriesId);
 
@@ -66,7 +68,9 @@ void ChartWidget::seriesSelected(int index) {
 }
 
 void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
+  const auto name = QString::fromStdString(tie.model.name);
+  chart.setTitle(name);
+  setWindowTitle(name);
 
   // Qt wants the series on the chart before the axes
   chart.addSeries(tie.qtSeries);
@@ -81,7 +85,9 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
+  const auto name = QString::fromStdString(tie.model.name);
+  chart.setTitle(name);
+  setWindowTitle(name);
 
   for (auto seriesId : tie.model.series) {
     const auto &seriesVariant = manager.getSeries(seriesId);
@@ -102,7 +108,9 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
-  chart.setTitle(QString::fromStdString(tie.model.name));
+  const auto name = QString::fromStdString(tie.model.name);
+  chart.setTitle(name);
+  setWindowTitle(name);
 
   // Qt wants the series on the chart before the axes
   chart.addSeries(tie.qtSeries);
@@ -154,6 +162,7 @@ void ChartWidget::closeEvent(QCloseEvent *event) {
 ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries)
     : QDockWidget(parent), manager(manager), dropdownValues(std::move(initialSeries)) {
   ui.setupUi(this);
+  setWindowTitle("Chart Widget");
 
   chart.legend()->setVisible(true);
   chart.legend()->setAlignment(Qt::AlignBottom);
