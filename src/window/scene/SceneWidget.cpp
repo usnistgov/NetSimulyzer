@@ -508,7 +508,7 @@ void SceneWidget::focusNode(uint32_t nodeId) {
   // Put us at the middle of the model (height wise)
   // Use the provided height or one calculated based on
   // the model bounds
-  position.y += ns3Model.height.value_or(bounds.max.y - bounds.min.y) * ns3Model.scale / 2.0f;
+  position.y += ns3Model.height.value_or(bounds.max.y - bounds.min.y) * ns3Model.scale[2] / 2.0f;
 
   camera.setPosition(position);
   camera.resetRotation();

@@ -66,7 +66,7 @@ private:
 
   glm::vec3 position{0.0f};
   float targetHeightScale = 1.0f;
-  float scale = 1.0f;
+  glm::vec3 scale{1.0f};
   std::array<float, 3> rotate{0.0f};
   std::optional<glm::vec3> baseColor;
   std::optional<glm::vec3> highlightColor;
@@ -87,8 +87,8 @@ public:
   void setTargetHeightScale(float value);
   [[nodiscard]] float getTargetHeightScale() const;
 
-  void setScale(float value);
-  [[nodiscard]] float getScale() const;
+  void setScale(glm::vec3 value);
+  [[nodiscard]] glm::vec3 getScale() const;
 
   void setRotate(float x = 0.0f, float y = 0.0f, float z = 0.0f);
   [[nodiscard]] std::array<float, 3> getRotate() const;

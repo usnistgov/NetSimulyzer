@@ -42,6 +42,8 @@ glm::vec3 toRenderCoordinate(const parser::Ns3Coordinate &coordinate);
 
 glm::vec3 toRenderColor(const parser::Ns3Color3 &color);
 
+glm::vec3 toRenderArray(const std::array<float, 3> &array);
+
 QString toDisplayTime(double value);
 
 } // namespace netsimulyzer

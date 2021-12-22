@@ -45,6 +45,10 @@ glm::vec3 toRenderColor(const parser::Ns3Color3 &color) {
           static_cast<float>(color.blue) / 255.0f};
 }
 
+glm::vec3 toRenderArray(const std::array<float, 3> &array) {
+  return {array[0], array[2], array[1]};
+}
+
 QString toDisplayTime(double value) {
   auto convertedTime = static_cast<long>(value);
 

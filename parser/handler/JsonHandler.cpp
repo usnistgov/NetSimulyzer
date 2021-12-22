@@ -103,8 +103,7 @@ parser::CategoryAxis categoryAxisFromObject(const util::json::JsonObject &object
 
   auto &values = object["values"].array();
   for (auto &value : values) {
-    requiredFields(value.object(), {"id",
-                                    "value"});
+    requiredFields(value.object(), {"id", "value"});
     parser::CategoryAxis::Category category;
 
     category.id = value.object()["id"].get<unsigned int>();
@@ -265,7 +264,16 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
   node.id = object["id"].get<unsigned int>();
   node.name = object["name"].get<std::string>();
   node.model = object["model"].get<std::string>();
-  node.scale = object["scale"].get<double>();
+
+  if (object["scale"].isObject()) {
+    requiredFields(object["scale"].object(), {"x", "y", "z"});
+    node.scale[0] = object["scale"].object()["x"].get<float>();
+    node.scale[1] = object["scale"].object()["y"].get<float>();
+    node.scale[2] = object["scale"].object()["z"].get<float>();
+  } else {
+    // TODO: Remove for v0.2.0
+    node.scale.fill(object["scale"].get<float>());
+  }
 
   if (object.contains("height")) {
     node.height = object["height"].get<double>();
@@ -356,7 +364,15 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
   decoration.orientation[1] = object["orientation"].object()["y"].get<double>();
   decoration.orientation[2] = object["orientation"].object()["z"].get<double>();
 
-  decoration.scale = object["scale"].get<double>();
+  if (object["scale"].isObject()) {
+    requiredFields(object["scale"].object(), {"x", "y", "z"});
+    decoration.scale[0] = object["scale"].object()["x"].get<float>();
+    decoration.scale[1] = object["scale"].object()["y"].get<float>();
+    decoration.scale[2] = object["scale"].object()["z"].get<float>();
+  } else {
+    // TODO: Remove for v0.2.0
+    decoration.scale.fill(object["scale"].get<float>());
+  }
 
   fileParser.decorations.emplace_back(decoration);
 }

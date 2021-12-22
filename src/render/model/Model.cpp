@@ -56,7 +56,7 @@ void Model::rebuildModelMatrix() {
   modelMatrix *= rotateMatrix;
 
   modelMatrix = glm::scale(modelMatrix, {targetHeightScale, targetHeightScale, targetHeightScale});
-  modelMatrix = glm::scale(modelMatrix, {scale, scale, scale});
+  modelMatrix = glm::scale(modelMatrix, scale);
 }
 
 void Model::setPosition(const glm::vec3 &value) {
@@ -73,7 +73,7 @@ float Model::getTargetHeightScale() const {
   return targetHeightScale;
 }
 
-void Model::setScale(float value) {
+void Model::setScale(glm::vec3 value) {
   scale = value;
   rebuildModelMatrix();
 }
@@ -85,7 +85,7 @@ const glm::mat4 &Model::getModelMatrix() const {
 const glm::vec3 &Model::getPosition() const {
   return position;
 }
-float Model::getScale() const {
+glm::vec3 Model::getScale() const {
   return scale;
 }
 

@@ -52,7 +52,7 @@ Node::Node(const Model &model, parser::Node ns3Node)
     this->model.setTargetHeightScale(*ns3Node.height / height);
   }
 
-  this->model.setScale(ns3Node.scale);
+  this->model.setScale(toRenderArray(ns3Node.scale));
 
   if (ns3Node.baseColor)
     this->model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
@@ -75,7 +75,7 @@ bool Node::visible() const {
 glm::vec3 Node::getCenter() const {
   auto position = model.getPosition();
   const auto &bounds = model.getBounds();
-  position.y += ns3Node.height.value_or(bounds.max.y - bounds.min.y) * model.getScale() / 2.0f;
+  position.y += ns3Node.height.value_or(bounds.max.y - bounds.min.y) * model.getScale().y / 2.0f;
 
   return position;
 }

@@ -73,7 +73,7 @@ struct Node {
   unsigned int id = 0;
   std::string name;
   std::string model;
-  float scale = 1.0f;
+  std::array<float, 3> scale{1.0f};
   std::optional<float> height;
   bool visible = true;
   Ns3Coordinate position;
@@ -100,7 +100,7 @@ struct Decoration {
   Ns3Coordinate position;
   std::array<double, 3> orientation{0.0};
   std::optional<float> height;
-  float scale = 1.0f;
+  std::array<float, 3> scale{1.0f};
 };
 
 struct Area {

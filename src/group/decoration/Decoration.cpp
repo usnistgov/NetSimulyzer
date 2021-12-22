@@ -48,7 +48,7 @@ Decoration::Decoration(const Model &model, const parser::Decoration &ns3Model) :
     this->model.setTargetHeightScale(*ns3Model.height / height);
   }
 
-  this->model.setScale(ns3Model.scale);
+  this->model.setScale(toRenderArray(ns3Model.scale));
 }
 
 const Model &Decoration::getModel() const {
