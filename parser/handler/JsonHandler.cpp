@@ -271,12 +271,32 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
     node.scale[1] = object["scale"].object()["y"].get<float>();
     node.scale[2] = object["scale"].object()["z"].get<float>();
   } else {
-    // TODO: Remove for v0.2.0
+    // TODO: compatibility with v1.0.0, remove for v1.1.0
     node.scale.fill(object["scale"].get<float>());
   }
 
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  // Moved to "target-scale" in 1.0.4+
   if (object.contains("height")) {
     node.height = object["height"].get<double>();
+  }
+
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  // This is required 1.0.4+
+  if (object.contains("target-scale")) {
+    const auto &o = object["target-scale"].object();
+    requiredFields(o, {"keep-ratio"});
+
+    node.keepRatio = o["keep-ratio"].get<bool>();
+
+    if (o.contains("height"))
+      node.height = o["height"].get<double>();
+
+    if (o.contains("width"))
+      node.width = o["width"].get<double>();
+
+    if (o.contains("depth"))
+      node.depth = o["depth"].get<double>();
   }
 
   requiredFields(object["orientation"].object(), {"x", "y", "z"});
@@ -353,8 +373,28 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
   decoration.position.y = object["position"].object()["y"].get<double>();
   decoration.position.z = object["position"].object()["z"].get<double>();
 
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  // Moved to "target-scale" in 1.0.4+
   if (object.contains("height")) {
     decoration.height = object["height"].get<double>();
+  }
+
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  // This is required 1.0.4+
+  if (object.contains("target-scale")) {
+    const auto &o = object["target-scale"].object();
+    requiredFields(o, {"keep-ratio"});
+
+    decoration.keepRatio = o["keep-ratio"].get<bool>();
+
+    if (o.contains("height"))
+      decoration.height = o["height"].get<double>();
+
+    if (o.contains("width"))
+      decoration.width = o["width"].get<double>();
+
+    if (o.contains("depth"))
+      decoration.depth = o["depth"].get<double>();
   }
 
   updateLocationBounds(decoration.position);
@@ -370,7 +410,7 @@ void JsonHandler::parseDecoration(const util::json::JsonObject &object) {
     decoration.scale[1] = object["scale"].object()["y"].get<float>();
     decoration.scale[2] = object["scale"].object()["z"].get<float>();
   } else {
-    // TODO: Remove for v0.2.0
+    // TODO: compatibility with v1.0.0, remove for v1.1.0
     decoration.scale.fill(object["scale"].get<float>());
   }
 

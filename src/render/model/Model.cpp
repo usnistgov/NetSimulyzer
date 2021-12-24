@@ -33,11 +33,25 @@
 
 #include "Model.h"
 #include "../mesh/Vertex.h"
+#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <utility>
 
 namespace netsimulyzer {
+
+void Model::rebuildScaleMatrix() {
+  scaleMatrix = glm::mat4{1.0f};
+
+  if (keepRatio) {
+    const auto maxTargetScale = std::max({targetHeightScale, targetWidthScale, targetDepthScale});
+    scaleMatrix = glm::scale(scaleMatrix, {maxTargetScale, maxTargetScale, maxTargetScale});
+  } else {
+    scaleMatrix = glm::scale(scaleMatrix, {targetWidthScale, targetHeightScale, targetDepthScale});
+  }
+
+  scaleMatrix = glm::scale(scaleMatrix, scale);
+}
 
 Model::Model(const Model::ModelLoadInfo &info) : Model(info.id, info.min, info.max) {
 }
@@ -55,8 +69,7 @@ void Model::rebuildModelMatrix() {
   rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[2]), {0, 0, 1});
   modelMatrix *= rotateMatrix;
 
-  modelMatrix = glm::scale(modelMatrix, {targetHeightScale, targetHeightScale, targetHeightScale});
-  modelMatrix = glm::scale(modelMatrix, scale);
+  modelMatrix *= scaleMatrix;
 }
 
 void Model::setPosition(const glm::vec3 &value) {
@@ -64,8 +77,19 @@ void Model::setPosition(const glm::vec3 &value) {
   rebuildModelMatrix();
 }
 
+void Model::setKeepRatio(bool value) {
+  keepRatio = value;
+  rebuildScaleMatrix();
+  rebuildModelMatrix();
+}
+
+bool Model::getKeepRatio() const {
+  return keepRatio;
+}
+
 void Model::setTargetHeightScale(float value) {
   targetHeightScale = value;
+  rebuildScaleMatrix();
   rebuildModelMatrix();
 }
 
@@ -73,8 +97,29 @@ float Model::getTargetHeightScale() const {
   return targetHeightScale;
 }
 
+void Model::setTargetWidthScale(float value) {
+  targetWidthScale = value;
+  rebuildScaleMatrix();
+  rebuildModelMatrix();
+}
+
+float Model::getTargetWidthScale() const {
+  return targetWidthScale;
+}
+
+void Model::setTargetDepthScale(float value) {
+  targetDepthScale = value;
+  rebuildScaleMatrix();
+  rebuildModelMatrix();
+}
+
+float Model::getTargetDepthScale() const {
+  return targetDepthScale;
+}
+
 void Model::setScale(glm::vec3 value) {
   scale = value;
+  rebuildScaleMatrix();
   rebuildModelMatrix();
 }
 
@@ -85,6 +130,25 @@ const glm::mat4 &Model::getModelMatrix() const {
 const glm::vec3 &Model::getPosition() const {
   return position;
 }
+
+glm::vec3 Model::getCenter() const {
+  // Set-up of the scale matrix
+  // [x 0 0 0]
+  // [0 y 0 0]
+  // [0 0 z 0]
+  // [0 0 0 1]
+  const auto xScale = scaleMatrix[0].x;
+  const auto yScale = scaleMatrix[1].y;
+  const auto zScale = scaleMatrix[2].z;
+
+  glm::vec3 result;
+  result.x = (max.x + min.x) * xScale / 2.0f;
+  result.y = (max.y + min.y) * yScale / 2.0f;
+  result.z = (max.z + min.z) * zScale / 2.0f;
+
+  return result;
+}
+
 glm::vec3 Model::getScale() const {
   return scale;
 }

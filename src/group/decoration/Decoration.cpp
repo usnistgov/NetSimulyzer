@@ -41,11 +41,20 @@ Decoration::Decoration(const Model &model, const parser::Decoration &ns3Model) :
   this->model.setPosition(toRenderCoordinate(ns3Model.position));
   this->model.setRotate(ns3Model.orientation[0], ns3Model.orientation[2], -ns3Model.orientation[1]);
 
+  const auto &bounds = model.getBounds();
   if (ns3Model.height) {
-    const auto bounds = model.getBounds();
-    auto height = std::abs(bounds.max.y - bounds.min.y);
-
+    const auto height = std::abs(bounds.max.y - bounds.min.y);
     this->model.setTargetHeightScale(*ns3Model.height / height);
+  }
+
+  if (ns3Model.width) {
+    const auto width = std::abs(bounds.max.x - bounds.min.x);
+    this->model.setTargetWidthScale(*ns3Model.width / width);
+  }
+
+  if (ns3Model.depth) {
+    const auto depth = std::abs(bounds.max.z - bounds.min.z);
+    this->model.setTargetDepthScale(*ns3Model.depth / depth);
   }
 
   this->model.setScale(toRenderArray(ns3Model.scale));

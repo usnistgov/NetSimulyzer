@@ -74,7 +74,10 @@ struct Node {
   std::string name;
   std::string model;
   std::array<float, 3> scale{1.0f};
+  bool keepRatio{true};
   std::optional<float> height;
+  std::optional<float> width;
+  std::optional<float> depth;
   bool visible = true;
   Ns3Coordinate position;
   Ns3Coordinate offset;
@@ -99,7 +102,10 @@ struct Decoration {
   std::string model;
   Ns3Coordinate position;
   std::array<double, 3> orientation{0.0};
+  bool keepRatio{true};
   std::optional<float> height;
+  std::optional<float> width;
+  std::optional<float> depth;
   std::array<float, 3> scale{1.0f};
 };
 

@@ -45,11 +45,22 @@ Node::Node(const Model &model, parser::Node ns3Node)
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
-  if (ns3Node.height) {
-    const auto bounds = model.getBounds();
-    auto height = std::abs(bounds.max.y - bounds.min.y);
+  this->model.setKeepRatio(ns3Node.keepRatio);
 
+  const auto bounds = model.getBounds();
+  if (ns3Node.height) {
+    const auto height = std::abs(bounds.max.y - bounds.min.y);
     this->model.setTargetHeightScale(*ns3Node.height / height);
+  }
+
+  if (ns3Node.width) {
+    const auto width = std::abs(bounds.max.x - bounds.min.x);
+    this->model.setTargetWidthScale(*ns3Node.width / width);
+  }
+
+  if (ns3Node.depth) {
+    const auto depth = std::abs(bounds.max.z - bounds.min.z);
+    this->model.setTargetDepthScale(*ns3Node.depth / depth);
   }
 
   this->model.setScale(toRenderArray(ns3Node.scale));
@@ -73,9 +84,11 @@ bool Node::visible() const {
 }
 
 glm::vec3 Node::getCenter() const {
+  const auto modelCenter = model.getCenter();
   auto position = model.getPosition();
-  const auto &bounds = model.getBounds();
-  position.y += ns3Node.height.value_or(bounds.max.y - bounds.min.y) * model.getScale().y / 2.0f;
+  position.x += modelCenter.x;
+  position.y += modelCenter.y;
+  position.z += modelCenter.z;
 
   return position;
 }
