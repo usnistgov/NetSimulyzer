@@ -65,6 +65,7 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
   void initShader(Shader &s, const QString &vertexPath, const QString &fragmentPath);
 
 public:
+  enum class LightingMode { LightingEnabled, LightingDisabled };
   const unsigned int maxPointLights = 5u;
   const unsigned int maxSpotLights = 5u;
 
@@ -93,8 +94,8 @@ public:
   void render(const std::vector<Area> &areas);
   void render(const std::vector<Building> &buildings);
   void renderOutlines(const std::vector<Building> &buildings, const glm::vec3 &color);
-  void render(const Model &m);
-  void renderTransparent(const Model &m);
+  void render(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
+  void renderTransparent(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
   void render(Floor &f);
   void render(SkyBox &skyBox);
   void render(CoordinateGrid &coordinateGrid);

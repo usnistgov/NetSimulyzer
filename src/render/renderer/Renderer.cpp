@@ -601,13 +601,14 @@ void Renderer::renderOutlines(const std::vector<Building> &buildings, const glm:
   }
 }
 
-void Renderer::render(const Model &m) {
+void Renderer::render(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   modelCache.get(m.getModelId()).render(modelShader, m);
 }
 
-void Renderer::renderTransparent(const Model &m) {
+void Renderer::renderTransparent(const Model &m, LightingMode lightingMode) {
   auto &renderInfo = modelCache.get(m.getModelId());
 
   if (!renderInfo.hasTransparentMeshes())
@@ -615,6 +616,7 @@ void Renderer::renderTransparent(const Model &m) {
 
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   renderInfo.renderTransparent(modelShader, m);
 }
 
