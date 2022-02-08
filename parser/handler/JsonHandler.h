@@ -43,6 +43,7 @@
 #include <rapidjson/reader.h>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonHandler> {
@@ -52,6 +53,7 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   enum class Section { None, Areas, Buildings, Configuration, Decorations, Events, Links, Nodes, Series, Streams };
 
   parser::FileParser &fileParser;
+  std::unordered_map<unsigned int, std::optional<parser::TransmitEvent>> transmittingNodes;
 
   /**
    * Parse a section from a string.
@@ -195,6 +197,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseMoveEvent(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a transmit event
+   *
+   * @param object
+   * The object from the 'events' section with the 'node-transmit' type
+   */
+  void parseTransmitEvent(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a DecorationMoveEvent
    *
    * @param object
@@ -314,6 +324,21 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * in milliseconds
    */
   void updateEndTime(double milliseconds);
+
+  /**
+   * Run through the list of transmitting nodes
+   * and insert `TransmitEndEvent`s for those
+   * that are done transmitting before `milliseconds`.
+   *
+   * Potentially modifies `fileParser.sceneEvents`
+   *
+   * Should be called while processing each scene event,
+   * but before appending the event.
+   *
+   * @param milliseconds
+   * The time of the current event being processed.
+   */
+  void processEndTransmits(double milliseconds);
 
 public:
   explicit JsonHandler(parser::FileParser &parser);

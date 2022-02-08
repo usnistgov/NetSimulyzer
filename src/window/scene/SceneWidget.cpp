@@ -82,7 +82,8 @@ void SceneWidget::handleEvents() {
       return false;
 
     if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
-                  std::is_same_v<T, parser::NodeColorChangeEvent>) {
+                  std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
+                  std::is_same_v<T, parser::TransmitEndEvent>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
@@ -118,6 +119,7 @@ void SceneWidget::handleUndoEvents() {
       return false;
 
     if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent> ||
+                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
                   std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
@@ -171,6 +173,8 @@ void SceneWidget::initializeGL() {
 
   models.init("models/fallback.obj");
   renderer.init();
+
+  transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
 
   TextureCache::CubeMap cubeMap;
   cubeMap.right = QImage{":/texture/resources/textures/skybox/right.png"};
@@ -263,8 +267,20 @@ void SceneWidget::paintGL() {
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
     renderer.render(buildings);
 
-  for (auto &[key, node] : nodes) {
-    renderer.renderTransparent(node.getModel());
+  for (const auto &[_, node] : nodes) {
+    const auto &nodeModel = node.getModel();
+    renderer.renderTransparent(nodeModel);
+
+    const auto &transmit = node.getTransmitInfo();
+    if (transmit.isTransmitting && transmit.startTime <= simulationTime &&
+        transmit.startTime + transmit.duration >= simulationTime) {
+      const auto delta =
+          static_cast<float>((simulationTime - transmit.startTime) / transmit.duration * transmit.targetSize);
+      transmissionSphere->setPosition(nodeModel.getPosition());
+      transmissionSphere->setTargetHeightScale(delta);
+      transmissionSphere->setBaseColor(transmit.color);
+      renderer.render(*transmissionSphere, Renderer::LightingMode::LightingDisabled);
+    }
   }
 
   for (auto &[key, decoration] : decorations) {

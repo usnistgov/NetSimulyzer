@@ -221,6 +221,63 @@ struct MoveEvent {
 };
 
 /**
+ * Event that indicates a Node has begun transmitting
+ */
+struct TransmitEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Node that triggered the event
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * How long the transmission sphere should
+   * expand, in milliseconds
+   */
+  double duration = 50.0;
+
+  /**
+   * The size the transmission sphere should grow to,
+   * by the time `time + duration` milliseconds have
+   * passed. In ns-3 units
+   */
+  double targetSize = 2.0;
+
+  /**
+   * The color to use as the base color of
+   * the transmission bubble
+   */
+  Ns3Color3 color;
+};
+
+/**
+ * Event inserted by the parser when a transmission is supposed to end
+ */
+struct TransmitEndEvent {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  double time = 0.0;
+
+  /**
+   * The Node that triggered the event.
+   * Included for consistency with other events
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * The event that started the transmission
+   */
+  TransmitEvent startEvent;
+};
+
+/**
  * Event that changes the position of the indicated Decoration
  */
 struct DecorationMoveEvent {
@@ -439,14 +496,15 @@ struct StreamAppendEvent {
 /**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent, DecorationMoveEvent, NodeOrientationChangeEvent, DecorationOrientationChangeEvent,
-                           XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, StreamAppendEvent>;
+using Event = std::variant<MoveEvent, TransmitEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
+                           DecorationOrientationChangeEvent, XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear,
+                           StreamAppendEvent>;
 
 /**
  * Events which affect the rendered scene
  */
-using SceneEvent = std::variant<MoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationMoveEvent,
-                                DecorationOrientationChangeEvent>;
+using SceneEvent = std::variant<MoveEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
+                                NodeColorChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model

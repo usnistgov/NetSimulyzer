@@ -38,15 +38,27 @@
 #include "src/group/link/WiredLink.h"
 #include <glm/glm.hpp>
 #include <model.h>
+#include <optional>
 #include <vector>
 
 namespace netsimulyzer {
 
 class Node {
+public:
+  struct TransmitInfo {
+    bool isTransmitting{false};
+    double startTime;
+    double targetSize{2.0};
+    double duration{50.0};
+    glm::vec3 color;
+  };
+
+private:
   Model model;
   parser::Node ns3Node;
   glm::vec3 offset;
   std::vector<WiredLink *> wiredLinks;
+  TransmitInfo transmitInfo;
 
 public:
   Node(const Model &model, parser::Node ns3Node);
@@ -54,14 +66,19 @@ public:
   [[nodiscard]] const parser::Node &getNs3Model() const;
   [[nodiscard]] bool visible() const;
   [[nodiscard]] glm::vec3 getCenter() const;
+  [[nodiscard]] const TransmitInfo &getTransmitInfo() const;
 
   void addWiredLink(WiredLink *link);
 
   undo::MoveEvent handle(const parser::MoveEvent &e);
+  undo::TransmitEvent handle(const parser::TransmitEvent &e);
+  undo::TransmitEndEvent handle(const parser::TransmitEndEvent &e);
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
   undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
 
   void handle(const undo::MoveEvent &e);
+  void handle(const undo::TransmitEvent &e);
+  void handle(const undo::TransmitEndEvent &e);
   void handle(const undo::NodeOrientationChangeEvent &e);
   void handle(const undo::NodeColorChangeEvent &e);
 };

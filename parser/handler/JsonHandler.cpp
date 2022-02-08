@@ -189,6 +189,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
       parseNodeOrientationEvent(object);
     else if (type == "node-color")
       parseNodeColorChangeEvent(object);
+    else if (type == "node-transmit")
+      parseTransmitEvent(object);
     else if (type == "decoration-position")
       parseDecorationMoveEvent(object);
     else if (type == "decoration-orientation")
@@ -481,6 +483,33 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
   updateLocationBounds(event.targetPosition);
 
   updateEndTime(event.time);
+  processEndTransmits(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
+void JsonHandler::parseTransmitEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "milliseconds", "duration", "target-size"});
+  parser::TransmitEvent event;
+
+  event.nodeId = object["id"].get<int>();
+  event.time = object["milliseconds"].get<double>();
+  event.duration = object["duration"].get<double>();
+  event.targetSize = object["target-size"].get<double>();
+  event.color = colorFromObject(object["color"].object());
+
+  updateEndTime(event.time);
+  processEndTransmits(event.time);
+
+  // End any previous transmits by this Node
+  // Even if they're incomplete
+  const auto &transmittingIter = transmittingNodes.find(event.nodeId);
+  if (transmittingIter != transmittingNodes.end() && transmittingIter->second.has_value()) {
+    parser::TransmitEndEvent endEvent;
+    endEvent.time = event.time;
+    endEvent.startEvent = transmittingIter->second.value();
+    fileParser.sceneEvents.emplace_back(endEvent);
+  }
+  transmittingNodes[event.nodeId] = event;
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -497,6 +526,7 @@ void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object)
   updateLocationBounds(event.targetPosition);
 
   updateEndTime(event.time);
+  processEndTransmits(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -511,6 +541,7 @@ void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object
   event.targetOrientation[2] = object["z"].get<double>();
 
   updateEndTime(event.time);
+  processEndTransmits(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -525,6 +556,7 @@ void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &
   event.targetOrientation[2] = object["z"].get<double>();
 
   updateEndTime(event.time);
+  processEndTransmits(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -547,6 +579,7 @@ void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object
     event.targetColor = colorFromObject(object["color"].object());
 
   updateEndTime(event.time);
+  processEndTransmits(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
@@ -734,6 +767,25 @@ void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) 
 void JsonHandler::updateEndTime(double milliseconds) {
   if (milliseconds > fileParser.globalConfiguration.endTime)
     fileParser.globalConfiguration.endTime = milliseconds;
+}
+
+void JsonHandler::processEndTransmits(double milliseconds) {
+  for (auto &[nodeId, transmitEvent] : transmittingNodes) {
+    if (!transmitEvent.has_value())
+      return;
+
+    const auto endTransmitTime = transmitEvent.value().time + transmitEvent.value().duration;
+    if (milliseconds < endTransmitTime)
+      return;
+
+    parser::TransmitEndEvent endEvent;
+    endEvent.time = milliseconds;
+    endEvent.startEvent = transmitEvent.value();
+    endEvent.nodeId = endEvent.startEvent.nodeId;
+    fileParser.sceneEvents.emplace_back(endEvent);
+
+    transmitEvent.reset();
+  }
 }
 
 JsonHandler::JsonHandler(parser::FileParser &parser) : fileParser(parser) {

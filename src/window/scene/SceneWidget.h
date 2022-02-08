@@ -97,6 +97,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unique_ptr<CoordinateGrid> coordinateGrid;
   SettingsManager::BuildingRenderMode buildingRenderMode =
       settings.get<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode).value();
+  std::unique_ptr<Model> transmissionSphere;
 
   parser::GlobalConfiguration config;
 

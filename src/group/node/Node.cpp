@@ -93,6 +93,10 @@ glm::vec3 Node::getCenter() const {
   return position;
 }
 
+const Node::TransmitInfo &Node::getTransmitInfo() const {
+  return transmitInfo;
+}
+
 void Node::addWiredLink(WiredLink *link) {
   wiredLinks.emplace_back(link);
   link->notifyNodeMoved(ns3Node.id, getCenter());
@@ -155,6 +159,28 @@ void Node::handle(const undo::MoveEvent &e) {
   }
 }
 
+undo::TransmitEvent Node::handle(const parser::TransmitEvent &e) {
+  transmitInfo.isTransmitting = true;
+  transmitInfo.startTime = e.time;
+  transmitInfo.targetSize = e.targetSize;
+  transmitInfo.duration = e.duration;
+  transmitInfo.color = toRenderColor(e.color);
+
+  undo::TransmitEvent undo;
+  undo.stopTime = transmitInfo.startTime + transmitInfo.duration;
+  undo.event = e;
+  return undo;
+}
+
+undo::TransmitEndEvent Node::handle(const parser::TransmitEndEvent &e) {
+  transmitInfo.isTransmitting = false;
+
+  undo::TransmitEndEvent undo;
+  undo.event = e;
+
+  return undo;
+}
+
 void Node::handle(const undo::NodeOrientationChangeEvent &e) {
   model.setRotate(e.orientation[0], e.orientation[2], e.orientation[1]);
 }
@@ -171,6 +197,17 @@ void Node::handle(const undo::NodeColorChangeEvent &e) {
     else
       model.unsetHighlightColor();
   }
+}
+
+void Node::handle(const undo::TransmitEvent &e) {
+  transmitInfo.startTime = e.event.time;
+  transmitInfo.duration = e.event.duration;
+}
+
+void Node::handle(const undo::TransmitEndEvent &e) {
+  const auto &startEvent = e.event.startEvent;
+  transmitInfo.startTime = startEvent.time;
+  transmitInfo.duration = startEvent.duration;
 }
 
 } // namespace netsimulyzer
