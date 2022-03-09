@@ -55,6 +55,12 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   parser::FileParser &fileParser;
   std::unordered_map<unsigned int, std::optional<parser::TransmitEvent>> transmittingNodes;
 
+  // TODO: Compatability with v1.0.0, remove for v1.1.0
+  /**
+   * Next index in the color palette for node trails
+   */
+  std::size_t nextColorIndex{0};
+
   /**
    * Parse a section from a string.
    * Returns Section::None if the string does not match a Section.

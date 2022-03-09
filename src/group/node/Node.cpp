@@ -40,8 +40,9 @@
 
 namespace netsimulyzer {
 
-Node::Node(const Model &model, parser::Node ns3Node)
-    : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)) {
+Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer)
+    : model(model), ns3Node(std::move(ns3Node)),
+      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)} {
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
@@ -69,6 +70,8 @@ Node::Node(const Model &model, parser::Node ns3Node)
     this->model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
   if (ns3Node.highlightColor)
     this->model.setHighlightColor(toRenderColor(ns3Node.highlightColor.value()));
+
+  trailColor = toRenderColor(ns3Node.trailColor);
 }
 
 const Model &Node::getModel() const {
@@ -107,8 +110,14 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo.position = model.getPosition();
   undo.event = e;
 
-  auto target = toRenderCoordinate(e.targetPosition) + offset;
-  this->model.setPosition(target);
+  if (trailBuffer.empty()) {
+    const auto currentPosition = model.getPosition();
+    trailBuffer.append(currentPosition.x, currentPosition.y, currentPosition.z);
+  }
+
+  const auto target = toRenderCoordinate(e.targetPosition) + offset;
+  model.setPosition(target);
+  trailBuffer.append(target.x, target.y, target.z);
 
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
@@ -154,6 +163,8 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
 
+  trailBuffer.pop();
+
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
   }
@@ -197,6 +208,13 @@ void Node::handle(const undo::NodeColorChangeEvent &e) {
     else
       model.unsetHighlightColor();
   }
+}
+const TrailBuffer &Node::getTrailBuffer() const {
+  return trailBuffer;
+}
+
+const glm::vec3 &Node::getTrailColor() const {
+  return trailColor;
 }
 
 void Node::handle(const undo::TransmitEvent &e) {

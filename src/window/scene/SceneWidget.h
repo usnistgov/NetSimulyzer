@@ -76,6 +76,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
   enum class PlayMode { Paused, Play };
 
+  QOpenGLFunctions_3_3_Core openGl;
   SettingsManager settings;
   Camera camera{glm::vec3{0.0f, 2.0f, 0.0f}};
   QPoint initialCursorPosition{width() / 2, height() / 2};
@@ -90,6 +91,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
+  bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -226,6 +228,14 @@ public:
    * The new size of each grid square in ns-3 units
    */
   void changeGridStepSize(int stepSize);
+
+  /**
+   * Enable or disable showing of motion trails
+   *
+   * @param enable
+   * True to show trails, false to hide
+   */
+  void setRenderTrails(bool enable);
 
 signals:
   void timeChanged(double simulationTime, double increment);

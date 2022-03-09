@@ -45,6 +45,8 @@ public:
     RenderBuildingOutlines,
     RenderGrid,
     RenderGridStep,
+    RenderMotionTrails,
+    RenderMotionTrailLength,
     RenderSkybox,
     ChartDropdownSortOrder,
   };
@@ -123,6 +125,8 @@ private:
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
+      {Key::RenderMotionTrails, {"renderer/showMotionTrails", false}},
+      {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};
 
   /**

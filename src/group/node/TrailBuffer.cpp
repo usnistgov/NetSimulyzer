@@ -31,62 +31,80 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-
-#include "../../render/model/Model.h"
-#include "../../util/undo-events.h"
-#include "src/group/link/WiredLink.h"
-#include "src/group/node/TrailBuffer.h"
-#include <QOpenGLFunctions_3_3_Core>
-#include <glm/glm.hpp>
-#include <model.h>
-#include <optional>
-#include <vector>
+#include "TrailBuffer.h"
+#include <algorithm>
+#include <utility>
 
 namespace netsimulyzer {
 
-class Node {
-public:
-  struct TransmitInfo {
-    bool isTransmitting{false};
-    double startTime;
-    double targetSize{2.0};
-    double duration{50.0};
-    glm::vec3 color;
-  };
+TrailBuffer::TrailBuffer(QOpenGLFunctions_3_3_Core *openGl, unsigned int vao, unsigned int vbo, int initialSize,
+                         int vertexSize) noexcept
+    : openGl{openGl}, vao{vao}, vbo{vbo}, bufferSize{initialSize}, vertexSize{vertexSize}, buffer(bufferSize) {
+}
 
-private:
-  Model model;
-  parser::Node ns3Node;
-  glm::vec3 offset;
-  TrailBuffer trailBuffer;
-  glm::vec3 trailColor;
-  std::vector<WiredLink *> wiredLinks;
-  TransmitInfo transmitInfo;
+TrailBuffer::TrailBuffer(TrailBuffer &&other) noexcept
+    : openGl{other.openGl}, vao{other.vao}, vbo{other.vbo}, bufferSize{other.bufferSize},
+      vertexSize{other.vertexSize}, index{other.index}, _empty{other._empty}, buffer{std::move(other.buffer)} {
+  // Clear these, so the `other` deconstructor doesn't delete our moved buffers
+  other.vao = 0u;
+  other.vbo = 0u;
+}
 
-public:
-  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer);
-  [[nodiscard]] const Model &getModel() const;
-  [[nodiscard]] const parser::Node &getNs3Model() const;
-  [[nodiscard]] bool visible() const;
-  [[nodiscard]] glm::vec3 getCenter() const;
-  [[nodiscard]] const TransmitInfo &getTransmitInfo() const;
-  [[nodiscard]] const TrailBuffer &getTrailBuffer() const;
-  [[nodiscard]] const glm::vec3 &getTrailColor() const;
+TrailBuffer::~TrailBuffer() {
+  openGl->glDeleteBuffers(1, &vbo);
+  openGl->glDeleteVertexArrays(1, &vao);
+}
 
-  void addWiredLink(WiredLink *link);
+void TrailBuffer::bind() const {
+  openGl->glBindVertexArray(vao);
+  openGl->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+}
 
-  undo::MoveEvent handle(const parser::MoveEvent &e);
-  undo::TransmitEvent handle(const parser::TransmitEvent &e);
-  undo::TransmitEndEvent handle(const parser::TransmitEndEvent &e);
-  undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
-  undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
+void TrailBuffer::render() const {
+  if (empty())
+    return;
 
-  void handle(const undo::MoveEvent &e);
-  void handle(const undo::TransmitEvent &e);
-  void handle(const undo::TransmitEndEvent &e);
-  void handle(const undo::NodeOrientationChangeEvent &e);
-  void handle(const undo::NodeColorChangeEvent &e);
-};
+  bind();
+  openGl->glDrawArrays(GL_LINE_STRIP, 0, index);
+}
+
+void TrailBuffer::append(float x, float y, float z) {
+  if (index == bufferSize - 1) {
+    std::rotate(buffer.begin(), buffer.begin() + 1, buffer.end());
+
+    buffer[index].x = x;
+    buffer[index].y = y;
+    buffer[index].z = z;
+
+  } else {
+    if (_empty)
+      _empty = false;
+    else
+      index++;
+
+    buffer[index].x = x;
+    buffer[index].y = y;
+    buffer[index].z = z;
+  }
+
+  openGl->glBindVertexArray(vao);
+  openGl->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  openGl->glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize * (index + 1), buffer.data());
+}
+
+void TrailBuffer::pop() {
+  if (_empty)
+    return;
+
+  index--;
+  if (index == -1) {
+    _empty = true;
+    index = 0;
+  }
+}
+
+bool TrailBuffer::empty() const noexcept {
+  return _empty;
+}
 
 } // namespace netsimulyzer

@@ -35,6 +35,7 @@ target_sources(netsimulyzer PRIVATE
         group/decoration/Decoration.h group/decoration/Decoration.cpp
         group/link/WiredLink.h group/link/WiredLink.cpp
         group/node/Node.h group/node/Node.cpp
+        group/node/TrailBuffer.h group/node/TrailBuffer.cpp
         render/camera/Camera.h render/camera/Camera.cpp
         render/helper/Floor.h render/helper/Floor.cpp
         render/Light.h

@@ -182,6 +182,8 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
+  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, &scene, &SceneWidget::setRenderTrails);
+
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
   });

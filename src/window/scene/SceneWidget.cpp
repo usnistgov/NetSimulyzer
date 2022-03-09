@@ -154,7 +154,10 @@ void SceneWidget::initializeGL() {
     std::cerr << "Failed OpenGL functions\n";
     std::abort();
   }
-  std::cout << glGetString(GL_VERSION) << '\n';
+
+  if (!openGl.initializeOpenGLFunctions())
+    std::cerr << "Failed to initialize passable OpenGL functions!\n";
+  std::cout << glGetString(GL_VERSION) << ' ' << openGl.glGetString(GL_VERSION) << '\n';
 
 #ifndef NDEBUG
   const auto hasKhrDebug = context()->hasExtension(QByteArrayLiteral("GL_KHR_debug"));
@@ -232,6 +235,8 @@ void SceneWidget::paintGL() {
     if (!node.visible())
       continue;
     renderer.render(node.getModel());
+    if (renderMotionTrails)
+      renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }
 
   for (auto &[key, decoration] : decorations) {
@@ -475,8 +480,11 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   }
 
   nodes.reserve(nodeModels.size());
+  const auto functions = context()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+  const auto trailLength = settings.get<int>(SettingsManager::Key::RenderMotionTrailLength).value();
   for (const auto &node : nodeModels) {
-    nodes.try_emplace(node.id, Model{models.load(node.model)}, node);
+    nodes.try_emplace(node.id, Model{models.load(node.model)}, node,
+                      renderer.allocateTrailBuffer(functions, trailLength));
   }
 
   wiredLinks.reserve(links.size());
@@ -607,6 +615,10 @@ void SceneWidget::changeGridStepSize(int stepSize) {
   // Keep the same square size, but change the grid step
   renderer.resize(*coordinateGrid, coordinateGrid->getRenderInfo().squareSize, stepSize);
   doneCurrent();
+}
+
+void SceneWidget::setRenderTrails(bool enable) {
+  renderMotionTrails = enable;
 }
 
 } // namespace netsimulyzer

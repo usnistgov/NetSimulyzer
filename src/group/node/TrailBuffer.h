@@ -33,60 +33,67 @@
 
 #pragma once
 
-#include "../../render/model/Model.h"
-#include "../../util/undo-events.h"
-#include "src/group/link/WiredLink.h"
-#include "src/group/node/TrailBuffer.h"
+#include "src/render/shader/Shader.h"
 #include <QOpenGLFunctions_3_3_Core>
-#include <glm/glm.hpp>
-#include <model.h>
-#include <optional>
 #include <vector>
 
 namespace netsimulyzer {
 
-class Node {
-public:
-  struct TransmitInfo {
-    bool isTransmitting{false};
-    double startTime;
-    double targetSize{2.0};
-    double duration{50.0};
-    glm::vec3 color;
+/**
+ * Class that stores the list of locations
+ * a Node has visited. Once full, the oldest
+ * points 'fall off' the front,
+ * first in first out style
+ */
+class TrailBuffer {
+  // Make sure there is no padding is in this struct
+#pragma pack(push, 4)
+  struct TrailVertex {
+    float x;
+    float y;
+    float z;
   };
+#pragma pack(pop)
 
-private:
-  Model model;
-  parser::Node ns3Node;
-  glm::vec3 offset;
-  TrailBuffer trailBuffer;
-  glm::vec3 trailColor;
-  std::vector<WiredLink *> wiredLinks;
-  TransmitInfo transmitInfo;
+  QOpenGLFunctions_3_3_Core *openGl;
+  unsigned int vao{0u};
+  unsigned int vbo{0u};
+
+  /**
+   * Total size of the internal buffer
+   * in elements
+   */
+  int bufferSize{0};
+
+  /**
+   * Size of each vertex in bytes
+   */
+  const int vertexSize;
+
+  /**
+   * The current position in the buffer
+   */
+  int index{0};
+
+  /**
+   * FLag indicating that no points are in the buffer
+   */
+  bool _empty{true};
+
+  /**
+   * Application side buffer containing the appended points
+   */
+  std::vector<TrailVertex> buffer;
 
 public:
-  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer);
-  [[nodiscard]] const Model &getModel() const;
-  [[nodiscard]] const parser::Node &getNs3Model() const;
-  [[nodiscard]] bool visible() const;
-  [[nodiscard]] glm::vec3 getCenter() const;
-  [[nodiscard]] const TransmitInfo &getTransmitInfo() const;
-  [[nodiscard]] const TrailBuffer &getTrailBuffer() const;
-  [[nodiscard]] const glm::vec3 &getTrailColor() const;
-
-  void addWiredLink(WiredLink *link);
-
-  undo::MoveEvent handle(const parser::MoveEvent &e);
-  undo::TransmitEvent handle(const parser::TransmitEvent &e);
-  undo::TransmitEndEvent handle(const parser::TransmitEndEvent &e);
-  undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
-  undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
-
-  void handle(const undo::MoveEvent &e);
-  void handle(const undo::TransmitEvent &e);
-  void handle(const undo::TransmitEndEvent &e);
-  void handle(const undo::NodeOrientationChangeEvent &e);
-  void handle(const undo::NodeColorChangeEvent &e);
+  explicit TrailBuffer(QOpenGLFunctions_3_3_Core *openGl, unsigned int vao, unsigned int vbo, int initialSize,
+                       int vertexSize) noexcept;
+  TrailBuffer(TrailBuffer &&other) noexcept;
+  ~TrailBuffer();
+  void bind() const;
+  void render() const;
+  void append(float x, float y, float z);
+  void pop();
+  [[nodiscard]] bool empty() const noexcept;
 };
-
 } // namespace netsimulyzer

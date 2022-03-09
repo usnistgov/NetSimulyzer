@@ -60,6 +60,48 @@ void requiredFields(const util::json::JsonObject &object, const std::vector<std:
   }
 }
 
+// Copy of the palette from ns-3
+// duplicated here until I find a better
+// place for it
+const parser::Ns3Color3 RED{245u, 61u, 0u};
+const parser::Ns3Color3 DARK_RED{204u, 51u, 0u};
+
+const parser::Ns3Color3 GREEN{9u, 232u, 94u};
+const parser::Ns3Color3 DARK_GREEN{6u, 177u, 72u};
+
+const parser::Ns3Color3 BLUE{37u, 137u, 189u};
+const parser::Ns3Color3 DARK_BLUE{27u, 98u, 136u};
+
+const parser::Ns3Color3 ORANGE{255u, 167u, 51u};
+const parser::Ns3Color3 DARK_ORANGE{245u, 139u, 0u};
+
+const parser::Ns3Color3 YELLOW{255u, 227u, 71u};
+const parser::Ns3Color3 DARK_YELLOW{255u, 218u, 10u};
+
+const parser::Ns3Color3 PURPLE{120u, 41u, 163u};
+const parser::Ns3Color3 DARK_PURPLE{84u, 29u, 114u};
+
+const parser::Ns3Color3 PINK{255u, 92u, 176u};
+const parser::Ns3Color3 DARK_PINK{255u, 51u, 156u};
+
+const parser::Ns3Color3 BLACK{7u, 6u, 0u};
+
+const parser::Ns3Color3 WHITE{255u, 255u, 255u};
+
+std::vector<parser::Ns3Color3> COLOR_PALETTE{BLUE,        RED,       GREEN,    ORANGE,     YELLOW,      PURPLE,
+                                             PINK,        DARK_BLUE, DARK_RED, DARK_GREEN, DARK_ORANGE, DARK_YELLOW,
+                                             DARK_PURPLE, DARK_PINK, BLACK,    WHITE};
+
+parser::Ns3Color3 nextTrailColor(std::size_t &nextIndex) {
+  const auto color = COLOR_PALETTE[nextIndex];
+
+  nextIndex++;
+  if (nextIndex == COLOR_PALETTE.size())
+    nextIndex = 0;
+
+  return color;
+}
+
 } // namespace
 
 parser::ValueAxis::BoundMode boundModeFromString(const std::string &mode) {
@@ -325,6 +367,13 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
 
   if (object.contains("highlight-color"))
     node.highlightColor = colorFromObject(object["highlight-color"].object());
+
+  // TODO: Compatability with v1.0.0, remove for v1.1.0
+  // This is required 1.0.4+
+  if (object.contains("trail-color"))
+    node.trailColor = colorFromObject(object["trail-color"].object());
+  else
+    node.trailColor = node.baseColor.value_or(node.highlightColor.value_or(nextTrailColor(nextColorIndex)));
 
   updateLocationBounds(node.position);
 

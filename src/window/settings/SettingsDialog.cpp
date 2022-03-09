@@ -44,6 +44,9 @@ void SettingsDialog::loadSettings() {
   ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
   ui.checkBoxShowGrid->setChecked(settings.get<bool>(Key::RenderGrid).value());
 
+  ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
+  ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
+
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   // Time Step is session based (so no setting to load)
@@ -109,6 +112,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
                    &SettingsDialog::defaultBuildingOutlines);
   QObject::connect(ui.buttonResetShowGrid, &QPushButton::clicked, this, &SettingsDialog::defaultShowGrid);
   QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
+  QObject::connect(ui.buttonResetTrails, &QPushButton::clicked, this, &SettingsDialog::defaultShowTrails);
+  QObject::connect(ui.buttonResetTrailLength, &QPushButton::clicked, this, &SettingsDialog::defaultTrailsLength);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -149,6 +154,8 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetBuildingOutlines->click();
     ui.buttonResetShowGrid->click();
     ui.buttonResetGridSize->click();
+    ui.buttonResetTrails->click();
+    ui.buttonResetTrailLength->click();
 
     ui.buttonResetPlay->click();
     break;
@@ -266,6 +273,18 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit gridStepSizeChanged(gridStepSize);
     }
 
+    const auto enableTrails = ui.checkBoxShowTrails->isChecked();
+    if (enableTrails != settings.get<bool>(Key::RenderMotionTrails).value()) {
+      settings.set(Key::RenderMotionTrails, enableTrails);
+      emit renderTrailsChanged(enableTrails);
+    }
+
+    const auto trailLength = ui.sliderTrailLength->value();
+    if (trailLength != settings.get<int>(Key::RenderMotionTrailLength).value()) {
+      settings.set(Key::RenderMotionTrailLength, trailLength);
+      requiresRestart = true;
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -353,6 +372,14 @@ void SettingsDialog::defaultTimeStep() {
 
 void SettingsDialog::defaultShowGrid() {
   ui.checkBoxShowGrid->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderGrid));
+}
+
+void SettingsDialog::defaultShowTrails() {
+  ui.checkBoxShowTrails->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderMotionTrails));
+}
+
+void SettingsDialog::defaultTrailsLength() {
+  ui.sliderTrailLength->setValue(settings.getDefault<int>(SettingsManager::Key::RenderMotionTrailLength));
 }
 
 void SettingsDialog::defaultGridStep() {

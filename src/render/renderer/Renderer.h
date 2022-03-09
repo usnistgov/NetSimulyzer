@@ -43,6 +43,7 @@
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
 #include "src/group/link/WiredLink.h"
+#include "src/group/node/TrailBuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QOpenGLFunctions_3_3_Core>
@@ -76,6 +77,7 @@ public:
   void setPointLightCount(unsigned int count);
   void setSpotLightCount(unsigned int count);
 
+  TrailBuffer allocateTrailBuffer(QOpenGLFunctions_3_3_Core *openGl, int size);
   Building::RenderInfo allocate(const parser::Building &building);
   Area::RenderInfo allocate(const parser::Area &area);
   WiredLink::RenderInfo allocate(const parser::WiredLink &link);
@@ -94,6 +96,7 @@ public:
   void render(const std::vector<Area> &areas);
   void render(const std::vector<Building> &buildings);
   void renderOutlines(const std::vector<Building> &buildings, const glm::vec3 &color);
+  void renderTrail(const TrailBuffer &buffer, const glm::vec3 &color);
   void render(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
   void renderTransparent(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
   void render(Floor &f);
