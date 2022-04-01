@@ -105,11 +105,12 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 
   /**
    * Amount of time to advance/rewind `simulationTime`
-   * per frame in milliseconds.
+   * per frame.
    */
-  int timeStep = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
+  parser::nanoseconds timeStep =
+      settings.get<parser::nanoseconds>(SettingsManager::Key::PlaybackTimeStepPreference).value();
 
-  double simulationTime = 0.0;
+  parser::nanoseconds simulationTime;
 
   std::vector<Area> areas;
   std::vector<Building> buildings;
@@ -186,8 +187,8 @@ public:
    * @param value
    * The time increment, in milliseconds
    */
-  void setTime(double value);
-  void setTimeStep(int value);
+  void setTime(parser::nanoseconds value);
+  void setTimeStep(parser::nanoseconds value);
   QSize sizeHint() const override;
 
   /**
@@ -238,7 +239,7 @@ public:
   void setRenderTrails(bool enable);
 
 signals:
-  void timeChanged(double simulationTime, double increment);
+  void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
 };

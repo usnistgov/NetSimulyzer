@@ -152,7 +152,7 @@ void ScenarioLogWidget::streamSelected(unsigned int id) {
   ui.plainTextLog->ensureCursorVisible();
 }
 
-void ScenarioLogWidget::timeAdvanced(double time) {
+void ScenarioLogWidget::timeAdvanced(parser::nanoseconds time) {
   auto handle = [this, time](auto &&e) -> bool {
     if (time < e.time)
       return false;
@@ -167,7 +167,7 @@ void ScenarioLogWidget::timeAdvanced(double time) {
   }
 }
 
-void ScenarioLogWidget::timeRewound(double time) {
+void ScenarioLogWidget::timeRewound(parser::nanoseconds time) {
   auto handleUndoEvent = [time, this](auto &&e) -> bool {
     // All events have a time
     // Make sure we don't handle one
@@ -206,8 +206,8 @@ void ScenarioLogWidget::enqueueEvents(const std::vector<parser::LogEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }
 
-void ScenarioLogWidget::timeChanged(double time, double increment) {
-  if (increment > 0)
+void ScenarioLogWidget::timeChanged(parser::nanoseconds time, parser::nanoseconds increment) {
+  if (increment > 0LL)
     timeAdvanced(time);
   else
     timeRewound(time);

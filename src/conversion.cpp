@@ -32,6 +32,7 @@
  */
 
 #include "conversion.h"
+#include "src/settings/SettingsManager.h"
 
 namespace netsimulyzer {
 
@@ -49,41 +50,72 @@ glm::vec3 toRenderArray(const std::array<float, 3> &array) {
   return {array[0], array[2], array[1]};
 }
 
-QString toDisplayTime(double value) {
-  auto convertedTime = static_cast<long>(value);
+QString toDisplayTime(parser::nanoseconds value, SettingsManager::TimeUnit granularity) {
 
   // combine / and %
-  auto result = std::div(convertedTime, 1000L);
-  auto milliseconds = result.rem;
+  auto result = std::div(value, 1000LL);
+  const auto nanoseconds = result.rem;
 
-  result = std::div(result.quot, 60L);
-  auto seconds = result.rem;
+  result = std::div(result.quot, 1000LL);
+  const auto microseconds = result.rem;
 
-  result = std::div(result.quot, 60L);
-  auto minutes = result.rem;
+  result = std::div(result.quot, 1000LL);
+  const auto milliseconds = result.rem;
+
+  result = std::div(result.quot, 60LL);
+  const auto seconds = result.rem;
+
+  result = std::div(result.quot, 60LL);
+  const auto minutes = result.rem;
 
   // Dump the rest in as hours
-  auto hours = result.quot;
+  const auto hours = result.quot;
 
-  QString displayTime;
-  if (convertedTime >= 3'600'000) /* 1 Hour in ms */ {
-    displayTime = QString{"%1:%2:%3.%4"}
+  QString displayTimeHigh;
+  QString displayTimeLow;
+  if (value >= 3'600'000'000'000LL) /* 1 Hour in ns */ {
+    // clang-format off
+    displayTimeHigh = QString{"%1:%2:%3"}
                       .arg(hours)
                       .arg(minutes, 2, 10, QChar{'0'})
-                      .arg(seconds, 2, 10, QChar{'0'})
-                      .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime >= 60'000L) /* 1 minute in ms */ {
-    displayTime = QString{"%1:%2.%3"}
+                      .arg(seconds, 2, 10, QChar{'0'});
+    // clang-format on
+  } else if (value >= 60'000'000'000LL) /* 1 minute in ns */ {
+    // clang-format off
+    displayTimeHigh = QString{"%1:%2"}
                       .arg(minutes, 2, 10, QChar{'0'})
-                      .arg(seconds, 2, 10, QChar{'0'})
-                      .arg(milliseconds, 3, 10, QChar{'0'});
-  } else if (convertedTime >= 1000L) {
-    displayTime = QString{"%1.%2"}.arg(seconds, 2, 10, QChar{'0'}).arg(milliseconds, 3, 10, QChar{'0'});
+                      .arg(seconds, 2, 10, QChar{'0'});
+    // clang-format on
+  } else if (value >= 1'000'000LL) {
+    // clang-format off
+    displayTimeHigh = QString{"%1"}
+                      .arg(seconds, 2, 10, QChar{'0'});
+    // clang-format on
   } else {
-    displayTime.append('.' + QString::number(milliseconds));
+    displayTimeHigh = QString{"0"};
   }
 
-  return displayTime;
+  if (granularity == SettingsManager::TimeUnit::Nanoseconds) {
+    // clang-format off
+    displayTimeLow = QString{".%1%2%3"}
+                         .arg(milliseconds, 3, 10, QChar{'0'})
+                         .arg(microseconds, 3, 10, QChar{'0'})
+                         .arg(nanoseconds, 3, 10, QChar{'0'});
+    // clang-format on
+  } else if (granularity == SettingsManager::TimeUnit::Microseconds) {
+    // clang-format off
+    displayTimeLow = QString{".%1%2"}
+                         .arg(milliseconds, 3, 10, QChar{'0'})
+                         .arg(microseconds, 3, 10, QChar{'0'});
+    // clang-format on
+  } else {
+    // clang-format off
+    displayTimeLow = QString{".%1"}
+                         .arg(milliseconds, 3, 10, QChar{'0'});
+    // clang-format on
+  }
+
+  return displayTimeHigh + displayTimeLow;
 }
 
 } // namespace netsimulyzer

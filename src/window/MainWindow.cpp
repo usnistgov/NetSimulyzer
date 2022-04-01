@@ -81,9 +81,10 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&scene, &SceneWidget::timeChanged, this, &MainWindow::timeChanged);
   QObject::connect(&scene, &SceneWidget::timeChanged, &charts, &ChartManager::timeChanged);
   QObject::connect(&scene, &SceneWidget::timeChanged, &logWidget, &ScenarioLogWidget::timeChanged);
-  QObject::connect(&scene, &SceneWidget::timeChanged, [this](double time, double /* increment */) {
-    playbackWidget.setTime(time);
-  });
+  QObject::connect(&scene, &SceneWidget::timeChanged,
+                   [this](parser::nanoseconds time, parser::nanoseconds /* increment */) {
+                     playbackWidget.setTime(time);
+                   });
 
   QObject::connect(ui.actionPlayPause, &QAction::triggered, [this]() {
     if (playbackWidget.isPlaying()) {
@@ -211,8 +212,8 @@ MainWindow::~MainWindow() {
   loadThread.wait();
 }
 
-void MainWindow::timeChanged(double time, double /* increment */) {
-  statusLabel.setText(toDisplayTime(time));
+void MainWindow::timeChanged(parser::nanoseconds time, parser::nanoseconds /* increment */) {
+  statusLabel.setText(toDisplayTime(time, SettingsManager::TimeUnit::Nanoseconds));
 }
 
 void MainWindow::load() {
@@ -236,14 +237,40 @@ void MainWindow::load() {
 
 void MainWindow::finishLoading(const QString &fileName, unsigned long long milliseconds) {
   auto parser = loadWorker.getParser();
-  const auto config = parser.getConfiguration();
+  const auto &config = parser.getConfiguration();
   scene.setConfiguration(config);
 
   playbackWidget.setMaxTime(config.endTime);
 
-  const int timeStepPreference = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
-  scene.setTimeStep(config.timeStep.value_or(timeStepPreference));
-  playbackWidget.setTimeStep(config.timeStep.value_or(timeStepPreference));
+  const auto timeStep = config.timeStep.value_or(
+      settings.get<parser::nanoseconds>(SettingsManager::Key::PlaybackTimeStepPreference).value());
+  scene.setTimeStep(timeStep);
+
+  using TimeUnit = SettingsManager::TimeUnit;
+  TimeUnit granularity = TimeUnit::Milliseconds;
+  const auto timeUnitPreference = settings.get<TimeUnit>(SettingsManager::Key::PlaybackTimeStepUnit,
+                                                         SettingsManager::RetrieveMode::DisallowDefault);
+  if (config.granularity) {
+    if (config.granularity.value() == "milliseconds")
+      granularity = TimeUnit::Milliseconds;
+    else if (config.granularity.value() == "microseconds")
+      granularity = TimeUnit::Microseconds;
+    else if (config.granularity.value() == "nanoseconds")
+      granularity = TimeUnit::Nanoseconds;
+    else
+      std::clog << "Warning: unrecognised granularity: '" << config.granularity.value() << " ', ignoring\n ";
+  } else if (timeUnitPreference) {
+    granularity = timeUnitPreference.value();
+  } else if (config.timeStep) { // Try and extrapolate a granularity from the size of the time step
+    if (timeStep > 1'000'000)
+      granularity = TimeUnit::Milliseconds;
+    else if (timeStep > 1'000)
+      granularity = TimeUnit::Microseconds;
+    else
+      granularity = TimeUnit::Nanoseconds;
+  }
+
+  playbackWidget.setTimeStep(timeStep, granularity);
 
   // Nodes, Buildings, Decorations
   const auto &nodes = parser.getNodes();

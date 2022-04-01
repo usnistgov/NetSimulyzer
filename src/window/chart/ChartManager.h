@@ -81,7 +81,7 @@ public:
     QtCharts::QXYSeries *qtSeries;
     QtCharts::QAbstractAxis *xAxis;
     QtCharts::QCategoryAxis *yAxis;
-    double lastUpdatedTime{0.0};
+    parser::nanoseconds lastUpdatedTime;
   };
 
   struct DropdownValue {
@@ -135,8 +135,8 @@ private:
    */
   void clearSeries(const ChartWidget *except, unsigned int id);
 
-  void timeAdvanced(double time);
-  void timeRewound(double time);
+  void timeAdvanced(parser::nanoseconds time);
+  void timeRewound(parser::nanoseconds time);
 
 public:
   explicit ChartManager(QWidget *parent);
@@ -166,7 +166,7 @@ public:
   TieVariant &getSeries(uint32_t seriesId);
 
   void seriesSelected(const ChartWidget *widget, unsigned int selected);
-  void timeChanged(double time, double increment);
+  void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
 };

@@ -49,9 +49,9 @@ class Node {
 public:
   struct TransmitInfo {
     bool isTransmitting{false};
-    double startTime;
+    parser::nanoseconds startTime;
     double targetSize{2.0};
-    double duration{50.0};
+    parser::nanoseconds duration;
     glm::vec3 color;
   };
 

@@ -1,4 +1,5 @@
 #include "SettingsDialog.h"
+#include "src/conversion.h"
 #include "src/settings/SettingsManager.h"
 #include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
@@ -44,12 +45,25 @@ void SettingsDialog::loadSettings() {
   ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
   ui.checkBoxShowGrid->setChecked(settings.get<bool>(Key::RenderGrid).value());
 
+  const auto timeStepUnit = settings.get<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit).value();
+  ui.comboTimeStepUnit->setCurrentIndex(ui.comboTimeStepUnit->findData(static_cast<int>(timeStepUnit)));
+  const auto timeStepNs = settings.get<int>(Key::PlaybackTimeStepPreference).value();
+  switch (timeStepUnit) {
+  case SettingsManager::TimeUnit::Milliseconds:
+    ui.spinTimeStep->setValue(toMilliseconds(timeStepNs));
+    break;
+  case SettingsManager::TimeUnit::Microseconds:
+    ui.spinTimeStep->setValue(toMicroseconds(timeStepNs));
+    break;
+  case SettingsManager::TimeUnit::Nanoseconds:
+    ui.spinTimeStep->setValue(timeStepNs);
+    break;
+  }
+
   ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
   ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
 
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
-
-  // Time Step is session based (so no setting to load)
 
   ui.lineEditResource->setText(resourcePath);
 }
@@ -74,6 +88,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboGridSize->addItem("1", 1);
   ui.comboGridSize->addItem("5", 5);
   ui.comboGridSize->addItem("10", 10);
+
+  using TimeUnit = SettingsManager::TimeUnit;
+  ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
+  ui.comboTimeStepUnit->addItem("µs", static_cast<int>(TimeUnit::Microseconds));
+  ui.comboTimeStepUnit->addItem("ms", static_cast<int>(TimeUnit::Milliseconds));
 
   using Key = SettingsManager::Key;
   ui.keyForward->setDefaultKey(settings.getDefault<int>(Key::CameraKeyForward));
@@ -158,6 +177,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetTrailLength->click();
 
     ui.buttonResetPlay->click();
+    ui.buttonResetTimeStep->click();
     break;
   case QDialogButtonBox::Save: {
     bool requiresRestart = false;
@@ -299,9 +319,22 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit resourcePathChanged(resourcePath);
     }
 
-    auto oldTimeStep = settings.get<int>(Key::PlaybackTimeStepPreference).value();
-    if (ui.spinTimeStep->value() != oldTimeStep) {
-      settings.set(Key::PlaybackTimeStepPreference, ui.spinTimeStep->value());
+    using TimeUnit = SettingsManager::TimeUnit;
+    const auto oldTimeStepUnit = settings.get<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit);
+    const auto currentTimeStepUnit = SettingsManager::TimeUnitFromInt(ui.comboTimeStepUnit->currentData().toInt());
+    if (currentTimeStepUnit != oldTimeStepUnit) {
+      settings.set(Key::PlaybackTimeStepUnit, currentTimeStepUnit);
+      // No signal
+    }
+
+    const auto oldTimeStep = settings.get<int>(Key::PlaybackTimeStepPreference).value();
+    auto currentTimeStep = static_cast<parser::nanoseconds>(ui.spinTimeStep->value());
+    if (currentTimeStepUnit == TimeUnit::Microseconds)
+      currentTimeStep = fromMicroseconds(currentTimeStep);
+    else if (currentTimeStepUnit == TimeUnit::Milliseconds)
+      currentTimeStep = fromMilliseconds(currentTimeStep);
+    if (currentTimeStep != oldTimeStep) {
+      settings.set(Key::PlaybackTimeStepPreference, currentTimeStep);
       // No signal
     }
 
@@ -368,6 +401,9 @@ void SettingsDialog::defaultBuildingOutlines() {
 
 void SettingsDialog::defaultTimeStep() {
   ui.spinTimeStep->setValue(static_cast<int>(passedTimeStep));
+  const auto defaultTimeUnit =
+      settings.getDefault<SettingsManager::TimeUnit>(SettingsManager::Key::PlaybackTimeStepUnit);
+  ui.comboTimeStepUnit->setCurrentIndex(ui.comboTimeStepUnit->findData(static_cast<int>(defaultTimeUnit)));
 }
 
 void SettingsDialog::defaultShowGrid() {

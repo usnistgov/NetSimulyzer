@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "src/settings/SettingsManager.h"
 #include <QString>
 #include <glm/glm.hpp>
 #include <model.h>
@@ -44,6 +45,22 @@ glm::vec3 toRenderColor(const parser::Ns3Color3 &color);
 
 glm::vec3 toRenderArray(const std::array<float, 3> &array);
 
-QString toDisplayTime(double value);
+QString toDisplayTime(parser::nanoseconds value, SettingsManager::TimeUnit granularity);
+
+inline parser::nanoseconds fromMilliseconds(long long ms) {
+  return ms * 1'000'000;
+}
+
+inline parser::nanoseconds fromMicroseconds(long long us) {
+  return us * 1'000;
+}
+
+inline parser::nanoseconds toMilliseconds(parser::nanoseconds ns) {
+  return ns / 1'000'000;
+}
+
+inline parser::nanoseconds toMicroseconds(parser::nanoseconds ns) {
+  return ns / 1'000;
+}
 
 } // namespace netsimulyzer

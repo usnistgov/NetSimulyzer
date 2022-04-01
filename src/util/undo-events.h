@@ -62,7 +62,7 @@ struct MoveEvent {
  * An event which undoes a `parser::TransmitEvent`
  */
 struct TransmitEvent {
-  double stopTime{0.0};
+  parser::nanoseconds stopTime;
   parser::TransmitEvent event;
 };
 

@@ -219,9 +219,9 @@ void SceneWidget::initializeGL() {
 
 void SceneWidget::paintGL() {
   if (playMode == PlayMode::Play) {
-    if (timeStep > 0.0)
+    if (timeStep > 0LL)
       handleEvents();
-    else if (timeStep < 0.0)
+    else
       handleUndoEvents();
   }
 
@@ -279,10 +279,10 @@ void SceneWidget::paintGL() {
     const auto &transmit = node.getTransmitInfo();
     if (transmit.isTransmitting && transmit.startTime <= simulationTime &&
         transmit.startTime + transmit.duration >= simulationTime) {
-      const auto delta =
-          static_cast<float>((simulationTime - transmit.startTime) / transmit.duration * transmit.targetSize);
+      const auto delta = static_cast<double>(simulationTime - transmit.startTime) /
+                         static_cast<double>(transmit.duration) * transmit.targetSize;
       transmissionSphere->setPosition(nodeModel.getPosition());
-      transmissionSphere->setTargetHeightScale(delta);
+      transmissionSphere->setTargetHeightScale(static_cast<float>(delta));
       transmissionSphere->setBaseColor(transmit.color);
       renderer.render(*transmissionSphere, Renderer::LightingMode::LightingDisabled);
     }
@@ -300,8 +300,8 @@ void SceneWidget::paintGL() {
   simulationTime += timeStep;
   emit timeChanged(simulationTime, timeStep);
 
-  const auto pastEnd = timeStep > 0.0 && simulationTime >= config.endTime;
-  const auto pastBeginning = timeStep < 0.0 && simulationTime <= 0.0;
+  const auto pastEnd = timeStep > 0LL && simulationTime >= config.endTime;
+  const auto pastBeginning = timeStep < 0LL && simulationTime < 0LL;
   if ((pastEnd || pastBeginning) && playMode == PlayMode::Play) {
     pause();
 
@@ -311,7 +311,7 @@ void SceneWidget::paintGL() {
     if (pastEnd)
       setTime(config.endTime);
     else
-      setTime(0.0);
+      setTime(0LL);
   }
 }
 
@@ -573,13 +573,13 @@ void SceneWidget::pause() {
   emit paused();
 }
 
-void SceneWidget::setTime(double value) {
+void SceneWidget::setTime(parser::nanoseconds value) {
   const auto oldTime = simulationTime;
 
   simulationTime = value;
   const auto diff = simulationTime - oldTime;
 
-  if (diff > 0.0)
+  if (diff > 0LL)
     handleEvents();
   else
     handleUndoEvents();
@@ -587,7 +587,7 @@ void SceneWidget::setTime(double value) {
   emit timeChanged(simulationTime, diff);
 }
 
-void SceneWidget::setTimeStep(int value) {
+void SceneWidget::setTimeStep(parser::nanoseconds value) {
   timeStep = value;
 }
 

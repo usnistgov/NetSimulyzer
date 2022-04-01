@@ -37,6 +37,11 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <sstream>
+
+using int_type = util::json::JsonValue::int_type;
+using unsigned_int_type = util::json::JsonValue::unsigned_int_type;
+const long long msToNsFactor = 1'000'000LL;
 
 namespace {
 
@@ -45,7 +50,18 @@ class MissingRequiredFieldException : public std::exception {
 
 public:
   explicit MissingRequiredFieldException(const std::string &fieldName)
-      : message("Missing required field: " + fieldName) {
+      : message{"Missing required field: " + fieldName} {
+  }
+
+  explicit MissingRequiredFieldException(const std::vector<std::string> &fieldNames) {
+    std::stringstream ss;
+    ss << "Object must have at least one of the follow fields: ";
+    for (const auto &field : fieldNames)
+      ss << field << ", ";
+
+    message = ss.str();
+    // Remove the ',' and ' ' character at the end
+    message.erase(message.size() - 2, 2);
   }
 
   [[nodiscard]] const char *what() const noexcept override {
@@ -58,6 +74,15 @@ void requiredFields(const util::json::JsonObject &object, const std::vector<std:
     if (!object.contains(field))
       throw MissingRequiredFieldException{field};
   }
+}
+
+void atLeastOneRequiredFields(const util::json::JsonObject &object, const std::vector<std::string> &fields) {
+  for (const auto &field : fields) {
+    if (object.contains(field))
+      return;
+  }
+
+  throw MissingRequiredFieldException{fields};
 }
 
 // Copy of the palette from ns-3
@@ -100,6 +125,18 @@ parser::Ns3Color3 nextTrailColor(std::size_t &nextIndex) {
     nextIndex = 0;
 
   return color;
+}
+
+parser::nanoseconds getTimeCompatible(const util::json::JsonObject &object) {
+  atLeastOneRequiredFields(object, {"milliseconds", "nanoseconds"});
+  parser::nanoseconds time;
+
+  if (object.contains("milliseconds")) {
+    time = object["milliseconds"].get<int_type>() * msToNsFactor;
+    return time;
+  }
+
+  return object["nanoseconds"].get<int_type>();
 }
 
 } // namespace
@@ -277,6 +314,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
 }
 
 void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
+  // If you add Object types, there's some additional code in `JsonHandler::EndObject`
+  // Specific to the configuration
   requiredFields(object, {"module-version"});
 
   auto &config = fileParser.globalConfiguration;
@@ -290,14 +329,24 @@ void JsonHandler::parseConfiguration(const util::json::JsonObject &object) {
 
   // TODO: compatibility with v1.0.0, remove for v1.1.0
   if (object.contains("max-time-ms"))
-    config.endTime = object["max-time-ms"].get<double>();
+    config.endTime = object["max-time-ms"].get<int_type>() * msToNsFactor;
+  else if (object.contains("max-time"))
+    config.endTime = object["max-time"].get<int_type>();
 
   // TODO: compatibility with v1.0.0, remove for v1.1.0
   if (jsonVersion.contains("suffix"))
     config.moduleVersion.suffix = jsonVersion["suffix"].get<std::string>();
 
   if (object.contains("time-step")) {
-    config.timeStep = object["time-step"].get<int>();
+    // TODO: compatibility with v1.0.0, remove for v1.1.0
+    // time-step converted to an object in 1.0.4+
+    if (object["time-step"].isObject()) {
+      const auto timeStepObject = object["time-step"].object();
+      requiredFields(timeStepObject, {"increment", "granularity"});
+      config.timeStep = timeStepObject["increment"].get<int_type>();
+      config.granularity = timeStepObject["granularity"].get<std::string>();
+    } else
+      config.timeStep = object["time-step"].get<int>() * msToNsFactor;
   }
 }
 
@@ -520,11 +569,12 @@ void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
+  // TODO: add "time" after 1.1.0
+  requiredFields(object, {"id", "x", "y", "z"});
   parser::MoveEvent event;
 
   event.nodeId = object["id"].get<int>();
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.targetPosition.x = object["x"].get<double>();
   event.targetPosition.y = object["y"].get<double>();
   event.targetPosition.z = object["z"].get<double>();
@@ -537,12 +587,20 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseTransmitEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "duration", "target-size"});
+  // TODO: add "time" after 1.1.0
+  requiredFields(object, {"id", "duration", "target-size"});
   parser::TransmitEvent event;
 
   event.nodeId = object["id"].get<int>();
-  event.time = object["milliseconds"].get<double>();
-  event.duration = object["duration"].get<double>();
+  event.time = getTimeCompatible(object);
+  event.duration = object["duration"].get<int_type>();
+
+  // TODO: compatibility with v1.0.0, remove for v1.1.0
+  // Check to see if this object was specified in milliseconds,
+  // or nanoseconds
+  if (object.contains("milliseconds"))
+    event.duration *= msToNsFactor;
+
   event.targetSize = object["target-size"].get<double>();
   event.color = colorFromObject(object["color"].object());
 
@@ -563,11 +621,12 @@ void JsonHandler::parseTransmitEvent(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"id", "x", "y", "z"});
   parser::DecorationMoveEvent event;
 
   event.decorationId = object["id"].get<int>();
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.targetPosition.x = object["x"].get<double>();
   event.targetPosition.y = object["y"].get<double>();
   event.targetPosition.z = object["z"].get<double>();
@@ -580,11 +639,12 @@ void JsonHandler::parseDecorationMoveEvent(const util::json::JsonObject &object)
 }
 
 void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"id", "x", "y", "z"});
   parser::NodeOrientationChangeEvent event;
 
   event.nodeId = object["id"].get<int>();
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.targetOrientation[0] = object["x"].get<double>();
   event.targetOrientation[1] = object["y"].get<double>();
   event.targetOrientation[2] = object["z"].get<double>();
@@ -595,11 +655,12 @@ void JsonHandler::parseNodeOrientationEvent(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "x", "y", "z"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"id", "x", "y", "z"});
   parser::DecorationOrientationChangeEvent event;
 
   event.decorationId = object["id"].get<int>();
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.targetOrientation[0] = object["x"].get<double>();
   event.targetOrientation[1] = object["y"].get<double>();
   event.targetOrientation[2] = object["z"].get<double>();
@@ -610,11 +671,12 @@ void JsonHandler::parseDecorationOrientationEvent(const util::json::JsonObject &
 }
 
 void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "milliseconds", "color-type"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"id", "color-type"});
   parser::NodeColorChangeEvent event;
 
   event.nodeId = object["id"].get<unsigned int>();
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
 
   auto type = object["color-type"].get<std::string>();
   if (type == "base")
@@ -633,10 +695,11 @@ void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
-  requiredFields(object, {"milliseconds", "series-id", "x", "y"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"series-id", "x", "y"});
   parser::XYSeriesAddValue event;
 
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.seriesId = object["series-id"].get<int>();
   event.point.x = object["x"].get<double>();
   event.point.y = object["y"].get<double>();
@@ -646,10 +709,11 @@ void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseSeriesAppendArray(const util::json::JsonObject &object) {
-  requiredFields(object, {"milliseconds", "series-id", "points"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"series-id", "points"});
   parser::XYSeriesAddValues event;
 
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.seriesId = object["series-id"].get<int>();
 
   auto points = object["points"].array();
@@ -669,10 +733,11 @@ void JsonHandler::parseSeriesAppendArray(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseSeriesClear(const util::json::JsonObject &object) {
-  requiredFields(object, {"milliseconds", "series-id"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"series-id"});
   parser::XYSeriesClear event;
 
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.seriesId = object["series-id"].get<int>();
 
   updateEndTime(event.time);
@@ -680,10 +745,11 @@ void JsonHandler::parseSeriesClear(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object) {
-  requiredFields(object, {"milliseconds", "series-id", "category", "value"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"series-id", "category", "value"});
   parser::CategorySeriesAddValue event;
 
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.seriesId = object["series-id"].get<int>();
   event.category = object["category"].get<int>();
   event.value = object["value"].get<double>();
@@ -746,7 +812,14 @@ void JsonHandler::parseCategoryValueSeries(const util::json::JsonObject &object)
   if (object["auto-update"].get<bool>()) {
     requiredFields(object, {"auto-update-interval", "auto-update-increment"});
     series.autoUpdate = true;
-    series.autoUpdateInterval = object["auto-update-interval"].get<double>();
+
+    const auto &autoUpdateInterval = object["auto-update-interval"];
+    // TODO: compatibility with v1.0.0, remove for v1.1.0
+    if (autoUpdateInterval.is<double>()) // Old times (in ms) were specified as a double
+      series.autoUpdateInterval = static_cast<long long>(object["auto-update-interval"].get<double>()) * msToNsFactor;
+    else
+      series.autoUpdateInterval = object["auto-update-interval"].get<int_type>();
+
     series.autoUpdateIncrement = object["auto-update-increment"].get<double>();
   }
 
@@ -784,9 +857,10 @@ void JsonHandler::parseLogStream(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
-  requiredFields(object, {"milliseconds", "stream-id", "data"});
+  // TODO: "nanoseconds" field checked by `getTimeCompatible`, add here for 1.1.0+
+  requiredFields(object, {"stream-id", "data"});
   parser::StreamAppendEvent event;
-  event.time = object["milliseconds"].get<double>();
+  event.time = getTimeCompatible(object);
   event.streamId = object["stream-id"].get<int>();
   event.value = object["data"].get<std::string>();
 
@@ -813,22 +887,22 @@ void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) 
     config.maxLocation.z = coordinate.z;
 }
 
-void JsonHandler::updateEndTime(double milliseconds) {
-  if (milliseconds > fileParser.globalConfiguration.endTime)
-    fileParser.globalConfiguration.endTime = milliseconds;
+void JsonHandler::updateEndTime(parser::nanoseconds time) {
+  if (time > fileParser.globalConfiguration.endTime)
+    fileParser.globalConfiguration.endTime = time;
 }
 
-void JsonHandler::processEndTransmits(double milliseconds) {
+void JsonHandler::processEndTransmits(parser::nanoseconds time) {
   for (auto &[nodeId, transmitEvent] : transmittingNodes) {
     if (!transmitEvent.has_value())
       return;
 
     const auto endTransmitTime = transmitEvent.value().time + transmitEvent.value().duration;
-    if (milliseconds < endTransmitTime)
+    if (time < endTransmitTime)
       return;
 
     parser::TransmitEndEvent endEvent;
-    endEvent.time = milliseconds;
+    endEvent.time = time;
     endEvent.startEvent = transmitEvent.value();
     endEvent.nodeId = endEvent.startEvent.nodeId;
     fileParser.sceneEvents.emplace_back(endEvent);
@@ -923,6 +997,9 @@ bool JsonHandler::EndObject(rapidjson::SizeType) {
 
       if (oldTop.key == "module-version") {
         currentTop.value.object().insert("module-version", oldTop.value);
+        return true;
+      } else if (oldTop.key == "time-step") {
+        currentTop.value.object().insert("time-step", oldTop.value);
         return true;
       } else if (oldTop.key == "configuration") {
         parseConfiguration(oldTop.value.object());

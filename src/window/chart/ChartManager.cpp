@@ -269,7 +269,7 @@ void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
   }
 }
 
-void ChartManager::timeAdvanced(double time) {
+void ChartManager::timeAdvanced(parser::nanoseconds time) {
   auto handleEvent = [time, this](auto &&e) {
     // Strip off qualifiers, etc
     // so T holds just the type
@@ -388,7 +388,7 @@ void ChartManager::timeAdvanced(double time) {
   }
 }
 
-void ChartManager::timeRewound(double time) {
+void ChartManager::timeRewound(parser::nanoseconds time) {
   auto handleUndoEvent = [time, this](auto &&e) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
@@ -519,8 +519,8 @@ void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int select
   }
 }
 
-void ChartManager::timeChanged(double time, double increment) {
-  if (increment > 0)
+void ChartManager::timeChanged(parser::nanoseconds time, parser::nanoseconds increment) {
+  if (increment > 0LL)
     timeAdvanced(time);
   else
     timeRewound(time);

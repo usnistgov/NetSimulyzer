@@ -39,6 +39,7 @@
 #include <QString>
 #include <QStyle>
 #include <QWidget>
+#include <parser/model.h>
 
 namespace netsimulyzer {
 
@@ -47,7 +48,12 @@ class PlaybackWidget : public QWidget {
 
 private:
   Ui::PlaybackWidget ui{};
-  double maxTime{0.0};
+  SettingsManager settings;
+  parser::nanoseconds currentTime{0LL};
+  parser::nanoseconds maxTime{0LL};
+  double timeSliderStep{0.0};
+  SettingsManager::TimeUnit currentUnit =
+      settings.get<SettingsManager::TimeUnit>(SettingsManager::Key::PlaybackTimeStepUnit).value();
   QString formattedMaxTime{"0.000"};
   bool playing{false};
   const QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
@@ -61,12 +67,16 @@ private:
    */
   bool ignoreMove{false};
 
+  void updateButtonSpeed(parser::nanoseconds step, SettingsManager::TimeUnit unit);
+  void setGranularity(SettingsManager::TimeUnit unit);
+  void setTimeLabel(parser::nanoseconds time);
+
 public:
   explicit PlaybackWidget(QWidget *parent = nullptr);
 
-  void setMaxTime(double value);
-  void setTime(double simulationTime);
-  void setTimeStep(int value);
+  void setMaxTime(parser::nanoseconds value);
+  void setTime(parser::nanoseconds simulationTime);
+  void setTimeStep(parser::nanoseconds value, SettingsManager::TimeUnit unit);
   void sliderMoved(int value);
   void reset();
   void enableControls();
@@ -78,8 +88,8 @@ public:
 signals:
   void play();
   void pause();
-  void timeSet(double time);
-  void timeStepChanged(int value);
+  void timeSet(parser::nanoseconds time);
+  void timeStepChanged(parser::nanoseconds value, int unit);
 };
 
 } // namespace netsimulyzer

@@ -325,11 +325,10 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * Update the end of simulation time to `milliseconds`
    * given `milliseconds` is the larger value
    *
-   * @param milliseconds
+   * @param time
    * The time for the currently being parsed event
-   * in milliseconds
    */
-  void updateEndTime(double milliseconds);
+  void updateEndTime(parser::nanoseconds time);
 
   /**
    * Run through the list of transmitting nodes
@@ -341,10 +340,10 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * Should be called while processing each scene event,
    * but before appending the event.
    *
-   * @param milliseconds
+   * @param time
    * The time of the current event being processed.
    */
-  void processEndTransmits(double milliseconds);
+  void processEndTransmits(parser::nanoseconds time);
 
 public:
   explicit JsonHandler(parser::FileParser &parser);

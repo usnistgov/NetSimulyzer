@@ -84,7 +84,7 @@ private:
   LoadWorker loadWorker;
   QThread loadThread;
 
-  void timeChanged(double time, double increment);
+  void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void load();
 
 protected:

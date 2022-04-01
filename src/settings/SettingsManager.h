@@ -1,5 +1,6 @@
 #pragma once
 
+#include "parser/model.h"
 #include <QSettings>
 #include <QString>
 #include <Qt>
@@ -41,6 +42,7 @@ public:
     MainWindowState,
     NumberSamples,
     PlaybackTimeStepPreference,
+    PlaybackTimeStepUnit,
     RenderBuildingMode,
     RenderBuildingOutlines,
     RenderGrid,
@@ -53,6 +55,7 @@ public:
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
   enum class ChartDropdownSortOrder : int { Alphabetical, Type, Id, None };
+  enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
 
   /**
    * Convert an int to a `BuildingRenderMode` enum value.
@@ -77,6 +80,18 @@ public:
    * The enum value corresponding to `value`
    */
   static ChartDropdownSortOrder ChartDropdownSortOrderFromInt(int value);
+
+  /**
+   * Convert an int to a `TimeUnit` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static TimeUnit TimeUnitFromInt(int value);
 
   /**
    * Defines when retrieving a value fails,
@@ -118,7 +133,8 @@ private:
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
-      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10}},
+      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10LL}},
+      {Key::PlaybackTimeStepUnit, {"playback/timeStepUnit", "milliseconds"}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
       {Key::RenderBuildingOutlines, {"renderer/showBuildingOutlines", true}},
@@ -338,6 +354,20 @@ SettingsManager::getDefault(SettingsManager::Key key) const {
   return SettingsManager::ChartDropdownSortOrder::Type;
 }
 
+// Specialization for TimeUnit enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::TimeUnit SettingsManager::getDefault(SettingsManager::Key key) const {
+  const auto &settingKey = getQtKey(key);
+  if (!settingKey.defaultValue.isValid()) {
+    std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
+    std::abort();
+  }
+
+  // TODO: Use the map value
+  return SettingsManager::TimeUnit::Milliseconds;
+}
+
 template <>
 [[nodiscard]] inline std::optional<SettingsManager::BuildingRenderMode> SettingsManager::get(Key key,
                                                                                              RetrieveMode mode) const {
@@ -361,6 +391,34 @@ template <>
   // Final catch if the provided string value is invalid
   if (mode == RetrieveMode::AllowDefault)
     return getDefault<BuildingRenderMode>(Key::RenderBuildingMode);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::TimeUnit> SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+
+  if (stringMode == "milliseconds")
+    return {SettingsManager::TimeUnit::Milliseconds};
+  else if (stringMode == "microseconds")
+    return {SettingsManager::TimeUnit::Microseconds};
+  else if (stringMode == "nanoseconds")
+    return {SettingsManager::TimeUnit::Nanoseconds};
+  else
+    std::cerr << "Unrecognised 'TimeUnit' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit);
 
   return {};
 }
@@ -431,6 +489,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'ChartDropdownSortOrder': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::TimeUnit &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::TimeUnit::Milliseconds:
+    qtSettings.setValue(settingKey.key, "milliseconds");
+    break;
+  case SettingsManager::TimeUnit::Microseconds:
+    qtSettings.setValue(settingKey.key, "microseconds");
+    break;
+  case SettingsManager::TimeUnit::Nanoseconds:
+    qtSettings.setValue(settingKey.key, "nanoseconds");
+    break;
+  default:
+    std::cerr << "Unrecognised 'TimeUnit': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

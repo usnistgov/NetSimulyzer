@@ -59,10 +59,13 @@ struct Ns3ModuleVersion {
   std::string suffix;
 };
 
+using nanoseconds = long long;
+
 struct GlobalConfiguration {
   Ns3ModuleVersion moduleVersion;
-  double endTime = 0.0;
-  std::optional<int> timeStep;
+  nanoseconds endTime = 0LL;
+  std::optional<nanoseconds> timeStep;
+  std::optional<std::string> granularity;
   Ns3Coordinate minLocation;
   Ns3Coordinate maxLocation;
 };
@@ -174,7 +177,7 @@ struct CategoryValueSeries {
   unsigned int id = 0u;
   bool visible;
   bool autoUpdate = false;
-  double autoUpdateInterval;
+  nanoseconds autoUpdateInterval;
   double autoUpdateIncrement;
   std::string name;
   std::string legend;
@@ -205,10 +208,10 @@ struct LogStream {
  */
 struct MoveEvent {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Node to move to `targetPosition`
@@ -226,10 +229,10 @@ struct MoveEvent {
  */
 struct TransmitEvent {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Node that triggered the event
@@ -238,9 +241,9 @@ struct TransmitEvent {
 
   /**
    * How long the transmission sphere should
-   * expand, in milliseconds
+   * expand
    */
-  double duration = 50.0;
+  nanoseconds duration;
 
   /**
    * The size the transmission sphere should grow to,
@@ -264,7 +267,7 @@ struct TransmitEndEvent {
    * The simulation time (in milliseconds)
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Node that triggered the event.
@@ -283,10 +286,10 @@ struct TransmitEndEvent {
  */
 struct DecorationMoveEvent {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Decoration to move to `targetPosition`
@@ -304,10 +307,10 @@ struct DecorationMoveEvent {
  */
 struct NodeOrientationChangeEvent {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Node to move to rotate to `targetOrientation`
@@ -331,7 +334,7 @@ struct DecorationOrientationChangeEvent {
    * The simulation time (in milliseconds)
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Decoration to move to rotate to `targetOrientation`
@@ -354,10 +357,10 @@ struct NodeColorChangeEvent {
   enum class ColorType { Base, Highlight };
 
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The Node to change the color of
@@ -393,7 +396,7 @@ struct XYSeriesAddValue {
    * The simulation time (in milliseconds)
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The series to append the value to
@@ -411,10 +414,10 @@ struct XYSeriesAddValue {
  */
 struct XYSeriesAddValues {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The series to append the values to
@@ -433,10 +436,10 @@ struct XYSeriesAddValues {
  */
 struct XYSeriesClear {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The series to clear
@@ -449,10 +452,10 @@ struct XYSeriesClear {
  */
 struct CategorySeriesAddValue {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The series to append the value to
@@ -478,10 +481,10 @@ struct CategorySeriesAddValue {
  */
 struct StreamAppendEvent {
   /**
-   * The simulation time (in milliseconds)
+   * The simulation time
    * for when the event should be run
    */
-  double time = 0.0;
+  nanoseconds time = 0LL;
 
   /**
    * The ID of the stream to append to
