@@ -71,6 +71,14 @@ class SettingsDialog : public QDialog {
   double passedTimeStep = 10.0;
 
   /**
+   * Sets the suffix in the time step preference SpinBox
+   *
+   * @param unit
+   * The use to use for the suffix
+   */
+  void setStepSpinSuffix(SettingsManager::TimeUnit unit);
+
+  /**
    * Callback for when a button at the bottom of the dialog is clicked
    *
    * @param button

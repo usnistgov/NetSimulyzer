@@ -47,6 +47,7 @@ void SettingsDialog::loadSettings() {
 
   const auto timeStepUnit = settings.get<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit).value();
   ui.comboTimeStepUnit->setCurrentIndex(ui.comboTimeStepUnit->findData(static_cast<int>(timeStepUnit)));
+  setStepSpinSuffix(timeStepUnit);
   const auto timeStepNs = settings.get<int>(Key::PlaybackTimeStepPreference).value();
   switch (timeStepUnit) {
   case SettingsManager::TimeUnit::Milliseconds:
@@ -93,6 +94,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
   ui.comboTimeStepUnit->addItem("µs", static_cast<int>(TimeUnit::Microseconds));
   ui.comboTimeStepUnit->addItem("ms", static_cast<int>(TimeUnit::Milliseconds));
+
+  QObject::connect(ui.comboTimeStepUnit, qOverload<int>(&QComboBox::currentIndexChanged), [this](int /* index */) {
+    setStepSpinSuffix(SettingsManager::TimeUnitFromInt(ui.comboTimeStepUnit->currentData().toInt()));
+  });
 
   using Key = SettingsManager::Key;
   ui.keyForward->setDefaultKey(settings.getDefault<int>(Key::CameraKeyForward));
@@ -146,6 +151,20 @@ void SettingsDialog::setTimeStep(double value) {
   ui.spinTimeStep->setValue(static_cast<int>(value));
 
   passedTimeStep = value;
+}
+
+void SettingsDialog::setStepSpinSuffix(SettingsManager::TimeUnit unit) {
+  switch (unit) {
+  case SettingsManager::TimeUnit::Milliseconds:
+    ui.spinTimeStep->setSuffix("ms");
+    break;
+  case SettingsManager::TimeUnit::Microseconds:
+    ui.spinTimeStep->setSuffix("µs");
+    break;
+  case SettingsManager::TimeUnit::Nanoseconds:
+    ui.spinTimeStep->setSuffix("ns");
+    break;
+  }
 }
 
 void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
