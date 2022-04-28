@@ -57,6 +57,7 @@ private:
   QString formattedMaxTime{"0.000"};
   bool playing{false};
   const QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
+  const QIcon resetIcon = style()->standardIcon(QStyle::SP_MediaSkipBackward);
   const QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
   PlaybackTimeStepDialog timeStepDialog{this};
 

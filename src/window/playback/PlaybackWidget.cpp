@@ -107,10 +107,15 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
   QObject::connect(ui.buttonPlayPause, &QPushButton::pressed, [this]() {
     playing = !playing;
     if (playing) {
+      // If we're at the end, restart from the beginning
+      if (currentTime == maxTime) {
+        setTime(0LL);
+        emit timeSet(0LL);
+      }
       ui.buttonPlayPause->setIcon(pauseIcon);
       emit play();
     } else {
-      ui.buttonPlayPause->setIcon(playIcon);
+      setPaused();
       emit pause();
     }
   });
@@ -173,6 +178,11 @@ void PlaybackWidget::sliderMoved(int value) {
   if (timeValue > maxTime)
     timeValue = maxTime;
 
+  if (timeValue == maxTime && !playing)
+    ui.buttonPlayPause->setIcon(resetIcon);
+  else
+    ui.buttonPlayPause->setIcon(playIcon);
+
   setTime(timeValue);
   emit timeSet(timeValue);
 }
@@ -201,7 +211,10 @@ void PlaybackWidget::setPlaying() {
 }
 
 void PlaybackWidget::setPaused() {
-  ui.buttonPlayPause->setIcon(playIcon);
+  if (currentTime == maxTime)
+    ui.buttonPlayPause->setIcon(resetIcon);
+  else
+    ui.buttonPlayPause->setIcon(playIcon);
   playing = false;
 }
 
