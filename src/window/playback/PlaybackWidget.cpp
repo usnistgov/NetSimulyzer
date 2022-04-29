@@ -126,6 +126,27 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) : QWidget(parent) {
     timeStepDialog.show();
   });
 
+  QObject::connect(ui.buttonJump, &QPushButton::clicked, [this]() {
+    setPaused();
+    emit pause();
+
+    jumpDialog.setMaxTime(maxTime);
+    jumpDialog.setInputValue(currentTime);
+    jumpDialog.exec();
+  });
+
+  QObject::connect(&jumpDialog, &PlaybackJumpDialog::timeSelected, [this](parser::nanoseconds time) {
+    if (time > maxTime)
+      time = maxTime;
+    else if (time < 0LL)
+      time = 0LL;
+
+    setTime(time);
+    emit timeSet(time);
+    setPaused();
+    emit pause();
+  });
+
   QObject::connect(&timeStepDialog, &PlaybackTimeStepDialog::timeStepChanged,
                    [this](parser::nanoseconds newValue, int unit) {
                      const auto newUnit = SettingsManager::TimeUnitFromInt(unit);
@@ -139,6 +160,7 @@ void PlaybackWidget::setMaxTime(parser::nanoseconds value) {
   formattedMaxTime = toDisplayTime(value, currentUnit);
   maxTime = value;
   setTimeLabel(0LL);
+  jumpDialog.setMaxTime(maxTime);
 
   // Roughly 2 secs
   if (maxTime <= std::numeric_limits<int>::max()) {
@@ -194,11 +216,13 @@ void PlaybackWidget::reset() {
 
   ui.buttonPlayPause->setEnabled(false);
   ui.timelineSlider->setEnabled(false);
+  ui.buttonJump->setEnabled(false);
 }
 
 void PlaybackWidget::enableControls() {
   ui.buttonPlayPause->setEnabled(true);
   ui.timelineSlider->setEnabled(true);
+  ui.buttonJump->setEnabled(true);
 }
 
 bool PlaybackWidget::isPlaying() const {

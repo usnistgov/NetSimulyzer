@@ -51,6 +51,8 @@ target_sources(netsimulyzer PRIVATE
         render/texture/texture.h
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         settings/SettingsManager.h settings/SettingsManager.cpp
+        util/common-times.h
+        util/netsimulyzer-time-literals.h
         util/undo-events.h
         window/about/AboutDialog.cpp window/about/AboutDialog.h window/about/AboutDialog.ui
         window/LoadWorker.h window/LoadWorker.cpp
@@ -64,6 +66,7 @@ target_sources(netsimulyzer PRIVATE
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
+        window/playback/PlaybackJumpDialog.cpp window/playback/PlaybackJumpDialog.h window/playback/PlaybackJumpDialog.ui
         window/playback/PlaybackTimeStepDialog.cpp window/playback/PlaybackTimeStepDialog.h window/playback/PlaybackTimeStepDialog.ui
         window/playback/PlaybackWidget.cpp window/playback/PlaybackWidget.h window/playback/PlaybackWidget.ui
         conversion.h conversion.cpp)

@@ -33,66 +33,38 @@
 
 #pragma once
 
-#include "PlaybackJumpDialog.h"
-#include "PlaybackTimeStepDialog.h"
-#include "ui_PlaybackWidget.h"
-#include <QIcon>
-#include <QString>
-#include <QStyle>
-#include <QWidget>
-#include <parser/model.h>
+#include "parser/model.h"
+
+/**
+ * Common quantities to convert nanoseconds into
+ * other time units
+ */
 
 namespace netsimulyzer {
 
-class PlaybackWidget : public QWidget {
-  Q_OBJECT
+/**
+ * One hour in nanoseconds
+ */
+const parser::nanoseconds HOUR = 3'600'000'000'000LL;
 
-private:
-  Ui::PlaybackWidget ui{};
-  SettingsManager settings;
-  parser::nanoseconds currentTime{0LL};
-  parser::nanoseconds maxTime{0LL};
-  double timeSliderStep{0.0};
-  SettingsManager::TimeUnit currentUnit =
-      settings.get<SettingsManager::TimeUnit>(SettingsManager::Key::PlaybackTimeStepUnit).value();
-  QString formattedMaxTime{"0.000"};
-  bool playing{false};
-  const QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
-  const QIcon resetIcon = style()->standardIcon(QStyle::SP_MediaSkipBackward);
-  const QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
-  PlaybackTimeStepDialog timeStepDialog{this};
-  PlaybackJumpDialog jumpDialog{this};
+/**
+ * One minute in nanoseconds
+ */
+const parser::nanoseconds MINUTE = 60'000'000'000LL;
 
-  /**
-   * Ignore the slider move event,
-   * used to prevent duplicate events when the time
-   * is set outside the controller
-   */
-  bool ignoreMove{false};
+/**
+ * One Second in nanoseconds
+ */
+const parser::nanoseconds SECOND = 1'000'000'000LL;
 
-  void updateButtonSpeed(parser::nanoseconds step, SettingsManager::TimeUnit unit);
-  void setGranularity(SettingsManager::TimeUnit unit);
-  void setTimeLabel(parser::nanoseconds time);
+/**
+ * One Millisecond in nanoseconds
+ */
+const parser::nanoseconds MILLISECOND = 1'000'000LL;
 
-public:
-  explicit PlaybackWidget(QWidget *parent = nullptr);
-
-  void setMaxTime(parser::nanoseconds value);
-  void setTime(parser::nanoseconds simulationTime);
-  void setTimeStep(parser::nanoseconds value, SettingsManager::TimeUnit unit);
-  void sliderMoved(int value);
-  void reset();
-  void enableControls();
-
-  [[nodiscard]] bool isPlaying() const;
-  void setPlaying();
-  void setPaused();
-
-signals:
-  void play();
-  void pause();
-  void timeSet(parser::nanoseconds time);
-  void timeStepChanged(parser::nanoseconds value, int unit);
-};
+/**
+ * One microsecond in nanoseconds
+ */
+const parser::nanoseconds MICROSECOND = 1'000LL;
 
 } // namespace netsimulyzer
