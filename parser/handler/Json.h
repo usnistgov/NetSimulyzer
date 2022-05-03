@@ -115,13 +115,18 @@ public:
  * Representation of some value in a JSON document
  */
 class JsonValue {
+public:
+  using int_type = long long;
+  using unsigned_int_type = unsigned long long;
+
+private:
   /**
    * Actual contained value.
    * signed Integer types are boxed to `long long`
    * unsigned Integer types are boxed to `unsigned long long`
    * and floating point types are boxed to `double`.
    */
-  std::variant<std::nullptr_t, bool, long long, unsigned long long, double, std::string, JsonArray, JsonObject> value;
+  std::variant<std::nullptr_t, bool, int_type, unsigned_int_type, double, std::string, JsonArray, JsonObject> value;
 
 public:
   /**

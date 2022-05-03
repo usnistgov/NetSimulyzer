@@ -1,4 +1,5 @@
 #include "SettingsDialog.h"
+#include "src/conversion.h"
 #include "src/settings/SettingsManager.h"
 #include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
@@ -35,14 +36,35 @@ void SettingsDialog::loadSettings() {
   const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
 
+  const auto chartDropdownSortOrder =
+      settings.get<SettingsManager::ChartDropdownSortOrder>(Key::ChartDropdownSortOrder).value();
+  ui.comboSortOrder->setCurrentIndex(ui.comboSortOrder->findData(static_cast<int>(chartDropdownSortOrder)));
+
   ui.checkBoxBuildingOutlines->setChecked(settings.get<bool>(Key::RenderBuildingOutlines).value());
 
   ui.comboGridSize->setCurrentIndex(ui.comboGridSize->findData(settings.get<int>(Key::RenderGridStep).value()));
   ui.checkBoxShowGrid->setChecked(settings.get<bool>(Key::RenderGrid).value());
 
-  ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
+  const auto timeStepUnit = settings.get<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit).value();
+  ui.comboTimeStepUnit->setCurrentIndex(ui.comboTimeStepUnit->findData(static_cast<int>(timeStepUnit)));
+  setStepSpinSuffix(timeStepUnit);
+  const auto timeStepNs = settings.get<int>(Key::PlaybackTimeStepPreference).value();
+  switch (timeStepUnit) {
+  case SettingsManager::TimeUnit::Milliseconds:
+    ui.spinTimeStep->setValue(toMilliseconds(timeStepNs));
+    break;
+  case SettingsManager::TimeUnit::Microseconds:
+    ui.spinTimeStep->setValue(toMicroseconds(timeStepNs));
+    break;
+  case SettingsManager::TimeUnit::Nanoseconds:
+    ui.spinTimeStep->setValue(timeStepNs);
+    break;
+  }
 
-  // Time Step is session based (so no setting to load)
+  ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
+  ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
+
+  ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   ui.lineEditResource->setText(resourcePath);
 }
@@ -58,9 +80,24 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboBuildingRender->addItem("Transparent", static_cast<int>(SettingsManager::BuildingRenderMode::Transparent));
   ui.comboBuildingRender->addItem("Opaque", static_cast<int>(SettingsManager::BuildingRenderMode::Opaque));
 
+  using SortOrder = SettingsManager::ChartDropdownSortOrder;
+  ui.comboSortOrder->addItem("Alphabetical", static_cast<int>(SortOrder::Alphabetical));
+  ui.comboSortOrder->addItem("Type", static_cast<int>(SortOrder::Type));
+  ui.comboSortOrder->addItem("Id", static_cast<int>(SortOrder::Id));
+  ui.comboSortOrder->addItem("None", static_cast<int>(SortOrder::None));
+
   ui.comboGridSize->addItem("1", 1);
   ui.comboGridSize->addItem("5", 5);
   ui.comboGridSize->addItem("10", 10);
+
+  using TimeUnit = SettingsManager::TimeUnit;
+  ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
+  ui.comboTimeStepUnit->addItem("µs", static_cast<int>(TimeUnit::Microseconds));
+  ui.comboTimeStepUnit->addItem("ms", static_cast<int>(TimeUnit::Milliseconds));
+
+  QObject::connect(ui.comboTimeStepUnit, qOverload<int>(&QComboBox::currentIndexChanged), [this](int /* index */) {
+    setStepSpinSuffix(SettingsManager::TimeUnitFromInt(ui.comboTimeStepUnit->currentData().toInt()));
+  });
 
   using Key = SettingsManager::Key;
   ui.keyForward->setDefaultKey(settings.getDefault<int>(Key::CameraKeyForward));
@@ -90,6 +127,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetUp, &QPushButton::clicked, ui.keyUp, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetDown, &QPushButton::clicked, ui.keyDown, &SingleKeySequenceEdit::setDefault);
 
+  QObject::connect(ui.buttonResetSortOrder, &QPushButton::clicked, this, &SettingsDialog::defaultChartSortOrder);
+
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
@@ -97,6 +136,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
                    &SettingsDialog::defaultBuildingOutlines);
   QObject::connect(ui.buttonResetShowGrid, &QPushButton::clicked, this, &SettingsDialog::defaultShowGrid);
   QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
+  QObject::connect(ui.buttonResetTrails, &QPushButton::clicked, this, &SettingsDialog::defaultShowTrails);
+  QObject::connect(ui.buttonResetTrailLength, &QPushButton::clicked, this, &SettingsDialog::defaultTrailsLength);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -110,6 +151,20 @@ void SettingsDialog::setTimeStep(double value) {
   ui.spinTimeStep->setValue(static_cast<int>(value));
 
   passedTimeStep = value;
+}
+
+void SettingsDialog::setStepSpinSuffix(SettingsManager::TimeUnit unit) {
+  switch (unit) {
+  case SettingsManager::TimeUnit::Milliseconds:
+    ui.spinTimeStep->setSuffix("ms");
+    break;
+  case SettingsManager::TimeUnit::Microseconds:
+    ui.spinTimeStep->setSuffix("µs");
+    break;
+  case SettingsManager::TimeUnit::Nanoseconds:
+    ui.spinTimeStep->setSuffix("ns");
+    break;
+  }
 }
 
 void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
@@ -129,14 +184,19 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetUp->click();
     ui.buttonResetDown->click();
 
+    ui.buttonResetSortOrder->click();
+
     ui.buttonResetSkybox->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
     ui.buttonResetBuildingOutlines->click();
     ui.buttonResetShowGrid->click();
     ui.buttonResetGridSize->click();
+    ui.buttonResetTrails->click();
+    ui.buttonResetTrailLength->click();
 
     ui.buttonResetPlay->click();
+    ui.buttonResetTimeStep->click();
     break;
   case QDialogButtonBox::Save: {
     bool requiresRestart = false;
@@ -207,6 +267,13 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit downKeyChanged(downKey);
     }
 
+    // Charts
+    auto chartSortOrder = SettingsManager::ChartDropdownSortOrderFromInt(ui.comboSortOrder->currentData().toInt());
+    if (chartSortOrder != settings.get<SettingsManager::ChartDropdownSortOrder>(Key::ChartDropdownSortOrder).value()) {
+      settings.set(Key::ChartDropdownSortOrder, chartSortOrder);
+      emit chartSortOrderChanged(static_cast<int>(chartSortOrder));
+    }
+
     // Graphics
 
     const auto samples = ui.comboSamples->currentData().toInt();
@@ -245,6 +312,18 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit gridStepSizeChanged(gridStepSize);
     }
 
+    const auto enableTrails = ui.checkBoxShowTrails->isChecked();
+    if (enableTrails != settings.get<bool>(Key::RenderMotionTrails).value()) {
+      settings.set(Key::RenderMotionTrails, enableTrails);
+      emit renderTrailsChanged(enableTrails);
+    }
+
+    const auto trailLength = ui.sliderTrailLength->value();
+    if (trailLength != settings.get<int>(Key::RenderMotionTrailLength).value()) {
+      settings.set(Key::RenderMotionTrailLength, trailLength);
+      requiresRestart = true;
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -259,9 +338,22 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit resourcePathChanged(resourcePath);
     }
 
-    auto oldTimeStep = settings.get<int>(Key::PlaybackTimeStepPreference).value();
-    if (ui.spinTimeStep->value() != oldTimeStep) {
-      settings.set(Key::PlaybackTimeStepPreference, ui.spinTimeStep->value());
+    using TimeUnit = SettingsManager::TimeUnit;
+    const auto oldTimeStepUnit = settings.get<SettingsManager::TimeUnit>(Key::PlaybackTimeStepUnit);
+    const auto currentTimeStepUnit = SettingsManager::TimeUnitFromInt(ui.comboTimeStepUnit->currentData().toInt());
+    if (currentTimeStepUnit != oldTimeStepUnit) {
+      settings.set(Key::PlaybackTimeStepUnit, currentTimeStepUnit);
+      // No signal
+    }
+
+    const auto oldTimeStep = settings.get<int>(Key::PlaybackTimeStepPreference).value();
+    auto currentTimeStep = static_cast<parser::nanoseconds>(ui.spinTimeStep->value());
+    if (currentTimeStepUnit == TimeUnit::Microseconds)
+      currentTimeStep = fromMicroseconds(currentTimeStep);
+    else if (currentTimeStepUnit == TimeUnit::Milliseconds)
+      currentTimeStep = fromMilliseconds(currentTimeStep);
+    if (currentTimeStep != oldTimeStep) {
+      settings.set(Key::PlaybackTimeStepPreference, currentTimeStep);
       // No signal
     }
 
@@ -301,6 +393,12 @@ void SettingsDialog::defaultFieldOfView() {
   ui.sliderFieldOfView->setValue(static_cast<int>(settings.getDefault<float>(SettingsManager::Key::FieldOfView)));
 }
 
+void SettingsDialog::defaultChartSortOrder() {
+  const auto defaultValue = static_cast<int>(
+      settings.getDefault<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder));
+  ui.comboSortOrder->setCurrentIndex(ui.comboSortOrder->findData(defaultValue));
+}
+
 void SettingsDialog::defaultSamples() {
   ui.comboSamples->setCurrentIndex(
       ui.comboSamples->findData(settings.getDefault<int>(SettingsManager::Key::NumberSamples)));
@@ -322,10 +420,21 @@ void SettingsDialog::defaultBuildingOutlines() {
 
 void SettingsDialog::defaultTimeStep() {
   ui.spinTimeStep->setValue(static_cast<int>(passedTimeStep));
+  const auto defaultTimeUnit =
+      settings.getDefault<SettingsManager::TimeUnit>(SettingsManager::Key::PlaybackTimeStepUnit);
+  ui.comboTimeStepUnit->setCurrentIndex(ui.comboTimeStepUnit->findData(static_cast<int>(defaultTimeUnit)));
 }
 
 void SettingsDialog::defaultShowGrid() {
   ui.checkBoxShowGrid->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderGrid));
+}
+
+void SettingsDialog::defaultShowTrails() {
+  ui.checkBoxShowTrails->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderMotionTrails));
+}
+
+void SettingsDialog::defaultTrailsLength() {
+  ui.sliderTrailLength->setValue(settings.getDefault<int>(SettingsManager::Key::RenderMotionTrailLength));
 }
 
 void SettingsDialog::defaultGridStep() {

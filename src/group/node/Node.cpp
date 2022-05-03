@@ -40,24 +40,38 @@
 
 namespace netsimulyzer {
 
-Node::Node(const Model &model, parser::Node ns3Node)
-    : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)) {
+Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer)
+    : model(model), ns3Node(std::move(ns3Node)),
+      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)} {
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
-  if (ns3Node.height) {
-    const auto bounds = model.getBounds();
-    auto height = std::abs(bounds.max.y - bounds.min.y);
+  this->model.setKeepRatio(ns3Node.keepRatio);
 
+  const auto bounds = model.getBounds();
+  if (ns3Node.height) {
+    const auto height = std::abs(bounds.max.y - bounds.min.y);
     this->model.setTargetHeightScale(*ns3Node.height / height);
   }
 
-  this->model.setScale(ns3Node.scale);
+  if (ns3Node.width) {
+    const auto width = std::abs(bounds.max.x - bounds.min.x);
+    this->model.setTargetWidthScale(*ns3Node.width / width);
+  }
+
+  if (ns3Node.depth) {
+    const auto depth = std::abs(bounds.max.z - bounds.min.z);
+    this->model.setTargetDepthScale(*ns3Node.depth / depth);
+  }
+
+  this->model.setScale(toRenderArray(ns3Node.scale));
 
   if (ns3Node.baseColor)
     this->model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
   if (ns3Node.highlightColor)
     this->model.setHighlightColor(toRenderColor(ns3Node.highlightColor.value()));
+
+  trailColor = toRenderColor(ns3Node.trailColor);
 }
 
 const Model &Node::getModel() const {
@@ -73,11 +87,17 @@ bool Node::visible() const {
 }
 
 glm::vec3 Node::getCenter() const {
+  const auto modelCenter = model.getCenter();
   auto position = model.getPosition();
-  const auto &bounds = model.getBounds();
-  position.y += ns3Node.height.value_or(bounds.max.y - bounds.min.y) * model.getScale() / 2.0f;
+  position.x += modelCenter.x;
+  position.y += modelCenter.y;
+  position.z += modelCenter.z;
 
   return position;
+}
+
+const Node::TransmitInfo &Node::getTransmitInfo() const {
+  return transmitInfo;
 }
 
 void Node::addWiredLink(WiredLink *link) {
@@ -90,8 +110,14 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo.position = model.getPosition();
   undo.event = e;
 
-  auto target = toRenderCoordinate(e.targetPosition) + offset;
-  this->model.setPosition(target);
+  if (trailBuffer.empty()) {
+    const auto currentPosition = model.getPosition();
+    trailBuffer.append(currentPosition.x, currentPosition.y, currentPosition.z);
+  }
+
+  const auto target = toRenderCoordinate(e.targetPosition) + offset;
+  model.setPosition(target);
+  trailBuffer.append(target.x, target.y, target.z);
 
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
@@ -137,9 +163,33 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
 
+  trailBuffer.pop();
+
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
   }
+}
+
+undo::TransmitEvent Node::handle(const parser::TransmitEvent &e) {
+  transmitInfo.isTransmitting = true;
+  transmitInfo.startTime = e.time;
+  transmitInfo.targetSize = e.targetSize;
+  transmitInfo.duration = e.duration;
+  transmitInfo.color = toRenderColor(e.color);
+
+  undo::TransmitEvent undo;
+  undo.stopTime = transmitInfo.startTime + transmitInfo.duration;
+  undo.event = e;
+  return undo;
+}
+
+undo::TransmitEndEvent Node::handle(const parser::TransmitEndEvent &e) {
+  transmitInfo.isTransmitting = false;
+
+  undo::TransmitEndEvent undo;
+  undo.event = e;
+
+  return undo;
 }
 
 void Node::handle(const undo::NodeOrientationChangeEvent &e) {
@@ -158,6 +208,24 @@ void Node::handle(const undo::NodeColorChangeEvent &e) {
     else
       model.unsetHighlightColor();
   }
+}
+const TrailBuffer &Node::getTrailBuffer() const {
+  return trailBuffer;
+}
+
+const glm::vec3 &Node::getTrailColor() const {
+  return trailColor;
+}
+
+void Node::handle(const undo::TransmitEvent &e) {
+  transmitInfo.startTime = e.event.time;
+  transmitInfo.duration = e.event.duration;
+}
+
+void Node::handle(const undo::TransmitEndEvent &e) {
+  const auto &startEvent = e.event.startEvent;
+  transmitInfo.startTime = startEvent.time;
+  transmitInfo.duration = startEvent.duration;
 }
 
 } // namespace netsimulyzer

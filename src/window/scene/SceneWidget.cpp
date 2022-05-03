@@ -82,7 +82,8 @@ void SceneWidget::handleEvents() {
       return false;
 
     if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
-                  std::is_same_v<T, parser::NodeColorChangeEvent>) {
+                  std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
+                  std::is_same_v<T, parser::TransmitEndEvent>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
@@ -118,6 +119,7 @@ void SceneWidget::handleUndoEvents() {
       return false;
 
     if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent> ||
+                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
                   std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
@@ -152,7 +154,10 @@ void SceneWidget::initializeGL() {
     std::cerr << "Failed OpenGL functions\n";
     std::abort();
   }
-  std::cout << glGetString(GL_VERSION) << '\n';
+
+  if (!openGl.initializeOpenGLFunctions())
+    std::cerr << "Failed to initialize passable OpenGL functions!\n";
+  std::cout << glGetString(GL_VERSION) << ' ' << openGl.glGetString(GL_VERSION) << '\n';
 
 #ifndef NDEBUG
   const auto hasKhrDebug = context()->hasExtension(QByteArrayLiteral("GL_KHR_debug"));
@@ -171,6 +176,8 @@ void SceneWidget::initializeGL() {
 
   models.init("models/fallback.obj");
   renderer.init();
+
+  transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
 
   TextureCache::CubeMap cubeMap;
   cubeMap.right = QImage{":/texture/resources/textures/skybox/right.png"};
@@ -212,9 +219,9 @@ void SceneWidget::initializeGL() {
 
 void SceneWidget::paintGL() {
   if (playMode == PlayMode::Play) {
-    if (timeStep > 0.0)
+    if (timeStep > 0LL)
       handleEvents();
-    else if (timeStep < 0.0)
+    else
       handleUndoEvents();
   }
 
@@ -228,6 +235,8 @@ void SceneWidget::paintGL() {
     if (!node.visible())
       continue;
     renderer.render(node.getModel());
+    if (renderMotionTrails)
+      renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }
 
   for (auto &[key, decoration] : decorations) {
@@ -263,8 +272,20 @@ void SceneWidget::paintGL() {
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
     renderer.render(buildings);
 
-  for (auto &[key, node] : nodes) {
-    renderer.renderTransparent(node.getModel());
+  for (const auto &[_, node] : nodes) {
+    const auto &nodeModel = node.getModel();
+    renderer.renderTransparent(nodeModel);
+
+    const auto &transmit = node.getTransmitInfo();
+    if (transmit.isTransmitting && transmit.startTime <= simulationTime &&
+        transmit.startTime + transmit.duration >= simulationTime) {
+      const auto delta = static_cast<double>(simulationTime - transmit.startTime) /
+                         static_cast<double>(transmit.duration) * transmit.targetSize;
+      transmissionSphere->setPosition(nodeModel.getPosition());
+      transmissionSphere->setTargetHeightScale(static_cast<float>(delta));
+      transmissionSphere->setBaseColor(transmit.color);
+      renderer.render(*transmissionSphere, Renderer::LightingMode::LightingDisabled);
+    }
   }
 
   for (auto &[key, decoration] : decorations) {
@@ -279,8 +300,8 @@ void SceneWidget::paintGL() {
   simulationTime += timeStep;
   emit timeChanged(simulationTime, timeStep);
 
-  const auto pastEnd = timeStep > 0.0 && simulationTime >= config.endTime;
-  const auto pastBeginning = timeStep < 0.0 && simulationTime <= 0.0;
+  const auto pastEnd = timeStep > 0LL && simulationTime >= config.endTime;
+  const auto pastBeginning = timeStep < 0LL && simulationTime < 0LL;
   if ((pastEnd || pastBeginning) && playMode == PlayMode::Play) {
     pause();
 
@@ -290,7 +311,7 @@ void SceneWidget::paintGL() {
     if (pastEnd)
       setTime(config.endTime);
     else
-      setTime(0.0);
+      setTime(0LL);
   }
 }
 
@@ -459,8 +480,11 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   }
 
   nodes.reserve(nodeModels.size());
+  const auto functions = context()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+  const auto trailLength = settings.get<int>(SettingsManager::Key::RenderMotionTrailLength).value();
   for (const auto &node : nodeModels) {
-    nodes.try_emplace(node.id, Model{models.load(node.model)}, node);
+    nodes.try_emplace(node.id, Model{models.load(node.model)}, node,
+                      renderer.allocateTrailBuffer(functions, trailLength));
   }
 
   wiredLinks.reserve(links.size());
@@ -508,7 +532,7 @@ void SceneWidget::focusNode(uint32_t nodeId) {
   // Put us at the middle of the model (height wise)
   // Use the provided height or one calculated based on
   // the model bounds
-  position.y += ns3Model.height.value_or(bounds.max.y - bounds.min.y) * ns3Model.scale / 2.0f;
+  position.y += ns3Model.height.value_or(bounds.max.y - bounds.min.y) * ns3Model.scale[2] / 2.0f;
 
   camera.setPosition(position);
   camera.resetRotation();
@@ -549,13 +573,13 @@ void SceneWidget::pause() {
   emit paused();
 }
 
-void SceneWidget::setTime(double value) {
+void SceneWidget::setTime(parser::nanoseconds value) {
   const auto oldTime = simulationTime;
 
   simulationTime = value;
   const auto diff = simulationTime - oldTime;
 
-  if (diff > 0.0)
+  if (diff > 0LL)
     handleEvents();
   else
     handleUndoEvents();
@@ -563,7 +587,7 @@ void SceneWidget::setTime(double value) {
   emit timeChanged(simulationTime, diff);
 }
 
-void SceneWidget::setTimeStep(int value) {
+void SceneWidget::setTimeStep(parser::nanoseconds value) {
   timeStep = value;
 }
 
@@ -591,6 +615,10 @@ void SceneWidget::changeGridStepSize(int stepSize) {
   // Keep the same square size, but change the grid step
   renderer.resize(*coordinateGrid, coordinateGrid->getRenderInfo().squareSize, stepSize);
   doneCurrent();
+}
+
+void SceneWidget::setRenderTrails(bool enable) {
+  renderMotionTrails = enable;
 }
 
 } // namespace netsimulyzer

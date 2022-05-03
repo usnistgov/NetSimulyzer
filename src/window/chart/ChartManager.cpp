@@ -236,9 +236,9 @@ void ChartManager::reset() {
   series.clear();
 }
 
-void ChartManager::addSeriesToChildren(const DropdownValue &value) {
+void ChartManager::setChildrenSeries(const std::vector<DropdownValue> &values) {
   for (auto chartWidget : chartWidgets) {
-    chartWidget->addSeries(value.name, value.id);
+    chartWidget->setSeries(values);
   }
 }
 
@@ -269,7 +269,7 @@ void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
   }
 }
 
-void ChartManager::timeAdvanced(double time) {
+void ChartManager::timeAdvanced(parser::nanoseconds time) {
   auto handleEvent = [time, this](auto &&e) {
     // Strip off qualifiers, etc
     // so T holds just the type
@@ -388,7 +388,7 @@ void ChartManager::timeAdvanced(double time) {
   }
 }
 
-void ChartManager::timeRewound(double time) {
+void ChartManager::timeRewound(parser::nanoseconds time) {
   auto handleUndoEvent = [time, this](auto &&e) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
@@ -519,8 +519,8 @@ void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int select
   }
 }
 
-void ChartManager::timeChanged(double time, double increment) {
-  if (increment > 0)
+void ChartManager::timeChanged(parser::nanoseconds time, parser::nanoseconds increment) {
+  if (increment > 0LL)
     timeAdvanced(time);
   else
     timeRewound(time);
@@ -556,46 +556,12 @@ void ChartManager::addSeries(const std::vector<parser::XYSeries> &xySeries,
     }
   }
 
-  switch (sortOrder) {
-  case SortOrder::Alphabetical:
-    std::sort(dropdownElements.begin(), dropdownElements.end(),
-              [](const DropdownValue &left, const DropdownValue &right) {
-                return QString::localeAwareCompare(left.name, right.name) < 0;
-              });
-    break;
-  case SortOrder::Type:
-    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
-      return static_cast<int>(left.type) < static_cast<int>(right.type);
-    });
-
-    // Sort Alphabetically within types
-    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
-      // Do not reorder along type boundaries
-      // since we know the elements are in type order
-      // should hold the boundaries in place
-      if (left.type != right.type) {
-        return false;
-      }
-      return QString::localeAwareCompare(left.name, right.name) < 0;
-    });
-
-    break;
-  case SortOrder::Id:
-    std::sort(dropdownElements.begin(), dropdownElements.end(), [](const auto &left, const auto &right) -> bool {
-      return left.id < right.id;
-    });
-    break;
-  case SortOrder::None:
-    // Intentionally Blank
-    break;
-  default:
-    std::cerr << "Unrecognised SortOrder: " << static_cast<int>(sortOrder) << '\n';
-    std::abort();
-    break;
-  }
-
-  for (const auto &dropdownElement : dropdownElements) {
-    addSeriesToChildren(dropdownElement);
+  setChildrenSeries(dropdownElements);
+}
+void ChartManager::setSortOrder(SettingsManager::ChartDropdownSortOrder value) {
+  sortOrder = value;
+  for (const auto widget : chartWidgets) {
+    widget->setSortOrder(sortOrder);
   }
 }
 

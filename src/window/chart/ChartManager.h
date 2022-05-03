@@ -49,6 +49,7 @@
 #include <deque>
 #include <model.h>
 #include <optional>
+#include <src/settings/SettingsManager.h>
 #include <unordered_map>
 #include <variant>
 
@@ -60,7 +61,6 @@ class ChartManager : public QObject {
   Q_OBJECT
 
 public:
-  enum class SortOrder { Alphabetical, Type, Id, None };
   enum class SeriesType : int { XY, CategoryValue, Collection };
 
   struct SeriesCollectionTie {
@@ -81,7 +81,7 @@ public:
     QtCharts::QXYSeries *qtSeries;
     QtCharts::QAbstractAxis *xAxis;
     QtCharts::QCategoryAxis *yAxis;
-    double lastUpdatedTime{0.0};
+    parser::nanoseconds lastUpdatedTime;
   };
 
   struct DropdownValue {
@@ -95,11 +95,13 @@ public:
   const static unsigned int PlaceholderId{0u};
 
 private:
+  SettingsManager settings;
   std::deque<parser::ChartEvent> events;
   std::deque<undo::ChartUndoEvent> undoEvents;
 
   std::unordered_map<uint32_t, TieVariant> series;
-  SortOrder sortOrder{SortOrder::Type};
+  SettingsManager::ChartDropdownSortOrder sortOrder{
+      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value()};
   std::vector<DropdownValue> dropdownElements;
   std::vector<ChartWidget *> chartWidgets;
 
@@ -107,7 +109,7 @@ private:
   SeriesCollectionTie makeTie(const parser::SeriesCollection &model);
   CategoryValueTie makeTie(const parser::CategoryValueSeries &model);
   void updateCollectionRanges(uint32_t seriesId, double x, double y);
-  void addSeriesToChildren(const DropdownValue &value);
+  void setChildrenSeries(const std::vector<DropdownValue> &values);
 
   /**
    * Finds all the collections the series
@@ -133,8 +135,8 @@ private:
    */
   void clearSeries(const ChartWidget *except, unsigned int id);
 
-  void timeAdvanced(double time);
-  void timeRewound(double time);
+  void timeAdvanced(parser::nanoseconds time);
+  void timeRewound(parser::nanoseconds time);
 
 public:
   explicit ChartManager(QWidget *parent);
@@ -164,8 +166,9 @@ public:
   TieVariant &getSeries(uint32_t seriesId);
 
   void seriesSelected(const ChartWidget *widget, unsigned int selected);
-  void timeChanged(double time, double increment);
+  void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
+  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
 };
 
 } // namespace netsimulyzer

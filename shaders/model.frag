@@ -47,6 +47,7 @@ uniform PointLight pointLights[maxPointLights];
 uniform SpotLight spotLights[maxSpotLights];
 
 uniform bool useTexture;
+uniform bool useLighting;
 uniform sampler2D texture_sampler;
 uniform Material material;
 uniform vec3 eye_position;
@@ -136,6 +137,6 @@ void main()
     // Choose Material color or Texture for the base
     final_color = mix(vec4(material_color, 1.0), texture(texture_sampler, texture_coordinates), int(useTexture));
 
-    // Apply lighting
-    final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
+    if (useLighting)
+        final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
 }

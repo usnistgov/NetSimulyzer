@@ -102,6 +102,28 @@ void Renderer::setSpotLightCount(unsigned int count) {
   modelShader.uniform("spotLightCount", count);
 }
 
+TrailBuffer Renderer::allocateTrailBuffer(QOpenGLFunctions_3_3_Core *openGl, int size) {
+  const auto vertexSize = sizeof(float) * 3;
+
+  // Vao
+  unsigned int vao;
+  openGl->glGenVertexArrays(1, &vao);
+  openGl->glBindVertexArray(vao);
+
+  // Vbo
+  unsigned int vbo;
+  openGl->glGenBuffers(1, &vbo);
+  openGl->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  openGl->glBufferData(GL_ARRAY_BUFFER, vertexSize * size, nullptr, GL_DYNAMIC_DRAW);
+
+  // Location
+  openGl->glVertexAttribPointer(0u, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+  openGl->glEnableVertexAttribArray(0u);
+
+  TrailBuffer buffer{openGl, vao, vbo, size, vertexSize};
+  return buffer;
+}
+
 Building::RenderInfo Renderer::allocate(const parser::Building &building) {
   Building::RenderInfo info;
 
@@ -601,13 +623,24 @@ void Renderer::renderOutlines(const std::vector<Building> &buildings, const glm:
   }
 }
 
-void Renderer::render(const Model &m) {
+void Renderer::renderTrail(const TrailBuffer &buffer, const glm::vec3 &color) {
+  glEnable(GL_LINE_SMOOTH);
+
+  buildingShader.bind();
+  buildingShader.uniform("color", color);
+  buffer.render();
+
+  glDisable(GL_LINE_SMOOTH);
+}
+
+void Renderer::render(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   modelCache.get(m.getModelId()).render(modelShader, m);
 }
 
-void Renderer::renderTransparent(const Model &m) {
+void Renderer::renderTransparent(const Model &m, LightingMode lightingMode) {
   auto &renderInfo = modelCache.get(m.getModelId());
 
   if (!renderInfo.hasTransparentMeshes())
@@ -615,6 +648,7 @@ void Renderer::renderTransparent(const Model &m) {
 
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   renderInfo.renderTransparent(modelShader, m);
 }
 
@@ -652,6 +686,9 @@ void Renderer::render(CoordinateGrid &coordinateGrid) {
   glBindVertexArray(renderInfo.vao);
   glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
   glDrawArrays(GL_LINES, 0, renderInfo.size);
+
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glDisable(GL_LINE_SMOOTH);
   glDisable(GL_BLEND);

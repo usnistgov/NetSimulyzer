@@ -283,9 +283,26 @@
       "items": {
         "type": "object",
         "properties": {
-          "height": {
-            "type": "number",
-            "minimum": 0
+          "target-scale": {
+            "type": "object",
+            "properties": {
+              "keep-ratio": {
+                "type": "boolean"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 0
+              },
+              "width": {
+                "type": "number",
+                "minimum": 0
+              },
+              "depth": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": ["keep-ratio"]
           },
           "id": {
             "type": "integer"
@@ -341,7 +358,7 @@
           }
         },
         "required": [
-          "height",
+          "target-scale",
           "id",
           "model",
           "opacity",
@@ -685,9 +702,26 @@
       "items": {
         "type": "object",
         "properties": {
-          "height": {
-            "type": "number",
-            "minimum": 0
+          "target-scale": {
+            "type": "object",
+            "properties": {
+              "keep-ratio": {
+                "type": "boolean"
+              },
+              "height": {
+                "type": "number",
+                "minimum": 0
+              },
+              "width": {
+                "type": "number",
+                "minimum": 0
+              },
+              "depth": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": ["keep-ratio"]
           },
           "id": {
             "type": "integer"
@@ -805,6 +839,31 @@
               "blue"
             ]
           },
+          "trail-color": {
+            "type": "object",
+            "properties": {
+              "red": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "green": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "blue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "red",
+              "green",
+              "blue"
+            ]
+          },
           "scale": {
             "type": "number",
             "minimum": 0
@@ -818,13 +877,14 @@
           }
         },
         "required": [
-          "height",
+          "target-scale",
           "id",
           "model",
           "name",
           "offset",
           "orientation",
           "position",
+          "trail-color",
           "scale",
           "type",
           "visible"

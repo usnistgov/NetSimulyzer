@@ -65,8 +65,11 @@ private:
   const glm::vec3 max;
 
   glm::vec3 position{0.0f};
+  bool keepRatio{true};
   float targetHeightScale = 1.0f;
-  float scale = 1.0f;
+  float targetWidthScale = 1.0f;
+  float targetDepthScale = 1.0f;
+  glm::vec3 scale{1.0f};
   std::array<float, 3> rotate{0.0f};
   std::optional<glm::vec3> baseColor;
   std::optional<glm::vec3> highlightColor;
@@ -77,6 +80,17 @@ private:
    */
   glm::mat4 modelMatrix{1.0f};
 
+  /**
+   * Matrix built from the 'scale' attributes,
+   * `keepRatio`, `targetHeightScale`, `targetWidthScale`,
+   * `targetDepthScale`, & `scale`.
+   *
+   * Applied to the `modelMatrix`
+   */
+  glm::mat4 scaleMatrix{1.0};
+
+  void rebuildScaleMatrix();
+
 public:
   Model(const ModelLoadInfo &info);
   Model(model_id modelId, const glm::vec3 &min, const glm::vec3 &max);
@@ -84,11 +98,22 @@ public:
   void setPosition(const glm::vec3 &value);
   [[nodiscard]] const glm::vec3 &getPosition() const;
 
+  [[nodiscard]] glm::vec3 getCenter() const;
+
+  void setKeepRatio(bool value);
+  [[nodiscard]] bool getKeepRatio() const;
+
   void setTargetHeightScale(float value);
   [[nodiscard]] float getTargetHeightScale() const;
 
-  void setScale(float value);
-  [[nodiscard]] float getScale() const;
+  void setTargetWidthScale(float value);
+  [[nodiscard]] float getTargetWidthScale() const;
+
+  void setTargetDepthScale(float value);
+  [[nodiscard]] float getTargetDepthScale() const;
+
+  void setScale(glm::vec3 value);
+  [[nodiscard]] glm::vec3 getScale() const;
 
   void setRotate(float x = 0.0f, float y = 0.0f, float z = 0.0f);
   [[nodiscard]] std::array<float, 3> getRotate() const;

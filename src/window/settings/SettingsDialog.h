@@ -71,6 +71,14 @@ class SettingsDialog : public QDialog {
   double passedTimeStep = 10.0;
 
   /**
+   * Sets the suffix in the time step preference SpinBox
+   *
+   * @param unit
+   * The use to use for the suffix
+   */
+  void setStepSpinSuffix(SettingsManager::TimeUnit unit);
+
+  /**
    * Callback for when a button at the bottom of the dialog is clicked
    *
    * @param button
@@ -97,6 +105,11 @@ class SettingsDialog : public QDialog {
    * Set the Field of View slider to the default value from the Settings Manager
    */
   void defaultFieldOfView();
+
+  /**
+   * Set the Chart Sort Order input to the default value
+   */
+  void defaultChartSortOrder();
 
   /**
    * Set the Samples input to the default value
@@ -130,6 +143,18 @@ class SettingsDialog : public QDialog {
    * Set the grid checkbox to the default value
    */
   void defaultShowGrid();
+
+  /**
+   * Set the checkbox that enables motion
+   * trails to the default state
+   */
+  void defaultShowTrails();
+
+  /**
+   * Sets the Motion Trail Length
+   * spinner to the default value
+   */
+  void defaultTrailsLength();
 
   /**
    * Sets the grid step size spinner to its default value
@@ -258,6 +283,17 @@ signals:
   void downKeyChanged(int key);
 
   /**
+   * Signal emitted when the user changes the Chart sort order.
+   *
+   * @param value
+   * A value from `SettingsManager::ChartDropdownSortOrder` converted to
+   * an `int` for messaging.
+   *
+   * @see SettingsManager::ChartDropdownSortOrderFromInt
+   */
+  void chartSortOrderChanged(int value);
+
+  /**
    * Signal emitted when the user changes the
    * Skybox render state
    *
@@ -301,6 +337,15 @@ signals:
    * The new size for grid squares
    */
   void gridStepSizeChanged(int stepSize);
+
+  /**
+   * Signal emitted when the user changes the
+   * Motion Trail render mode.
+   *
+   * @param enable
+   * Flag indicating trails should be rendered or not
+   */
+  void renderTrailsChanged(bool enable);
 
   /**
    * Signal emitted when the user saves a new Play/Pause Key

@@ -33,65 +33,67 @@
 
 #pragma once
 
-#include "ChartManager.h"
-#include "ui_ChartWidget.h"
-#include <QDockWidget>
-#include <QString>
-#include <QWidget>
-#include <src/settings/SettingsManager.h>
+#include "src/render/shader/Shader.h"
+#include <QOpenGLFunctions_3_3_Core>
 #include <vector>
 
 namespace netsimulyzer {
 
-class ChartWidget : public QDockWidget {
-  Q_OBJECT
+/**
+ * Class that stores the list of locations
+ * a Node has visited. Once full, the oldest
+ * points 'fall off' the front,
+ * first in first out style
+ */
+class TrailBuffer {
+  // Make sure there is no padding is in this struct
+#pragma pack(push, 4)
+  struct TrailVertex {
+    float x;
+    float y;
+    float z;
+  };
+#pragma pack(pop)
 
-  ChartManager &manager;
-  SettingsManager settings{};
-  QtCharts::QChart chart;
-  Ui::ChartWidget ui{};
-  unsigned int currentSeries{ChartManager::PlaceholderId};
-  std::vector<ChartManager::DropdownValue> dropdownValues;
-  SettingsManager::ChartDropdownSortOrder sortOrder =
-      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
-
-  void seriesSelected(int index);
-  void showSeries(const ChartManager::XYSeriesTie &tie);
-  void showSeries(const ChartManager::SeriesCollectionTie &tie);
-  void showSeries(const ChartManager::CategoryValueTie &tie);
+  QOpenGLFunctions_3_3_Core *openGl;
+  unsigned int vao{0u};
+  unsigned int vbo{0u};
 
   /**
-   * Remove all axes & series from the chart
+   * Total size of the internal buffer
+   * in elements
    */
-  void clearChart();
+  int bufferSize{0};
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  /**
+   * Size of each vertex in bytes
+   */
+  const int vertexSize;
+
+  /**
+   * The current position in the buffer
+   */
+  int index{0};
+
+  /**
+   * FLag indicating that no points are in the buffer
+   */
+  bool _empty{true};
+
+  /**
+   * Application side buffer containing the appended points
+   */
+  std::vector<TrailVertex> buffer;
 
 public:
-  ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
-  void addSeries(ChartManager::DropdownValue dropdownValue);
-  void setSeries(std::vector<ChartManager::DropdownValue> values);
-  void sortDropdown();
-  void populateDropdown();
-  void reset();
-  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
-
-  /**
-   * Unselects the current series
-   * & resets the chart
-   */
-  void clearSelected();
-
-  /**
-   * Gets the ID of the currently selected series.
-   * 0u is the ID of the placeholder item
-   *
-   * @return
-   * The ID of the currently selected series,
-   * or 0u in no series is selected
-   */
-  [[nodiscard]] unsigned int getCurrentSeries() const;
+  explicit TrailBuffer(QOpenGLFunctions_3_3_Core *openGl, unsigned int vao, unsigned int vbo, int initialSize,
+                       int vertexSize) noexcept;
+  TrailBuffer(TrailBuffer &&other) noexcept;
+  ~TrailBuffer();
+  void bind() const;
+  void render() const;
+  void append(float x, float y, float z);
+  void pop();
+  [[nodiscard]] bool empty() const noexcept;
 };
-
 } // namespace netsimulyzer

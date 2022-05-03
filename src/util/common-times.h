@@ -33,65 +33,38 @@
 
 #pragma once
 
-#include "ChartManager.h"
-#include "ui_ChartWidget.h"
-#include <QDockWidget>
-#include <QString>
-#include <QWidget>
-#include <src/settings/SettingsManager.h>
-#include <vector>
+#include "parser/model.h"
+
+/**
+ * Common quantities to convert nanoseconds into
+ * other time units
+ */
 
 namespace netsimulyzer {
 
-class ChartWidget : public QDockWidget {
-  Q_OBJECT
+/**
+ * One hour in nanoseconds
+ */
+const parser::nanoseconds HOUR = 3'600'000'000'000LL;
 
-  ChartManager &manager;
-  SettingsManager settings{};
-  QtCharts::QChart chart;
-  Ui::ChartWidget ui{};
-  unsigned int currentSeries{ChartManager::PlaceholderId};
-  std::vector<ChartManager::DropdownValue> dropdownValues;
-  SettingsManager::ChartDropdownSortOrder sortOrder =
-      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
+/**
+ * One minute in nanoseconds
+ */
+const parser::nanoseconds MINUTE = 60'000'000'000LL;
 
-  void seriesSelected(int index);
-  void showSeries(const ChartManager::XYSeriesTie &tie);
-  void showSeries(const ChartManager::SeriesCollectionTie &tie);
-  void showSeries(const ChartManager::CategoryValueTie &tie);
+/**
+ * One Second in nanoseconds
+ */
+const parser::nanoseconds SECOND = 1'000'000'000LL;
 
-  /**
-   * Remove all axes & series from the chart
-   */
-  void clearChart();
+/**
+ * One Millisecond in nanoseconds
+ */
+const parser::nanoseconds MILLISECOND = 1'000'000LL;
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
-
-public:
-  ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
-  void addSeries(ChartManager::DropdownValue dropdownValue);
-  void setSeries(std::vector<ChartManager::DropdownValue> values);
-  void sortDropdown();
-  void populateDropdown();
-  void reset();
-  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
-
-  /**
-   * Unselects the current series
-   * & resets the chart
-   */
-  void clearSelected();
-
-  /**
-   * Gets the ID of the currently selected series.
-   * 0u is the ID of the placeholder item
-   *
-   * @return
-   * The ID of the currently selected series,
-   * or 0u in no series is selected
-   */
-  [[nodiscard]] unsigned int getCurrentSeries() const;
-};
+/**
+ * One microsecond in nanoseconds
+ */
+const parser::nanoseconds MICROSECOND = 1'000LL;
 
 } // namespace netsimulyzer

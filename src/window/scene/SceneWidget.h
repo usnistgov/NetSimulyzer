@@ -76,6 +76,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
   enum class PlayMode { Paused, Play };
 
+  QOpenGLFunctions_3_3_Core openGl;
   SettingsManager settings;
   Camera camera{glm::vec3{0.0f, 2.0f, 0.0f}};
   QPoint initialCursorPosition{width() / 2, height() / 2};
@@ -90,6 +91,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
+  bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -97,16 +99,18 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unique_ptr<CoordinateGrid> coordinateGrid;
   SettingsManager::BuildingRenderMode buildingRenderMode =
       settings.get<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode).value();
+  std::unique_ptr<Model> transmissionSphere;
 
   parser::GlobalConfiguration config;
 
   /**
    * Amount of time to advance/rewind `simulationTime`
-   * per frame in milliseconds.
+   * per frame.
    */
-  int timeStep = settings.get<int>(SettingsManager::Key::PlaybackTimeStepPreference).value();
+  parser::nanoseconds timeStep =
+      settings.get<parser::nanoseconds>(SettingsManager::Key::PlaybackTimeStepPreference).value();
 
-  double simulationTime = 0.0;
+  parser::nanoseconds simulationTime;
 
   std::vector<Area> areas;
   std::vector<Building> buildings;
@@ -183,8 +187,8 @@ public:
    * @param value
    * The time increment, in milliseconds
    */
-  void setTime(double value);
-  void setTimeStep(int value);
+  void setTime(parser::nanoseconds value);
+  void setTimeStep(parser::nanoseconds value);
   QSize sizeHint() const override;
 
   /**
@@ -226,8 +230,16 @@ public:
    */
   void changeGridStepSize(int stepSize);
 
+  /**
+   * Enable or disable showing of motion trails
+   *
+   * @param enable
+   * True to show trails, false to hide
+   */
+  void setRenderTrails(bool enable);
+
 signals:
-  void timeChanged(double simulationTime, double increment);
+  void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
 };

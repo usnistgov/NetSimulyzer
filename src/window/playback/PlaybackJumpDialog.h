@@ -32,66 +32,52 @@
  */
 
 #pragma once
-
-#include "ChartManager.h"
-#include "ui_ChartWidget.h"
-#include <QDockWidget>
+#include "parser/model.h"
+#include "ui_PlaybackJumpDialog.h"
+#include <QDialog>
 #include <QString>
-#include <QWidget>
-#include <src/settings/SettingsManager.h>
-#include <vector>
+#include <QValidator>
+
+namespace Ui {
+class PlaybackJumpDialog;
+}
 
 namespace netsimulyzer {
 
-class ChartWidget : public QDockWidget {
+/**
+ * Dialog for jumping to a particular time during playback
+ */
+class PlaybackJumpDialog : public QDialog {
   Q_OBJECT
 
-  ChartManager &manager;
-  SettingsManager settings{};
-  QtCharts::QChart chart;
-  Ui::ChartWidget ui{};
-  unsigned int currentSeries{ChartManager::PlaceholderId};
-  std::vector<ChartManager::DropdownValue> dropdownValues;
-  SettingsManager::ChartDropdownSortOrder sortOrder =
-      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
-
-  void seriesSelected(int index);
-  void showSeries(const ChartManager::XYSeriesTie &tie);
-  void showSeries(const ChartManager::SeriesCollectionTie &tie);
-  void showSeries(const ChartManager::CategoryValueTie &tie);
-
   /**
-   * Remove all axes & series from the chart
+   * Validator for user input times.
+   *
+   * Does not allow exceeding `maxTime`,
+   * 60+ values for seconds/minutes,
+   * and negative values
    */
-  void clearChart();
+  class TimeValidator : public QValidator {
+    parser::nanoseconds maxTime{};
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  public:
+    explicit TimeValidator(QObject *parent);
+    void setMaxTime(parser::nanoseconds value);
+    void fixup(QString &string) const override;
+    State validate(QString &string, int &) const override;
+  };
+
+  Ui::PlaybackJumpDialog ui{};
+  parser::nanoseconds maxTime{};
+  TimeValidator validator{this};
 
 public:
-  ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
-  void addSeries(ChartManager::DropdownValue dropdownValue);
-  void setSeries(std::vector<ChartManager::DropdownValue> values);
-  void sortDropdown();
-  void populateDropdown();
-  void reset();
-  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
+  explicit PlaybackJumpDialog(QWidget *parent = nullptr);
 
-  /**
-   * Unselects the current series
-   * & resets the chart
-   */
-  void clearSelected();
+  void setMaxTime(parser::nanoseconds value);
+  void setInputValue(parser::nanoseconds value);
 
-  /**
-   * Gets the ID of the currently selected series.
-   * 0u is the ID of the placeholder item
-   *
-   * @return
-   * The ID of the currently selected series,
-   * or 0u in no series is selected
-   */
-  [[nodiscard]] unsigned int getCurrentSeries() const;
+signals:
+  void timeSelected(parser::nanoseconds time);
 };
-
 } // namespace netsimulyzer

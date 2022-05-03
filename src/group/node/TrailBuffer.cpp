@@ -31,67 +31,80 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-
-#include "ChartManager.h"
-#include "ui_ChartWidget.h"
-#include <QDockWidget>
-#include <QString>
-#include <QWidget>
-#include <src/settings/SettingsManager.h>
-#include <vector>
+#include "TrailBuffer.h"
+#include <algorithm>
+#include <utility>
 
 namespace netsimulyzer {
 
-class ChartWidget : public QDockWidget {
-  Q_OBJECT
+TrailBuffer::TrailBuffer(QOpenGLFunctions_3_3_Core *openGl, unsigned int vao, unsigned int vbo, int initialSize,
+                         int vertexSize) noexcept
+    : openGl{openGl}, vao{vao}, vbo{vbo}, bufferSize{initialSize}, vertexSize{vertexSize}, buffer(bufferSize) {
+}
 
-  ChartManager &manager;
-  SettingsManager settings{};
-  QtCharts::QChart chart;
-  Ui::ChartWidget ui{};
-  unsigned int currentSeries{ChartManager::PlaceholderId};
-  std::vector<ChartManager::DropdownValue> dropdownValues;
-  SettingsManager::ChartDropdownSortOrder sortOrder =
-      settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
+TrailBuffer::TrailBuffer(TrailBuffer &&other) noexcept
+    : openGl{other.openGl}, vao{other.vao}, vbo{other.vbo}, bufferSize{other.bufferSize},
+      vertexSize{other.vertexSize}, index{other.index}, _empty{other._empty}, buffer{std::move(other.buffer)} {
+  // Clear these, so the `other` deconstructor doesn't delete our moved buffers
+  other.vao = 0u;
+  other.vbo = 0u;
+}
 
-  void seriesSelected(int index);
-  void showSeries(const ChartManager::XYSeriesTie &tie);
-  void showSeries(const ChartManager::SeriesCollectionTie &tie);
-  void showSeries(const ChartManager::CategoryValueTie &tie);
+TrailBuffer::~TrailBuffer() {
+  openGl->glDeleteBuffers(1, &vbo);
+  openGl->glDeleteVertexArrays(1, &vao);
+}
 
-  /**
-   * Remove all axes & series from the chart
-   */
-  void clearChart();
+void TrailBuffer::bind() const {
+  openGl->glBindVertexArray(vao);
+  openGl->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+}
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
+void TrailBuffer::render() const {
+  if (empty())
+    return;
 
-public:
-  ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
-  void addSeries(ChartManager::DropdownValue dropdownValue);
-  void setSeries(std::vector<ChartManager::DropdownValue> values);
-  void sortDropdown();
-  void populateDropdown();
-  void reset();
-  void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
+  bind();
+  openGl->glDrawArrays(GL_LINE_STRIP, 0, index);
+}
 
-  /**
-   * Unselects the current series
-   * & resets the chart
-   */
-  void clearSelected();
+void TrailBuffer::append(float x, float y, float z) {
+  if (index == bufferSize - 1) {
+    std::rotate(buffer.begin(), buffer.begin() + 1, buffer.end());
 
-  /**
-   * Gets the ID of the currently selected series.
-   * 0u is the ID of the placeholder item
-   *
-   * @return
-   * The ID of the currently selected series,
-   * or 0u in no series is selected
-   */
-  [[nodiscard]] unsigned int getCurrentSeries() const;
-};
+    buffer[index].x = x;
+    buffer[index].y = y;
+    buffer[index].z = z;
+
+  } else {
+    if (_empty)
+      _empty = false;
+    else
+      index++;
+
+    buffer[index].x = x;
+    buffer[index].y = y;
+    buffer[index].z = z;
+  }
+
+  openGl->glBindVertexArray(vao);
+  openGl->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  openGl->glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize * (index + 1), buffer.data());
+}
+
+void TrailBuffer::pop() {
+  if (_empty)
+    return;
+
+  index--;
+  if (index == -1) {
+    _empty = true;
+    index = 0;
+  }
+}
+
+bool TrailBuffer::empty() const noexcept {
+  return _empty;
+}
 
 } // namespace netsimulyzer
