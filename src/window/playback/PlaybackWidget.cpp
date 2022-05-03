@@ -202,6 +202,8 @@ void PlaybackWidget::sliderMoved(int value) {
 
   if (timeValue == maxTime && !playing)
     ui.buttonPlayPause->setIcon(resetIcon);
+  else if (playing)
+    ui.buttonPlayPause->setIcon(pauseIcon);
   else
     ui.buttonPlayPause->setIcon(playIcon);
 
