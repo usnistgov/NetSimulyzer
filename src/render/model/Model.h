@@ -66,9 +66,9 @@ private:
 
   glm::vec3 position{0.0f};
   bool keepRatio{true};
-  float targetHeightScale = 1.0f;
-  float targetWidthScale = 1.0f;
-  float targetDepthScale = 1.0f;
+  std::optional<float> targetHeightScale;
+  std::optional<float> targetWidthScale;
+  std::optional<float> targetDepthScale;
   glm::vec3 scale{1.0f};
   std::array<float, 3> rotate{0.0f};
   std::optional<glm::vec3> baseColor;
@@ -104,13 +104,13 @@ public:
   [[nodiscard]] bool getKeepRatio() const;
 
   void setTargetHeightScale(float value);
-  [[nodiscard]] float getTargetHeightScale() const;
+  [[nodiscard]] std::optional<float> getTargetHeightScale() const;
 
   void setTargetWidthScale(float value);
-  [[nodiscard]] float getTargetWidthScale() const;
+  [[nodiscard]] std::optional<float> getTargetWidthScale() const;
 
   void setTargetDepthScale(float value);
-  [[nodiscard]] float getTargetDepthScale() const;
+  [[nodiscard]] std::optional<float> getTargetDepthScale() const;
 
   void setScale(glm::vec3 value);
   [[nodiscard]] glm::vec3 getScale() const;

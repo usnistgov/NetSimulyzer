@@ -43,11 +43,19 @@ namespace netsimulyzer {
 void Model::rebuildScaleMatrix() {
   scaleMatrix = glm::mat4{1.0f};
 
+  if (!targetHeightScale && !targetWidthScale && !targetDepthScale) {
+    scaleMatrix = glm::scale(scaleMatrix, scale);
+    return;
+  }
+
   if (keepRatio) {
-    const auto maxTargetScale = std::max({targetHeightScale, targetWidthScale, targetDepthScale});
+    // At least one of these will be set, so we won't end up with 0
+    const auto maxTargetScale =
+        std::max({targetHeightScale.value_or(0.0f), targetWidthScale.value_or(0.0f), targetDepthScale.value_or(0.0f)});
     scaleMatrix = glm::scale(scaleMatrix, {maxTargetScale, maxTargetScale, maxTargetScale});
   } else {
-    scaleMatrix = glm::scale(scaleMatrix, {targetWidthScale, targetHeightScale, targetDepthScale});
+    scaleMatrix = glm::scale(scaleMatrix, {targetWidthScale.value_or(1.0f), targetHeightScale.value_or(1.0f),
+                                           targetDepthScale.value_or(1.0f)});
   }
 
   scaleMatrix = glm::scale(scaleMatrix, scale);
@@ -93,7 +101,7 @@ void Model::setTargetHeightScale(float value) {
   rebuildModelMatrix();
 }
 
-float Model::getTargetHeightScale() const {
+std::optional<float> Model::getTargetHeightScale() const {
   return targetHeightScale;
 }
 
@@ -103,7 +111,7 @@ void Model::setTargetWidthScale(float value) {
   rebuildModelMatrix();
 }
 
-float Model::getTargetWidthScale() const {
+std::optional<float> Model::getTargetWidthScale() const {
   return targetWidthScale;
 }
 
@@ -113,7 +121,7 @@ void Model::setTargetDepthScale(float value) {
   rebuildModelMatrix();
 }
 
-float Model::getTargetDepthScale() const {
+std::optional<float> Model::getTargetDepthScale() const {
   return targetDepthScale;
 }
 
