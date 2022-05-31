@@ -28,68 +28,16 @@
  * cause risk of injury or damage to property. The software developed by NIST
  * employees is not subject to copyright protection within the United States.
  *
- * Author: Evan Black <evan.black@nist.gov>
+ * Author: Megan Lizambri <megan.lizambri@nist.gov>
  */
 
-#pragma once
-
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "playback/PlaybackWidget.h"
-#include "scene/SceneWidget.h"
-#include "settings/SettingsDialog.h"
-#include "src/window/detail/DetailWidget.h"
-#include "ui_MainWindow.h"
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
+#include "DetailWidget.h"
+#include "ui_DetailWidget.h"
 
 namespace netsimulyzer {
-class MainWindow : public QMainWindow {
-  Q_OBJECT
 
-public:
-  MainWindow();
-  ~MainWindow() override;
+DetailWidget::DetailWidget(QWidget *parent) : QWidget(parent) {
+  ui.setupUi(this);
+}
 
-public slots:
-  void finishLoading(const QString &fileName, unsigned long long milliseconds);
-  void errorLoading(const QString &message, unsigned long long offset);
-
-signals:
-  void startLoading(const QString &fileName);
-
-private:
-  const int stateVersion = 4;
-  SettingsManager settings;
-  SettingsDialog settingsDialog{this};
-
-  ChartManager charts{this};
-  NodeWidget nodeWidget{this};
-  DetailWidget detailWidget{this};
-  ScenarioLogWidget logWidget{this};
-  SceneWidget scene{this};
-  PlaybackWidget playbackWidget{this};
-  Ui::MainWindow ui{};
-
-  /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
-   */
-  QLabel statusLabel{"Load Scenario", this};
-
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
-
-  void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
-  void load();
-
-protected:
-  void closeEvent(QCloseEvent *event) override;
-};
 } // namespace netsimulyzer

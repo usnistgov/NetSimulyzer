@@ -55,6 +55,7 @@ MainWindow::MainWindow() : QMainWindow() {
   setCentralWidget(&scene);
 
   ui.nodesDock->setWidget(&nodeWidget);
+  ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
@@ -71,6 +72,7 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
