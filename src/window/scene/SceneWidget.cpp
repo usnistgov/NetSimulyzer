@@ -538,6 +538,17 @@ void SceneWidget::focusNode(uint32_t nodeId) {
   camera.resetRotation();
 }
 
+const Node &SceneWidget::getNode(unsigned int nodeId) {
+  const auto iter = nodes.find(nodeId);
+
+  if (iter == nodes.end()) {
+    std::cerr << "Error: Node with ID: " << nodeId << " not found\n";
+    std::abort();
+  }
+
+  return iter->second;
+}
+
 void SceneWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
   events.insert(events.end(), e.begin(), e.end());
 }

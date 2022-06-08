@@ -282,6 +282,15 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
     nodeWidget.addNode(node);
   }
 
+  // TODO: Dev: Remove before release
+  if (!nodes.empty()) {
+    const auto &node = scene.getNode(nodes[0].id);
+    std::clog << "Describing Node: " << node.getNs3Model().id << '\n';
+    detailWidget.describe(node);
+  } else {
+    std::clog << "No Node(s) to describe\n";
+  }
+
   // Charts
   charts.addSeries(parser.getXYSeries(), parser.getSeriesCollections(), parser.getCategoryValueSeries());
 

@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "src/group/node/Node.h"
 #include "ui_DetailWidget.h"
 #include <QWidget>
 
@@ -42,6 +43,8 @@ class DetailWidget : public QWidget {
 
 public:
   explicit DetailWidget(QWidget *parent = nullptr);
+
+  void describe(const Node &node);
 
 private:
   Ui::DetailWidget ui{};

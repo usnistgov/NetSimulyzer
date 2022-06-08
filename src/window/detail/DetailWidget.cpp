@@ -32,12 +32,16 @@
  */
 
 #include "DetailWidget.h"
+#include "src/group/node/Node.h"
 #include "ui_DetailWidget.h"
 
 namespace netsimulyzer {
 
 DetailWidget::DetailWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
+}
+
+void DetailWidget::describe(const Node &node) {
 }
 
 } // namespace netsimulyzer

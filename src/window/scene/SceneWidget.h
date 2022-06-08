@@ -158,6 +158,19 @@ public:
    */
   void focusNode(uint32_t nodeId);
 
+  /**
+   * Retrieves a Node from the scene by ID.
+   * If the Node is not found, this method
+   * will abort.
+   *
+   * @param nodeId
+   * The ID of the Node to retrieve
+   *
+   * @return
+   * The Node from the scene
+   */
+  const Node &getNode(unsigned int nodeId);
+
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
   void resetCamera();
 
