@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 project(NetSimulyzer
-        VERSION 1.0.4
+        VERSION 1.0.5
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
