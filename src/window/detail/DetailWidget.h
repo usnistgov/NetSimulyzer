@@ -48,6 +48,7 @@ public:
 
 private:
   Ui::DetailWidget ui{};
+
 };
 
 } // namespace netsimulyzer

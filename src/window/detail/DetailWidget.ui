@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>347</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,46 @@
    <iconset resource="../../../resources.qrc">
     <normaloff>:/application/application.png</normaloff>:/application/application.png</iconset>
   </property>
+  <widget class="QTreeView" name="treeView">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>331</width>
+     <height>401</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>360</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_2" native="true">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>360</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_3" native="true">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>360</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <resources>
   <include location="../../../resources.qrc"/>
