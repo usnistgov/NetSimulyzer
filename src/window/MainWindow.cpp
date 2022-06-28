@@ -111,6 +111,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
 
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id){ //megans addition
+      detailWidget.describe(scene.getNode(id));
+  });
+
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
   QObject::connect(ui.actionSettings, &QAction::triggered, [this]() {
@@ -280,15 +284,6 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
 
   for (const auto &node : nodes) {
     nodeWidget.addNode(node);
-  }
-
-  // TODO: Dev: Remove before release
-  if (!nodes.empty()) {
-    const auto &node = scene.getNode(nodes[0].id);
-    std::clog << "Describing Node: " << node.getNs3Model().id << '\n';
-    detailWidget.describe(node);
-  } else {
-    std::clog << "No Node(s) to describe\n";
   }
 
   // Charts
