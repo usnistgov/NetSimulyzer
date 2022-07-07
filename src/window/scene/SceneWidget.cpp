@@ -209,6 +209,10 @@ void SceneWidget::initializeGL() {
 
   updatePerspective();
 
+  // picking FBO
+  pickingFbo = std::make_unique<PickingFramebuffer>(openGl, width(), height());
+  pickingFbo->unbind(GL_FRAMEBUFFER, defaultFramebufferObject());
+
   // Cheap hack to get Qt to repaint at a reasonable rate
   // Seems to only work with the old connect syntax
   QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -225,9 +229,25 @@ void SceneWidget::paintGL() {
       handleUndoEvents();
   }
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
+  // Picking
+  pickingFbo->bind(GL_FRAMEBUFFER);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  for (auto &[key, node] : nodes) {
+    if (!node.visible())
+      continue;
+    renderer.renderPickingNode(node.getNs3Model().id, node.getModel());
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+  // end Picking
+
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
+
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (renderSkybox)
     renderer.render(*skyBox);
 
@@ -318,6 +338,7 @@ void SceneWidget::paintGL() {
 void SceneWidget::resizeGL(int w, int h) {
   updatePerspective();
   glViewport(0, 0, w, h);
+  pickingFbo->resize(w, h);
 }
 
 void SceneWidget::keyPressEvent(QKeyEvent *event) {
@@ -332,6 +353,21 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
+
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
+  if (selected.object && selected.type == 1u) {
+    emit nodeSelected(selected.id);
+    return;
+  }
+
   if (!camera.mouseControlsEnabled())
     return;
 

@@ -261,6 +261,14 @@ void ModelRenderInfo::clear() {
   meshes.clear();
 }
 
+std::vector<Mesh> &ModelRenderInfo::getMeshes() {
+  return meshes;
+}
+
+std::vector<Mesh> &ModelRenderInfo::getTransparentMeshes() {
+  return transparentMeshes;
+}
+
 ModelCache::ModelCache(TextureCache &textureCache) : textureCache(textureCache) {
 }
 

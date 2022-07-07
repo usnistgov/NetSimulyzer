@@ -62,6 +62,7 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
   Shader gridShader;
   Shader modelShader;
   Shader skyBoxShader;
+  Shader pickingShader;
 
   void initShader(Shader &s, const QString &vertexPath, const QString &fragmentPath);
 
@@ -88,6 +89,8 @@ public:
 
   void startTransparent();
   void endTransparent();
+
+  void renderPickingNode(unsigned int nodeId, const Model &m);
 
   void use(const Camera &cam);
   void render(const DirectionalLight &light);

@@ -92,6 +92,8 @@ public:
 
   void render(Shader &s, const Model &model);
   void renderTransparent(Shader &s, const Model &model);
+  std::vector<Mesh>& getMeshes();
+  std::vector<Mesh>& getTransparentMeshes();
   void clear();
 };
 

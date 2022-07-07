@@ -21,5 +21,7 @@
         <file>shaders/model.frag</file>
         <file>shaders/skybox.vert</file>
         <file>shaders/skybox.frag</file>
+        <file>shaders/picking.frag</file>
+        <file>shaders/picking.vert</file>
     </qresource>
 </RCC>

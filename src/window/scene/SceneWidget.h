@@ -49,6 +49,7 @@
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
+#include "src/render/framebuffer/PickingFramebuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QApplication>
@@ -92,6 +93,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
   bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
+
+  std::unique_ptr<PickingFramebuffer> pickingFbo;
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -242,5 +245,6 @@ signals:
   void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
+  void nodeSelected(unsigned int nodeId);
 };
 } // namespace netsimulyzer
