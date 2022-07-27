@@ -151,6 +151,16 @@ public:
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
            const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::WiredLink> &links,
            const std::vector<parser::Node> &nodeModels);
+
+  /**
+   * Load an individual model specified by `modelPath`
+   * as a `Decoration` in the center of the scene
+   *
+   * @param modelPath
+   * The absolute path to the model to load
+   */
+  void previewModel(const std::string &modelPath);
+
   /**
    * Center the specified Node in the view.
    * If the Node with ID nodeId is not found,

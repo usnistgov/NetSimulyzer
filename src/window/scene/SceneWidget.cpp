@@ -549,6 +549,45 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   doneCurrent();
 }
 
+void SceneWidget::previewModel(const std::string &modelPath) {
+  makeCurrent();
+
+  // Reset the model cache, since it's not out of the question
+  // that a model has changed since the last load
+  models.reset();
+
+  // The scene should only have our previewed model in it
+  // so, remove everything else
+  reset();
+
+  const Model previewedModel{models.loadAbsolute(modelPath)};
+
+  // If we get the fallback model ID, then the model failed to load
+  // (Unless someone is trying to load the fallback model itself...)
+  if (previewedModel.getModelId() == models.getFallbackModelId()) {
+    QMessageBox::warning(this, "Failed to Load Model", "Failed to load the model. Check the console for more info");
+    models.reset();
+    reset();
+    doneCurrent();
+    return;
+  }
+
+  decorations.try_emplace(0u, previewedModel, parser::Decoration{});
+
+  // Put the camera slightly away from the loaded model
+  // accounting for how large the model is
+  const auto bounds = previewedModel.getBounds();
+  auto position = previewedModel.getPosition();
+  position.z += bounds.max.z + 5.0f;
+
+  // Put us at the middle of the model (height wise)
+  position.y = (bounds.max.y - bounds.min.y) / 2.0f;
+
+  camera.setPosition(position);
+  camera.resetRotation();
+  doneCurrent();
+}
+
 void SceneWidget::focusNode(uint32_t nodeId) {
   auto iter = nodes.find(nodeId);
   if (iter == nodes.end()) {

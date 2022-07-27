@@ -65,4 +65,16 @@ QString getExistingDirectory(const QString &caption, QWidget *parent = nullptr);
  */
 QString getScenarioFile(QWidget *parent = nullptr);
 
+/**
+ * Wrapper for the file dialog which selects a model file. Used to distinguish which platforms should
+ * use native dialogs & applies filter rules.
+ *
+ * @param parent
+ * The parent to map the File dialog to
+ *
+ * @return
+ * The path to the selected file. Empty string if nothing was selected
+ */
+std::string getModelFile(QWidget *parent = nullptr);
+
 } // namespace netsimulyzer
