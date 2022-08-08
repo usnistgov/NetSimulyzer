@@ -41,6 +41,7 @@
     <addaction name="actionAbout"/>
     <addaction name="actionLoad"/>
     <addaction name="actionSettings"/>
+    <addaction name="actionPreviewModel"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -216,6 +217,11 @@
    </property>
    <property name="shortcut">
     <string>P</string>
+   </property>
+  </action>
+  <action name="actionPreviewModel">
+   <property name="text">
+    <string>&amp;Preview Model</string>
    </property>
   </action>
  </widget>

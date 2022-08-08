@@ -261,11 +261,15 @@ void ModelRenderInfo::clear() {
   meshes.clear();
 }
 
-ModelCache::ModelCache(TextureCache &textureCache) : textureCache(textureCache) {
+std::vector<Mesh> &ModelRenderInfo::getMeshes() {
+  return meshes;
 }
 
-ModelCache::~ModelCache() {
-  clear();
+std::vector<Mesh> &ModelRenderInfo::getTransparentMeshes() {
+  return transparentMeshes;
+}
+
+ModelCache::ModelCache(TextureCache &textureCache) : textureCache(textureCache) {
 }
 
 void ModelCache::setBasePath(std::string value) {
@@ -275,15 +279,19 @@ void ModelCache::setBasePath(std::string value) {
     basePath.push_back('/');
 }
 
-void ModelCache::init(const std::string &fallbackModelPath) {
+void ModelCache::init(std::string_view fallbackModelPath) {
   initializeOpenGLFunctions();
-  load(fallbackModelPath);
+
+  _fallbackModelPath = fallbackModelPath;
+  fallbackModel = load(_fallbackModelPath).id;
 }
 
 Model::ModelLoadInfo ModelCache::load(const std::string &path) {
-  auto fullPath = basePath + path;
+  return loadAbsolute(basePath + path);
+}
 
-  auto existing = indexMap.find(fullPath);
+Model::ModelLoadInfo ModelCache::loadAbsolute(const std::string &path) {
+  auto existing = indexMap.find(path);
   if (existing != indexMap.end()) {
     const auto &bounds = get(existing->second).getBounds();
     return {existing->second, bounds.min, bounds.max};
@@ -291,14 +299,14 @@ Model::ModelLoadInfo ModelCache::load(const std::string &path) {
 
   Assimp::Importer importer;
   const auto *const scene =
-      importer.ReadFile(fullPath.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
-                                              aiProcess_JoinIdenticalVertices);
+      importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
+                                          aiProcess_JoinIdenticalVertices);
   if (!scene) {
-    std::cerr << "Model (" << fullPath << ") failed to load: " << importer.GetErrorString() << '\n';
+    std::cerr << "Model (" << path << ") failed to load: " << importer.GetErrorString() << '\n';
 
     // Make sure we have a fallback model
     if (models.empty()) {
-      std::cerr << "Failed loading fallback model at: " << fullPath << '\n';
+      std::cerr << "Failed loading fallback model at: " << path << '\n';
       std::abort();
     }
 
@@ -307,7 +315,7 @@ Model::ModelLoadInfo ModelCache::load(const std::string &path) {
   }
 
   const auto &newModel = models.emplace_back(scene, textureCache);
-  indexMap.emplace(fullPath, models.size() - 1);
+  indexMap.emplace(path, models.size() - 1);
 
   const auto bounds = newModel.getBounds();
   return {models.size() - 1, bounds.min, bounds.max};
@@ -317,8 +325,19 @@ ModelRenderInfo &ModelCache::get(model_id index) {
   return models[index];
 }
 
-void ModelCache::clear() {
-  // TODO: Implement
+model_id ModelCache::getFallbackModelId() const {
+  return fallbackModel;
+}
+
+void ModelCache::reset() {
+  models.clear();
+  indexMap.clear();
+
+  // Use a total clear instead of erasing a range
+  // since we'd need a move implementation for that.
+
+  // Reload the fallback model
+  fallbackModel = load(_fallbackModelPath).id;
 }
 
 } // namespace netsimulyzer

@@ -110,7 +110,7 @@ struct Decoration {
   std::optional<float> height;
   std::optional<float> width;
   std::optional<float> depth;
-  std::array<float, 3> scale{1.0f};
+  std::array<float, 3> scale{1.0f, 1.0f, 1.0f};
 };
 
 struct Area {

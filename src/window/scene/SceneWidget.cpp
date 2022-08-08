@@ -222,6 +222,10 @@ void SceneWidget::initializeGL() {
 
   updatePerspective();
 
+  // picking FBO
+  pickingFbo = std::make_unique<PickingFramebuffer>(openGl, width(), height());
+  pickingFbo->unbind(GL_FRAMEBUFFER, defaultFramebufferObject());
+
   // Cheap hack to get Qt to repaint at a reasonable rate
   // Seems to only work with the old connect syntax
   QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -238,9 +242,25 @@ void SceneWidget::paintGL() {
       handleUndoEvents();
   }
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
+  // Picking
+  pickingFbo->bind(GL_FRAMEBUFFER);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  for (auto &[key, node] : nodes) {
+    if (!node.visible())
+      continue;
+    renderer.renderPickingNode(node.getNs3Model().id, node.getModel());
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+  // end Picking
+
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
+
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (renderSkybox)
     renderer.render(*skyBox);
 
@@ -331,6 +351,7 @@ void SceneWidget::paintGL() {
 void SceneWidget::resizeGL(int w, int h) {
   updatePerspective();
   glViewport(0, 0, w, h);
+  pickingFbo->resize(w, h);
 }
 
 void SceneWidget::keyPressEvent(QKeyEvent *event) {
@@ -345,6 +366,21 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
+
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
+  if (selected.object && selected.type == 1u) {
+    emit nodeSelected(selected.id);
+    return;
+  }
+
   if (!camera.mouseControlsEnabled())
     return;
 
@@ -524,6 +560,45 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
       wiredLinks.erase(wiredLinks.end() - 1);
   }
 
+  doneCurrent();
+}
+
+void SceneWidget::previewModel(const std::string &modelPath) {
+  makeCurrent();
+
+  // Reset the model cache, since it's not out of the question
+  // that a model has changed since the last load
+  models.reset();
+
+  // The scene should only have our previewed model in it
+  // so, remove everything else
+  reset();
+
+  const Model previewedModel{models.loadAbsolute(modelPath)};
+
+  // If we get the fallback model ID, then the model failed to load
+  // (Unless someone is trying to load the fallback model itself...)
+  if (previewedModel.getModelId() == models.getFallbackModelId()) {
+    QMessageBox::warning(this, "Failed to Load Model", "Failed to load the model. Check the console for more info");
+    models.reset();
+    reset();
+    doneCurrent();
+    return;
+  }
+
+  decorations.try_emplace(0u, previewedModel, parser::Decoration{});
+
+  // Put the camera slightly away from the loaded model
+  // accounting for how large the model is
+  const auto bounds = previewedModel.getBounds();
+  auto position = previewedModel.getPosition();
+  position.z += bounds.max.z + 5.0f;
+
+  // Put us at the middle of the model (height wise)
+  position.y = (bounds.max.y - bounds.min.y) / 2.0f;
+
+  camera.setPosition(position);
+  camera.resetRotation();
   doneCurrent();
 }
 

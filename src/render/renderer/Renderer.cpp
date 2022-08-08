@@ -80,6 +80,7 @@ void Renderer::init() {
 
   initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
   initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
+  initShader(pickingShader, ":/shader/shaders/picking.vert", ":/shader/shaders/picking.frag");
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
@@ -88,6 +89,7 @@ void Renderer::setPerspective(const glm::mat4 &perspective) {
   gridShader.uniform("projection", perspective);
   modelShader.uniform("projection", perspective);
   skyBoxShader.uniform("projection", perspective);
+  pickingShader.uniform("projection", perspective);
 }
 
 void Renderer::setPointLightCount(unsigned int count) {
@@ -539,6 +541,8 @@ void Renderer::use(const Camera &cam) {
   auto noTranslationView = cam.view_matrix();
   noTranslationView[3] = {0.0f, 0.0f, 0.0f, 1.0f};
   skyBoxShader.uniform("view", noTranslationView);
+
+  pickingShader.uniform("view", cam.view_matrix());
 }
 
 void Renderer::render(const DirectionalLight &light) {
@@ -710,6 +714,24 @@ void Renderer::render(const std::vector<WiredLink> &wiredLinks) {
   }
 
   glDisable(GL_LINE_SMOOTH);
+}
+
+void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
+  auto &model = modelCache.get(m.getModelId());
+
+  pickingShader.uniform("model", m.getModelMatrix());
+  pickingShader.uniform("object_id", nodeId);
+  pickingShader.uniform("object_type", 1u);
+
+  pickingShader.bind();
+  auto &meshes = model.getMeshes();
+  for (auto &mesh : meshes) {
+    mesh.render();
+  }
+  auto &transparentMeshes = model.getTransparentMeshes();
+  for (auto &mesh : transparentMeshes) {
+    mesh.render();
+  }
 }
 
 } // namespace netsimulyzer

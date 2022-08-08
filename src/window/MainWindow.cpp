@@ -120,6 +120,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
+  QObject::connect(ui.actionPreviewModel, &QAction::triggered, [this]() {
+    scene.previewModel(getModelFile(this));
+  });
+
   QObject::connect(ui.actionSettings, &QAction::triggered, [this]() {
     scene.pause();
     settingsDialog.show();

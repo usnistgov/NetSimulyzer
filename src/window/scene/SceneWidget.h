@@ -49,6 +49,7 @@
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
+#include "src/render/framebuffer/PickingFramebuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QApplication>
@@ -92,6 +93,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
   bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
+
+  std::unique_ptr<PickingFramebuffer> pickingFbo;
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -150,6 +153,16 @@ public:
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
            const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::WiredLink> &links,
            const std::vector<parser::Node> &nodeModels);
+
+  /**
+   * Load an individual model specified by `modelPath`
+   * as a `Decoration` in the center of the scene
+   *
+   * @param modelPath
+   * The absolute path to the model to load
+   */
+  void previewModel(const std::string &modelPath);
+
   /**
    * Center the specified Node in the view.
    * If the Node with ID nodeId is not found,
@@ -261,5 +274,6 @@ signals:
   void paused();
   void playing();
   void selectedItemUpdated();
+  void nodeSelected(unsigned int nodeId);
 };
 } // namespace netsimulyzer
