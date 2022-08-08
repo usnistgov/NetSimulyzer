@@ -67,6 +67,7 @@ target_sources(netsimulyzer PRIVATE
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
+        window/detail/DetailWidget.h window/detail/DetailWidget.cpp window/detail/DetailWidget.ui
         window/playback/PlaybackJumpDialog.cpp window/playback/PlaybackJumpDialog.h window/playback/PlaybackJumpDialog.ui
         window/playback/PlaybackTimeStepDialog.cpp window/playback/PlaybackTimeStepDialog.h window/playback/PlaybackTimeStepDialog.ui
         window/playback/PlaybackWidget.cpp window/playback/PlaybackWidget.h window/playback/PlaybackWidget.ui

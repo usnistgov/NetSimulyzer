@@ -55,6 +55,7 @@ MainWindow::MainWindow() : QMainWindow() {
   setCentralWidget(&scene);
 
   ui.nodesDock->setWidget(&nodeWidget);
+  ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
@@ -71,6 +72,7 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -108,6 +110,13 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&scene, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
+
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) { // megans addition
+    detailWidget.describe(scene.getNode(id));
+    scene.setSelectedNode(id);
+  });
+
+  QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
@@ -234,6 +243,7 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   scene.reset();
   nodeWidget.reset();
+  detailWidget.reset();
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);

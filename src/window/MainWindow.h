@@ -41,6 +41,7 @@
 #include "playback/PlaybackWidget.h"
 #include "scene/SceneWidget.h"
 #include "settings/SettingsDialog.h"
+#include "src/window/detail/DetailWidget.h"
 #include "ui_MainWindow.h"
 #include <QLabel>
 #include <QMainWindow>
@@ -68,6 +69,7 @@ private:
 
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
+  DetailWidget detailWidget{this};
   ScenarioLogWidget logWidget{this};
   SceneWidget scene{this};
   PlaybackWidget playbackWidget{this};

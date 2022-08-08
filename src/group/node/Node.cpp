@@ -108,6 +108,7 @@ void Node::addWiredLink(WiredLink *link) {
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo::MoveEvent undo;
   undo.position = model.getPosition();
+  undo.ns3Position = ns3Node.position;
   undo.event = e;
 
   if (trailBuffer.empty()) {
@@ -115,6 +116,7 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
     trailBuffer.append(currentPosition.x, currentPosition.y, currentPosition.z);
   }
 
+  ns3Node.position = e.targetPosition;
   const auto target = toRenderCoordinate(e.targetPosition) + offset;
   model.setPosition(target);
   trailBuffer.append(target.x, target.y, target.z);
@@ -162,6 +164,7 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
+  ns3Node.position = e.ns3Position;
 
   trailBuffer.pop();
 

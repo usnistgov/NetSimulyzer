@@ -121,6 +121,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Decoration> decorations;
   std::vector<WiredLink> wiredLinks;
 
+  std::optional<unsigned int> selectedNode;
+
   PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
   std::deque<undo::SceneUndoEvent> undoEvents;
@@ -170,6 +172,19 @@ public:
    * The ID of the Node to focus on
    */
   void focusNode(uint32_t nodeId);
+
+  /**
+   * Retrieves a Node from the scene by ID.
+   * If the Node is not found, this method
+   * will abort.
+   *
+   * @param nodeId
+   * The ID of the Node to retrieve
+   *
+   * @return
+   * The Node from the scene
+   */
+  const Node &getNode(unsigned int nodeId);
 
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
   void resetCamera();
@@ -251,10 +266,14 @@ public:
    */
   void setRenderTrails(bool enable);
 
+  void setSelectedNode(unsigned int nodeId);
+  void clearSelectedNode();
+
 signals:
   void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
+  void selectedItemUpdated();
   void nodeSelected(unsigned int nodeId);
 };
 } // namespace netsimulyzer
