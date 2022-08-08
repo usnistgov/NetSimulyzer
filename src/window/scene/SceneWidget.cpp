@@ -267,7 +267,8 @@ void SceneWidget::paintGL() {
   for (auto &[key, node] : nodes) {
     if (!node.visible())
       continue;
-    renderer.render(node.getModel());
+    if (selectedNode.has_value())
+      renderer.render(node, key == selectedNode.value());
     if (renderMotionTrails)
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }

@@ -637,8 +637,21 @@ void Renderer::renderTrail(const TrailBuffer &buffer, const glm::vec3 &color) {
   glDisable(GL_LINE_SMOOTH);
 }
 
+void Renderer::render(const Node &node, bool isSelected, LightingMode lightingMode) {
+  const auto &m = node.getModel();
+
+  modelShader.bind();
+  modelShader.uniform("is_selected", isSelected);
+  modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
+  modelCache.get(m.getModelId()).render(modelShader, m);
+
+  modelShader.uniform("is_selected", false);
+}
+
 void Renderer::render(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
+  modelShader.uniform("is_selected", false);
   modelShader.uniform("model", m.getModelMatrix());
   modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   modelCache.get(m.getModelId()).render(modelShader, m);
@@ -653,6 +666,7 @@ void Renderer::renderTransparent(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
   modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
+  modelShader.uniform("is_selected", false);
   renderInfo.renderTransparent(modelShader, m);
 }
 
@@ -661,6 +675,7 @@ void Renderer::render(Floor &f) {
   modelShader.uniform("model", f.getModelMatrix());
   modelShader.uniform("useTexture", false);
   modelShader.uniform("material_color", f.getMesh().getMaterial().color.value());
+  modelShader.uniform("is_selected", false);
   f.render();
 }
 

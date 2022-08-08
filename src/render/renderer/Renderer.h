@@ -43,6 +43,7 @@
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
 #include "src/group/link/WiredLink.h"
+#include "src/group/node/Node.h"
 #include "src/group/node/TrailBuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
@@ -100,6 +101,7 @@ public:
   void render(const std::vector<Building> &buildings);
   void renderOutlines(const std::vector<Building> &buildings, const glm::vec3 &color);
   void renderTrail(const TrailBuffer &buffer, const glm::vec3 &color);
+  void render(const Node &node, bool isSelected, LightingMode lightingMode = LightingMode::LightingEnabled);
   void render(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
   void renderTransparent(const Model &m, LightingMode lightingMode = LightingMode::LightingEnabled);
   void render(Floor &f);
