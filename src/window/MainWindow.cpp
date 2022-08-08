@@ -111,9 +111,14 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) { // megans addition
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) {
     detailWidget.describe(scene.getNode(id));
     scene.setSelectedNode(id);
+  });
+
+  QObject::connect(&scene, &SceneWidget::nodeSelected, [this] (unsigned int nodeID) {
+    detailWidget.describe(scene.getNode(nodeID));
+    // Scene already has the selected Node ID set
   });
 
   QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);

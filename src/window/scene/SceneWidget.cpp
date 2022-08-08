@@ -378,6 +378,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 
   if (selected.object && selected.type == 1u) {
     emit nodeSelected(selected.id);
+    selectedNode = selected.id;
     return;
   }
 
