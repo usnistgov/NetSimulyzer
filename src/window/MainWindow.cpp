@@ -113,7 +113,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) { // megans addition
     detailWidget.describe(scene.getNode(id));
-    scene.nodeSelected(id);
+    scene.setSelectedNode(id);
   });
 
   QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);

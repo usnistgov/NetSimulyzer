@@ -721,7 +721,7 @@ void SceneWidget::setRenderTrails(bool enable) {
   renderMotionTrails = enable;
 }
 
-void SceneWidget::nodeSelected(unsigned int nodeId) {
+void SceneWidget::setSelectedNode(unsigned int nodeId) {
   if (nodes.find(nodeId) == nodes.end()) {
     std::cerr << "Node with ID: " << nodeId << " selected, but not found in `nodes`, ignoring!\n";
     return;

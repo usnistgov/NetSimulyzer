@@ -266,7 +266,7 @@ public:
    */
   void setRenderTrails(bool enable);
 
-  void nodeSelected(unsigned int nodeId);
+  void setSelectedNode(unsigned int nodeId);
   void clearSelectedNode();
 
 signals:
