@@ -28,27 +28,105 @@
  * cause risk of injury or damage to property. The software developed by NIST
  * employees is not subject to copyright protection within the United States.
  *
- * Author: Megan Lizambri <megan.lizambri@nist.gov>
+ * Author: Megan Lizambri <megan.lizambri@nist.gov>, Evan Black <evan.black@nist.gov>
  */
 
 #pragma once
 #include "src/group/node/Node.h"
 #include "ui_DetailWidget.h"
+#include <QAbstractItemModel>
+#include <QObject>
+#include <QPoint>
+#include <QString>
 #include <QWidget>
+#include <vector>
 
 namespace netsimulyzer {
 
 class DetailWidget : public QWidget {
   Q_OBJECT
 
+  enum class DisplayField {
+    None, // Used by the root element only
+    Name,
+    NameSub,
+    NameId,
+    NameModelFile,
+    Color,
+    ColorBase,
+    ColorHighlight,
+    ColorMotionTrail,
+    Position,
+    PositionSub,
+    PositionSubX,
+    PositionSubY,
+    PositionSubZ,
+    PositionRendered,
+    PositionRenderedX,
+    PositionRenderedY,
+    PositionRenderedZ,
+    PositionOffset,
+    PositionOffsetX,
+    PositionOffsetY,
+    PositionOffsetZ,
+    PositionOrientation,
+    PositionOrientationX,
+    PositionOrientationY,
+    PositionOrientationZ,
+    Size,
+    SizeScale,
+    SizeHeight,
+    SizeWidth,
+    SizeDepth
+  };
+
+  struct DetailTreeItem {
+    explicit DetailTreeItem(std::size_t maxChildren) {
+      children.reserve(maxChildren);
+    };
+
+    DetailTreeItem(DisplayField field, DetailTreeItem *parent) : field(field), parent(parent){};
+
+    DetailTreeItem(DisplayField field, DetailTreeItem *parent, std::size_t maxChildren) : field(field), parent(parent) {
+      children.reserve(maxChildren);
+    };
+
+    DisplayField field{DisplayField::None};
+    std::vector<DetailTreeItem> children;
+    DetailTreeItem *parent{nullptr};
+  };
+
+  class DetailTreeModel : public QAbstractItemModel {
+    const Node *node{nullptr};
+    DetailTreeItem rootElement{10u};
+
+  public:
+    explicit DetailTreeModel(QObject *parent);
+    void describe(const Node &n);
+    void reset();
+    void refresh();
+    [[nodiscard]] QModelIndexList getPersistentIndexList() const;
+
+    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+  };
+
+  Ui::DetailWidget ui{};
+  DetailTreeModel model{this};
+  std::vector<QModelIndex> oldExpandedItems;
+
+  void saveExpandedItems();
+  void restoreExpandedItems();
+
 public:
   explicit DetailWidget(QWidget *parent = nullptr);
-
   void describe(const Node &node);
-
-private:
-  Ui::DetailWidget ui{};
-
+  void describedItemUpdated();
+  void reset();
 };
 
 } // namespace netsimulyzer

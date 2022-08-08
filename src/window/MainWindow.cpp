@@ -111,9 +111,12 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id){ //megans addition
-      detailWidget.describe(scene.getNode(id));
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) { // megans addition
+    detailWidget.describe(scene.getNode(id));
+    scene.nodeSelected(id);
   });
+
+  QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
@@ -236,6 +239,7 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   scene.reset();
   nodeWidget.reset();
+  detailWidget.reset();
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);

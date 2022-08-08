@@ -27,36 +27,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QWidget" name="widget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>360</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QWidget" name="widget_2" native="true">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>360</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QWidget" name="widget_3" native="true">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>360</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-  </widget>
  </widget>
  <resources>
   <include location="../../../resources.qrc"/>

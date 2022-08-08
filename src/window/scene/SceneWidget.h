@@ -118,6 +118,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Decoration> decorations;
   std::vector<WiredLink> wiredLinks;
 
+  std::optional<unsigned int> selectedNode;
+
   PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
   std::deque<undo::SceneUndoEvent> undoEvents;
@@ -251,9 +253,13 @@ public:
    */
   void setRenderTrails(bool enable);
 
+  void nodeSelected(unsigned int nodeId);
+  void clearSelectedNode();
+
 signals:
   void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
+  void selectedItemUpdated();
 };
 } // namespace netsimulyzer

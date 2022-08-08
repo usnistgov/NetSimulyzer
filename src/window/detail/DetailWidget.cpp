@@ -34,142 +34,405 @@
 #include "DetailWidget.h"
 #include "src/group/node/Node.h"
 #include "ui_DetailWidget.h"
-#include <QStandardItem>
 #include <QMessageBox>
+#include <QStandardItem>
+#include <algorithm>
+#include <glm/vec3.hpp>
+
+namespace {
+QString ns3ToQString(const parser::Ns3Color3 &color) {
+  return QString("(%1, %2, %3)").arg(color.red).arg(color.green).arg(color.blue);
+}
+
+QString ns3ToQString(const parser::Ns3Coordinate &position) {
+  return QString("(%1, %2, %3)").arg(position.x).arg(position.y).arg(position.z);
+}
+
+QString netsimCoordinateToNs3Formatted(const glm::vec3 &value) {
+  return QString("(%1, %2, %3)").arg(value[0]).arg(value[2]).arg(value[1]);
+}
+
+QString netsimColorToQString(const glm::vec3 &color) {
+  return QString("(%1, %2, %3)")
+      .arg(static_cast<int>(color.r * 255.0f))
+      .arg(static_cast<int>(color.g * 255.0f))
+      .arg(static_cast<int>(color.b * 255.0f));
+}
+
+QColor netsimColorFormatted(const glm::vec3 &color) {
+  return QColor::fromRgb(static_cast<int>(color.r * 255.0f), static_cast<int>(color.g * 255.0f),
+                         static_cast<int>(color.b * 255.0f));
+}
+
+QVariant netsimColorFormatted(const std::optional<glm::vec3> &color) {
+  if (color.has_value())
+    return netsimColorFormatted(color.value());
+  return {};
+}
+
+QColor ns3ColorFormatted(const parser::Ns3Color3 &color) {
+  return QColor::fromRgb(color.red, color.green, color.blue);
+}
+
+[[maybe_unused]] QVariant ns3ColorFormatted(const std::optional<parser::Ns3Color3> color) {
+  if (!color.has_value())
+    return {};
+
+  return ns3ColorFormatted(color.value());
+}
+
+} // namespace
 
 namespace netsimulyzer {
 
+DetailWidget::DetailTreeModel::DetailTreeModel(QObject *parent) : QAbstractItemModel(parent) {
+  auto &name = rootElement.children.emplace_back(DisplayField::Name, &rootElement, 3u);
+  name.children.emplace_back(DisplayField::NameSub, &name);
+  name.children.emplace_back(DisplayField::NameId, &name);
+  name.children.emplace_back(DisplayField::NameModelFile, &name);
+
+  auto &color = rootElement.children.emplace_back(DisplayField::Color, &rootElement, 3u);
+  color.children.emplace_back(DisplayField::ColorBase, &color);
+  color.children.emplace_back(DisplayField::ColorHighlight, &color);
+  color.children.emplace_back(DisplayField::ColorMotionTrail, &color);
+
+  auto &position = rootElement.children.emplace_back(DisplayField::Position, &rootElement, 4u);
+  auto &positionSub = position.children.emplace_back(DisplayField::PositionSub, &position, 3u);
+  positionSub.children.emplace_back(DisplayField::PositionSubX, &positionSub);
+  positionSub.children.emplace_back(DisplayField::PositionSubY, &positionSub);
+  positionSub.children.emplace_back(DisplayField::PositionSubZ, &positionSub);
+
+  auto &positionOffset = position.children.emplace_back(DisplayField::PositionOffset, &position, 3u);
+  positionOffset.children.emplace_back(DisplayField::PositionOffsetX, &positionOffset);
+  positionOffset.children.emplace_back(DisplayField::PositionOffsetY, &positionOffset);
+  positionOffset.children.emplace_back(DisplayField::PositionOffsetZ, &positionOffset);
+
+  auto &positionRendered = position.children.emplace_back(DisplayField::PositionRendered, &position, 3u);
+  positionRendered.children.emplace_back(DisplayField::PositionRenderedX, &positionRendered);
+  positionRendered.children.emplace_back(DisplayField::PositionRenderedY, &positionRendered);
+  positionRendered.children.emplace_back(DisplayField::PositionRenderedZ, &positionRendered);
+
+  auto &positionOrientation = position.children.emplace_back(DisplayField::PositionOrientation, &position, 3u);
+  positionOrientation.children.emplace_back(DisplayField::PositionOrientationX, &positionOrientation);
+  positionOrientation.children.emplace_back(DisplayField::PositionOrientationY, &positionOrientation);
+  positionOrientation.children.emplace_back(DisplayField::PositionOrientationZ, &positionOrientation);
+}
+
+void DetailWidget::DetailTreeModel::describe(const Node &n) {
+  beginResetModel();
+  node = &n;
+  endResetModel();
+}
+
+void DetailWidget::DetailTreeModel::reset() {
+  node = nullptr;
+}
+
+void DetailWidget::DetailTreeModel::refresh() {
+  beginResetModel();
+  endResetModel();
+}
+
+QVariant DetailWidget::DetailTreeModel::data(const QModelIndex &index, int role) const {
+  if (!index.isValid() || (role != Qt::DisplayRole && role != Qt::DecorationRole))
+    return {};
+
+  const auto item = static_cast<DetailTreeItem *>(index.internalPointer());
+  const auto field = item->field;
+
+  // Add color decorations For color values
+  if (role == Qt::DecorationRole && node != nullptr) {
+    // No decoration for the label column
+    if (index.column() == 0)
+      return {};
+
+    switch (field) {
+    case DisplayField::ColorBase:
+      return netsimColorFormatted(node->getModel().getBaseColor());
+    case DisplayField::ColorHighlight:
+      return netsimColorFormatted(node->getModel().getHighlightColor());
+    case DisplayField::ColorMotionTrail:
+      return ns3ColorFormatted(node->getNs3Model().trailColor);
+    default:
+      return {};
+    }
+
+    return {};
+  }
+
+  switch (index.column()) {
+  case 0:
+    switch (field) {
+    case DisplayField::None:
+      return "";
+    case DisplayField::Name:
+      [[fallthrough]];
+    case DisplayField::NameSub:
+      return "Name";
+    case DisplayField::NameId:
+      return "ID";
+    case DisplayField::NameModelFile:
+      return "Model";
+    case DisplayField::Color:
+      return "Color";
+    case DisplayField::ColorBase:
+      return "Base";
+    case DisplayField::ColorHighlight:
+      return "Highlight";
+    case DisplayField::ColorMotionTrail:
+      return "Motion Trail";
+    case DisplayField::PositionSub:
+      [[fallthrough]];
+    case DisplayField::Position:
+      return "Position";
+    case DisplayField::PositionRendered:
+      return "Rendered Position";
+    case DisplayField::PositionSubX:
+    case DisplayField::PositionRenderedX:
+    case DisplayField::PositionOffsetX:
+      [[fallthrough]];
+    case DisplayField::PositionOrientationX:
+      return "X";
+    case DisplayField::PositionSubY:
+    case DisplayField::PositionRenderedY:
+    case DisplayField::PositionOffsetY:
+      [[fallthrough]];
+    case DisplayField::PositionOrientationY:
+      return "Y";
+    case DisplayField::PositionSubZ:
+    case DisplayField::PositionRenderedZ:
+    case DisplayField::PositionOffsetZ:
+      [[fallthrough]];
+    case DisplayField::PositionOrientationZ:
+      return "Z";
+    case DisplayField::PositionOffset:
+      return "Offset";
+    case DisplayField::PositionOrientation:
+      return "Orientation";
+    case DisplayField::Size:
+      return "Size";
+    case DisplayField::SizeScale:
+      return "Scale";
+    case DisplayField::SizeHeight:
+      return "Height";
+    case DisplayField::SizeWidth:
+      return "Width";
+    case DisplayField::SizeDepth:
+      return "Depth";
+    default:
+      return "!ERROR!";
+    }
+  case 1: {
+    if (node == nullptr)
+      return "";
+
+    const auto ns3 = node->getNs3Model();
+    const auto netsim = node->getModel();
+
+    switch (field) {
+    case DisplayField::None:
+      return "";
+    // ----- Name -----
+    case DisplayField::Name:
+      return QString("%1 (%2)").arg(QString::fromStdString(ns3.name)).arg(ns3.id);
+    case DisplayField::NameSub:
+      return QString::fromStdString(node->getNs3Model().name);
+    case DisplayField::NameId:
+      return node->getNs3Model().id;
+    case DisplayField::NameModelFile:
+      return QString::fromStdString(ns3.model);
+
+    // ----- Color -----
+    case DisplayField::Color:
+      return "";
+    case DisplayField::ColorBase:
+      if (netsim.getBaseColor())
+        return netsimColorToQString(netsim.getBaseColor().value());
+      return "";
+    case DisplayField::ColorHighlight:
+      if (netsim.getHighlightColor())
+        return netsimColorToQString(netsim.getHighlightColor().value());
+      return "";
+    case DisplayField::ColorMotionTrail:
+      return ns3ToQString(node->getNs3Model().trailColor);
+
+    // ----- Position -----
+    case DisplayField::Position:
+      [[fallthrough]];
+    case DisplayField::PositionSub:
+      return ns3ToQString(ns3.position);
+    case DisplayField::PositionSubX:
+      return QString::number(ns3.position.x);
+    case DisplayField::PositionSubY:
+      return QString::number(ns3.position.y);
+    case DisplayField::PositionSubZ:
+      return QString::number(ns3.position.z);
+
+    // ----- Position Final -----
+    case DisplayField::PositionRendered:
+      return netsimCoordinateToNs3Formatted(netsim.getPosition());
+    case DisplayField::PositionRenderedX:
+      return QString::number(netsim.getPosition().x);
+    case DisplayField::PositionRenderedY:
+      return QString::number(netsim.getPosition().z);
+    case DisplayField::PositionRenderedZ:
+      return QString::number(netsim.getPosition().y);
+
+      // ----- Position Offset -----
+    case DisplayField::PositionOffset:
+      return QString("(%1, %2, %3)").arg(ns3.offset.x).arg(ns3.offset.y).arg(ns3.offset.z);
+    case DisplayField::PositionOffsetX:
+      return QString::number(ns3.offset.x);
+    case DisplayField::PositionOffsetY:
+      return QString::number(ns3.offset.y);
+    case DisplayField::PositionOffsetZ:
+      return QString::number(ns3.offset.z);
+
+      // ----- Position Orientation -----
+    case DisplayField::PositionOrientation: {
+      const auto &rotate = netsim.getRotate();
+      return QString("(%1, %2, %3)").arg(rotate[0]).arg(rotate[2]).arg(rotate[1]);
+    }
+    case DisplayField::PositionOrientationX:
+      return QString::number(netsim.getRotate()[0]);
+    case DisplayField::PositionOrientationY:
+      return QString::number(netsim.getRotate()[2]);
+    case DisplayField::PositionOrientationZ:
+      return QString::number(netsim.getRotate()[1]);
+
+    // ----- Size -----
+    case DisplayField::Size:
+      return "";
+    case DisplayField::SizeScale:
+      return QString("(%1, %2, %3)").arg(ns3.scale[0]).arg(ns3.scale[1]).arg(ns3.scale[2]);
+    case DisplayField::SizeHeight: {
+      if (ns3.height)
+        return QString::number(ns3.height.value());
+      return "";
+    }
+    case DisplayField::SizeWidth: {
+      if (ns3.width)
+        return QString::number(ns3.width.value());
+      return "";
+    }
+    case DisplayField::SizeDepth: {
+      if (ns3.depth)
+        return QString::number(ns3.depth.value());
+      return "";
+    }
+    default:
+      return "!ERROR!";
+    }
+  }
+  default:
+    return "!ERROR!";
+  }
+}
+
+QVariant DetailWidget::DetailTreeModel::headerData(int section, Qt::Orientation orientation, int role) const {
+  if (orientation != Qt::Orientation::Horizontal || role != Qt::DisplayRole)
+    return {};
+
+  switch (section) {
+  case 0:
+    return "Name";
+  case 1:
+    return "Value";
+  default:
+    return QString::number(section);
+  }
+}
+
+QModelIndex DetailWidget::DetailTreeModel::index(int row, int column, const QModelIndex &parent) const {
+  if (!hasIndex(row, column, parent))
+    return {};
+
+  DetailTreeItem *parentItem;
+  if (!parent.isValid())
+    parentItem = const_cast<DetailTreeItem *>(&rootElement); // :(
+  else
+    parentItem = static_cast<DetailTreeItem *>(parent.internalPointer());
+
+  if (row < 0 || row >= static_cast<int>(parentItem->children.size()))
+    return {};
+
+  auto element = const_cast<DetailTreeItem *>(&parentItem->children[row]); // :((
+
+  return createIndex(row, column, element);
+}
+
+QModelIndex DetailWidget::DetailTreeModel::parent(const QModelIndex &index) const {
+  if (!index.isValid())
+    return {};
+
+  auto child = static_cast<DetailTreeItem *>(index.internalPointer());
+
+  if (child->parent == nullptr || child->parent == &rootElement)
+    return {};
+
+  const auto parent = child->parent;
+  const auto grandParent = parent->parent;
+  if (grandParent == nullptr || grandParent->children.empty())
+    return createIndex(0, 0, const_cast<DetailTreeItem *>(parent)); // :(((
+
+  auto iter = std::find_if(grandParent->children.begin(), grandParent->children.end(), [parent](const auto &possible) {
+    return possible.field == parent->field;
+  });
+
+  if (iter == grandParent->children.end())
+    return createIndex(0, 0, const_cast<DetailTreeItem *>(parent)); // :((((
+
+  const auto row = static_cast<int>(iter - grandParent->children.begin());
+  return createIndex(row, 0, const_cast<DetailTreeItem *>(parent));
+}
+
+int DetailWidget::DetailTreeModel::rowCount(const QModelIndex &parent) const {
+  if (!parent.isValid())
+    return static_cast<int>(rootElement.children.size());
+
+  return static_cast<int>(static_cast<DetailTreeItem *>(parent.internalPointer())->children.size());
+}
+
+int DetailWidget::DetailTreeModel::columnCount(const QModelIndex &) const {
+  return 2;
+}
+
+QModelIndexList DetailWidget::DetailTreeModel::getPersistentIndexList() const {
+  return persistentIndexList();
+}
+
+void DetailWidget::saveExpandedItems() {
+  oldExpandedItems.clear();
+  for (const auto &index : model.getPersistentIndexList()) {
+    if (ui.treeView->isExpanded(index))
+      oldExpandedItems.emplace_back(index);
+  }
+}
+
+void DetailWidget::restoreExpandedItems() {
+  for (const auto &index : oldExpandedItems) {
+    ui.treeView->expand(index);
+  }
+}
+
 DetailWidget::DetailWidget(QWidget *parent) : QWidget(parent) {
   ui.setupUi(this);
+  ui.treeView->setModel(&model);
 }
-
 
 void DetailWidget::describe(const Node &node) {
+  saveExpandedItems();
+  model.describe(node);
+  restoreExpandedItems();
+}
 
-    QStandardItemModel* model = new QStandardItemModel(5, 3);
-    QStandardItem* name = new QStandardItem("Name");
-    QStandardItem* color = new QStandardItem("Color");
-    QStandardItem* position = new QStandardItem("Position");
-    QStandardItem* size = new QStandardItem("Size");
-    QStandardItem* network = new QStandardItem("Network");
+void DetailWidget::describedItemUpdated() {
+  saveExpandedItems();
+  model.refresh();
+  restoreExpandedItems();
+}
 
-    model->setItem(0, 0, name);
-    model->setItem(1, 0, color);
-    model->setItem(2, 0, position);
-    model->setItem(3, 0, size);
-    model->setItem(4, 0, network);
-
-    model->setItem(0, 1, new QStandardItem(node.getNs3Model().name.c_str()));
-    name->setChild(0, 0, new QStandardItem("Node ID"));
-    name->setChild(0, 1, new QStandardItem(QString::number(node.getNs3Model().id)));
-    name->setChild(1, 0, new QStandardItem("Node Name"));
-    name->setChild(1, 1, new QStandardItem(node.getNs3Model().name.c_str()));
-
-    QString base_red = QString::number(node.getNs3Model().baseColor->red);
-    QString base_blue = QString::number(node.getNs3Model().baseColor->blue);
-    QString base_green = QString::number(node.getNs3Model().baseColor->green);
-
-    QStandardItem* widget1Space = new QStandardItem("");
-    color->setChild(1, 0, widget1Space);
-
-    color->setChild(0, 0, new QStandardItem("Base"));
-    color->setChild(0, 1, new QStandardItem("Red"));
-    color->setChild(0, 2, new QStandardItem(base_red));
-    color->setChild(1, 1, new QStandardItem("Green"));
-    color->setChild(1, 2, new QStandardItem(base_green));
-    color->setChild(2, 1, new QStandardItem("Blue"));
-    color->setChild(2, 2, new QStandardItem(base_blue));
-    ui.widget->setStyleSheet("QWidget {background-color: rgb("+base_red+", "+base_green+", "+base_blue+");}");
-
-    QString highlight_red = QString::number(node.getNs3Model().highlightColor->red);
-    QString highlight_blue = QString::number(node.getNs3Model().highlightColor->blue);
-    QString highlight_green = QString::number(node.getNs3Model().highlightColor->green);
-
-    QStandardItem* widget2Space = new QStandardItem("");
-    color->setChild(4, 0, widget2Space);
-
-    color->setChild(3, 0, new QStandardItem("Highlight"));
-    color->setChild(3, 1, new QStandardItem("Red"));
-    color->setChild(3, 2, new QStandardItem(highlight_red));
-    color->setChild(4, 1, new QStandardItem("Green"));
-    color->setChild(4, 2, new QStandardItem(highlight_green));
-    color->setChild(5, 1, new QStandardItem("Blue"));
-    color->setChild(5, 2, new QStandardItem(highlight_blue));
-    ui.widget_2->setStyleSheet("QWidget {background-color: rgb("+highlight_red+", "+highlight_green+", "+highlight_blue+");}");
-
-    QString trail_red = QString::number(node.getNs3Model().trailColor.red);
-    QString trail_blue = QString::number(node.getNs3Model().trailColor.blue);
-    QString trail_green = QString::number(node.getNs3Model().trailColor.green);
-
-    QStandardItem* widget3Space = new QStandardItem("");
-    color->setChild(7, 0, widget3Space);
-
-    color->setChild(6, 0, new QStandardItem("Motion Trail"));
-    color->setChild(6, 1, new QStandardItem("Red"));
-    color->setChild(6, 2, new QStandardItem(trail_red));
-    color->setChild(7, 1, new QStandardItem("Green"));
-    color->setChild(7, 2, new QStandardItem(trail_green));
-    color->setChild(8, 1, new QStandardItem("Blue"));
-    color->setChild(8, 2, new QStandardItem(trail_blue));
-    ui.widget_3->setStyleSheet("QWidget {background-color: rgb("+trail_red+", "+trail_green+", "+trail_blue+");}");
-
-    QString location = "("+QString::number(node.getNs3Model().position.x)+", "+QString::number(node.getNs3Model().position.y)+", "+QString::number(node.getNs3Model().position.z)+")";
-
-    position->setChild(0, 0, new QStandardItem("Location"));
-    position->setChild(0, 1, new QStandardItem(location));
-
-    QString offset_x = QString::number(node.getNs3Model().offset.x);
-    QString offset_y = QString::number(node.getNs3Model().offset.y);
-    QString offset_z = QString::number(node.getNs3Model().offset.z);
-
-    position->setChild(1, 0, new QStandardItem("Offset"));
-    position->setChild(1, 1, new QStandardItem("("+offset_x+", "+offset_y+", "+offset_z+")"));
-
-    QString orientation_x = QString::number(node.getNs3Model().orientation[0]);
-    QString orientation_y = QString::number(node.getNs3Model().orientation[1]);
-    QString orientation_z = QString::number(node.getNs3Model().orientation[2]);
-
-    position->setChild(2, 0, new QStandardItem("Orientation"));
-    position->setChild(2, 1, new QStandardItem("("+orientation_x+", "+orientation_y+", "+orientation_z+")"));
-
-    model->setItem(2, 1, new QStandardItem(location));
-
-    QString scale_x = QString::number(node.getNs3Model().scale[0]);
-    QString scale_y = QString::number(node.getNs3Model().scale[1]);
-    QString scale_z = QString::number(node.getNs3Model().scale[2]);
-
-    size->setChild(0, 0, new QStandardItem("Scale Axes"));
-    size->setChild(0, 1, new QStandardItem("("+scale_x+", "+scale_y+", "+scale_z+")"));
-
-    QString scale = QString::number(node.getModel().getScale()[1]);
-    QString height = QString::number(node.getNs3Model().height.value());
-    QString width = QString::number(node.getNs3Model().width.value());
-    QString depth = QString::number(node.getNs3Model().depth.value());
-
-    size->setChild(1, 0, new QStandardItem("Scale"));
-    size->setChild(1, 1, new QStandardItem(scale));
-    size->setChild(2, 0, new QStandardItem("Height"));
-    size->setChild(2, 1, new QStandardItem(height));
-    size->setChild(3, 0, new QStandardItem("Width"));
-    size->setChild(3, 1, new QStandardItem(width));
-    size->setChild(4, 0, new QStandardItem("Depth"));
-    size->setChild(4, 1, new QStandardItem(depth));
-    model->setItem(3, 1, new QStandardItem(height+" x "+width+" x "+depth));
-
-    network->setChild(0, 0, new QStandardItem("IP Addresses"));
-    network->setChild(1, 0, new QStandardItem("MAC Addresses"));
-
-    ui.treeView->setModel(model);
-    ui.treeView->setHeaderHidden(true);
-    ui.treeView->setColumnWidth(0, 150);
-
-    //these three statements cause the crash
-    ui.treeView->setIndexWidget(widget1Space->index(), ui.widget);
-    ui.treeView->setIndexWidget(widget2Space->index(), ui.widget_2);
-    ui.treeView->setIndexWidget(widget3Space->index(), ui.widget_3);
-
-
+void DetailWidget::reset() {
+  model.reset();
 }
 } // namespace netsimulyzer
-
-

@@ -68,9 +68,15 @@ static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
 namespace netsimulyzer {
 
 void SceneWidget::handleEvents() {
+  // Flag to indicate the selected Node has been updated
+  // Use a flag instead of emitting a signal from the
+  // handler, just in case the Node is updated several times
+  // this event period
+  bool selectedNodeUpdated = false;
+
   // Returns true after handling an event
   // false otherwise
-  auto handleEvent = [this](auto &&arg) -> bool {
+  auto handleEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -88,6 +94,10 @@ void SceneWidget::handleEvents() {
       if (node == nodes.end())
         return false;
       undoEvents.emplace_back(node->second.handle(arg));
+
+      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
+        selectedNodeUpdated = true;
+
       return true;
     } else if constexpr (std::is_same_v<T, parser::DecorationMoveEvent> ||
                          std::is_same_v<T, parser::DecorationOrientationChangeEvent>) {
@@ -102,6 +112,9 @@ void SceneWidget::handleEvents() {
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     events.pop_front();
   }
+
+  if (selectedNodeUpdated)
+    emit selectedItemUpdated();
 }
 
 void SceneWidget::handleUndoEvents() {
@@ -454,6 +467,7 @@ void SceneWidget::reset() {
   wiredLinks.clear();
   events.clear();
   undoEvents.clear();
+  selectedNode.reset();
   simulationTime = 0.0;
 }
 
@@ -630,6 +644,19 @@ void SceneWidget::changeGridStepSize(int stepSize) {
 
 void SceneWidget::setRenderTrails(bool enable) {
   renderMotionTrails = enable;
+}
+
+void SceneWidget::nodeSelected(unsigned int nodeId) {
+  if (nodes.find(nodeId) == nodes.end()) {
+    std::cerr << "Node with ID: " << nodeId << " selected, but not found in `nodes`, ignoring!\n";
+    return;
+  }
+
+  selectedNode = nodeId;
+}
+
+void SceneWidget::clearSelectedNode() {
+  selectedNode.reset();
 }
 
 } // namespace netsimulyzer
