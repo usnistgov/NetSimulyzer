@@ -64,8 +64,8 @@ void Renderer::initShader(Shader &s, const QString &vertexPath, const QString &f
   s.init(vertexSrc, fragmentSrc);
 }
 
-Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
-    : modelCache(modelCache), textureCache(textureCache) {
+Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache, FontManager &fontManager)
+    : modelCache(modelCache), textureCache(textureCache), fontManager(fontManager) {
 }
 
 void Renderer::init() {
@@ -81,6 +81,8 @@ void Renderer::init() {
   initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
   initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
   initShader(pickingShader, ":/shader/shaders/picking.vert", ":/shader/shaders/picking.frag");
+  initShader(fontShader, "./shaders/font.vert", "./shaders/font.frag");
+  initShader(fontBackgroundShader, "./shaders/font_bg.vert", "./shaders/font_bg.frag");
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
@@ -90,6 +92,8 @@ void Renderer::setPerspective(const glm::mat4 &perspective) {
   modelShader.uniform("projection", perspective);
   skyBoxShader.uniform("projection", perspective);
   pickingShader.uniform("projection", perspective);
+  fontShader.uniform("projection", perspective);
+  fontBackgroundShader.uniform("projection", perspective);
 }
 
 void Renderer::setPointLightCount(unsigned int count) {
@@ -513,8 +517,16 @@ void Renderer::resize(CoordinateGrid &grid, float size, int stepSize) {
   grid.resized(gridVertices.size(), size);
 }
 
-void Renderer::startTransparent() {
+void Renderer::startTransparentDark() {
   glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+  glBlendEquation(GL_FUNC_ADD);
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+}
+
+void Renderer::startTransparentLight() {
+  glBlendFunc(GL_ONE, GL_ONE);
   glBlendEquation(GL_FUNC_ADD);
 
   glDepthMask(GL_FALSE);
@@ -543,6 +555,13 @@ void Renderer::use(const Camera &cam) {
   skyBoxShader.uniform("view", noTranslationView);
 
   pickingShader.uniform("view", cam.view_matrix());
+
+  // Convert to 3x3 since that's the rotation section of the model matrix (the top left 3x3)
+  // then invert that.
+  cameraRotateInverse = glm::inverse(glm::mat3x3(cam.view_matrix()));
+
+  fontShader.uniform("view", cam.view_matrix());
+  fontBackgroundShader.uniform("view", cam.view_matrix());
 }
 
 void Renderer::render(const DirectionalLight &light) {
@@ -747,6 +766,34 @@ void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
   for (auto &mesh : transparentMeshes) {
     mesh.render();
   }
+}
+void Renderer::renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location) {
+  // TODO: Maybe make this configurable?
+  const glm::vec3 offset{0.0f, 2.0f, 0.0f};
+
+  auto modelMatrix = glm::translate(glm::identity<glm::mat4>(), location + offset);
+  modelMatrix *= cameraRotateInverse;
+
+  // ----- Background -----
+  startTransparentDark();
+  fontBackgroundShader.bind();
+  fontBackgroundShader.uniform("model", glm::translate(modelMatrix, {0.0, 0.0, -0.01f}));
+
+  glBindVertexArray(info.backgroundVao);
+  glBindBuffer(GL_ARRAY_BUFFER, info.backgroundVbo);
+  glDrawArrays(GL_TRIANGLES, 0, info.backgroundVboSize);
+
+  // ----- Glyphs -----
+  startTransparentLight();
+
+  textureCache.use(fontManager.getAtlasTexture());
+
+  fontShader.bind();
+  fontShader.uniform("model", modelMatrix);
+
+  glBindVertexArray(info.glyphVao);
+  glBindBuffer(GL_ARRAY_BUFFER, info.glyphVbo);
+  glDrawArrays(GL_TRIANGLES, 0, info.glyphVboSize);
 }
 
 } // namespace netsimulyzer

@@ -37,6 +37,9 @@ target_sources(netsimulyzer PRIVATE
         group/node/Node.h group/node/Node.cpp
         group/node/TrailBuffer.h group/node/TrailBuffer.cpp
         render/camera/Camera.h render/camera/Camera.cpp
+        render/font/character.h
+        render/font/undefined-medium-font.h
+        render/font/FontManager.h render/font/FontManager.cpp
         render/framebuffer/PickingFramebuffer.h render/framebuffer/PickingFramebuffer.cpp
         render/helper/Floor.h render/helper/Floor.cpp
         render/Light.h

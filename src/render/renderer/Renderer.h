@@ -45,6 +45,8 @@
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/Node.h"
 #include "src/group/node/TrailBuffer.h"
+#include "src/render/font/FontManager.h"
+#include "src/render/font/character.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QOpenGLFunctions_3_3_Core>
@@ -57,6 +59,17 @@ namespace netsimulyzer {
 class Renderer : protected QOpenGLFunctions_3_3_Core {
   ModelCache &modelCache;
   TextureCache &textureCache;
+  FontManager &fontManager;
+
+  /**
+   * Camera view matrix with the
+   * rotation inverted.
+   *
+   * Apply this to a model matrix
+   * to have it always facing the
+   * camera
+   */
+  glm::mat4 cameraRotateInverse;
 
   Shader areaShader;
   Shader buildingShader;
@@ -64,6 +77,8 @@ class Renderer : protected QOpenGLFunctions_3_3_Core {
   Shader modelShader;
   Shader skyBoxShader;
   Shader pickingShader;
+  Shader fontShader;
+  Shader fontBackgroundShader;
 
   void initShader(Shader &s, const QString &vertexPath, const QString &fragmentPath);
 
@@ -72,7 +87,7 @@ public:
   const unsigned int maxPointLights = 5u;
   const unsigned int maxSpotLights = 5u;
 
-  Renderer(ModelCache &modelCache, TextureCache &textureCache);
+  Renderer(ModelCache &modelCache, TextureCache &textureCache, FontManager &fontManager);
   void init();
   void setPerspective(const glm::mat4 &perspective);
 
@@ -88,7 +103,8 @@ public:
   CoordinateGrid::RenderInfo allocateCoordinateGrid(float size, int stepSize);
   void resize(CoordinateGrid &grid, float size, int stepSize);
 
-  void startTransparent();
+  void startTransparentDark();
+  void startTransparentLight();
   void endTransparent();
 
   void renderPickingNode(unsigned int nodeId, const Model &m);
@@ -108,6 +124,7 @@ public:
   void render(SkyBox &skyBox);
   void render(CoordinateGrid &coordinateGrid);
   void render(const std::vector<WiredLink> &wiredLinks);
+  void renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location);
 };
 
 } // namespace netsimulyzer

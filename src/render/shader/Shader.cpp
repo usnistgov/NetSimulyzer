@@ -120,6 +120,21 @@ void Shader::uniform(const std::string &name, const glm::vec3 &value) {
   glUniform3f(location, value.x, value.y, value.z);
 }
 
+void Shader::uniform(const std::string &name, const glm::vec2 &value) {
+  bind();
+  auto cached_location = uniform_cache.find(name);
+  if (cached_location != uniform_cache.end()) {
+    log_uniform(cached_location->second, name);
+    glUniform2f(cached_location->second, value.x, value.y);
+    return;
+  }
+
+  auto location = glGetUniformLocation(glId, name.c_str());
+  log_uniform(location, name);
+  uniform_cache.emplace(name, location);
+  glUniform2f(location, value.x, value.y);
+}
+
 void Shader::uniform(const std::string &name, float value) {
   bind();
   auto cached_location = uniform_cache.find(name);

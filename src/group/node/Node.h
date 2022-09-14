@@ -37,6 +37,7 @@
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/TrailBuffer.h"
+#include "src/render/font/FontManager.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <model.h>
@@ -63,16 +64,19 @@ private:
   glm::vec3 trailColor;
   std::vector<WiredLink *> wiredLinks;
   TransmitInfo transmitInfo;
+  FontManager::FontBannerRenderInfo bannerRenderInfo;
 
 public:
-  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer);
+  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer, const FontManager::FontBannerRenderInfo &bannerRenderInfo);
   [[nodiscard]] const Model &getModel() const;
   [[nodiscard]] const parser::Node &getNs3Model() const;
   [[nodiscard]] bool visible() const;
   [[nodiscard]] glm::vec3 getCenter() const;
+  [[nodiscard]] glm::vec3 getTop() const;
   [[nodiscard]] const TransmitInfo &getTransmitInfo() const;
   [[nodiscard]] const TrailBuffer &getTrailBuffer() const;
   [[nodiscard]] const glm::vec3 &getTrailColor() const;
+  [[nodiscard]] const FontManager::FontBannerRenderInfo &getBannerRenderInfo() const;
 
   void addWiredLink(WiredLink *link);
 

@@ -35,6 +35,7 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include "src/conversion.h"
 #include <QByteArray>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -188,6 +189,7 @@ void SceneWidget::initializeGL() {
   }
 
   models.init("models/fallback.obj");
+  fontManager.init(":/texture/resources/textures/undefined-medium.png");
   renderer.init();
 
   transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
@@ -300,15 +302,23 @@ void SceneWidget::paintGL() {
   if (renderGrid)
     renderer.render(*coordinateGrid);
   // Keep this after all opaque items
-  renderer.startTransparent();
+  renderer.startTransparentDark();
 
   // Other condition in opaque section
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
     renderer.render(buildings);
 
+//  const auto cameraRotateInverse = glm::inverse(glm::mat3x3(camera.view_matrix()));
   for (const auto &[_, node] : nodes) {
     const auto &nodeModel = node.getModel();
     renderer.renderTransparent(nodeModel);
+
+    // Name Banner
+    renderer.renderFont(node.getBannerRenderInfo(), node.getTop());
+    // `renderFont` ends with us in light transparent mode,
+    // so make sure we're back in dark mode, since other transparent
+    // items assume that mode`
+    renderer.startTransparentDark();
 
     const auto &transmit = node.getTransmitInfo();
     if (transmit.isTransmitting && transmit.startTime <= simulationTime &&
@@ -322,6 +332,7 @@ void SceneWidget::paintGL() {
     }
   }
 
+  renderer.startTransparentDark();
   for (auto &[key, decoration] : decorations) {
     renderer.renderTransparent(decoration.getModel());
   }
@@ -506,6 +517,7 @@ void SceneWidget::reset() {
   events.clear();
   undoEvents.clear();
   selectedNode.reset();
+  fontManager.reset();
   simulationTime = 0.0;
 }
 
@@ -536,7 +548,7 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   const auto trailLength = settings.get<int>(SettingsManager::Key::RenderMotionTrailLength).value();
   for (const auto &node : nodeModels) {
     nodes.try_emplace(node.id, Model{models.load(node.model)}, node,
-                      renderer.allocateTrailBuffer(functions, trailLength));
+                      renderer.allocateTrailBuffer(functions, trailLength), fontManager.allocate(node.name));
   }
 
   wiredLinks.reserve(links.size());

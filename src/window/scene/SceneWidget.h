@@ -49,6 +49,7 @@
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
+#include "src/render/font/FontManager.h"
 #include "src/render/framebuffer/PickingFramebuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
@@ -86,7 +87,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool isInitialMove = true;
   TextureCache textures;
   ModelCache models{textures};
-  Renderer renderer{models, textures};
+  FontManager fontManager{textures};
+  Renderer renderer{models, textures, fontManager};
   QTimer timer{this};
   QElapsedTimer frameTimer;
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();

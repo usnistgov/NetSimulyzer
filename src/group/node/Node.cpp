@@ -40,9 +40,11 @@
 
 namespace netsimulyzer {
 
-Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer)
+Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
+           const FontManager::FontBannerRenderInfo &bannerRenderInfo)
     : model(model), ns3Node(std::move(ns3Node)),
-      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)} {
+      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{
+                                                                                                 bannerRenderInfo} {
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
@@ -94,6 +96,10 @@ glm::vec3 Node::getCenter() const {
   position.z += modelCenter.z;
 
   return position;
+}
+
+glm::vec3 Node::getTop() const {
+  return model.getTop() + model.getPosition();
 }
 
 const Node::TransmitInfo &Node::getTransmitInfo() const {
@@ -218,6 +224,10 @@ const TrailBuffer &Node::getTrailBuffer() const {
 
 const glm::vec3 &Node::getTrailColor() const {
   return trailColor;
+}
+
+const FontManager::FontBannerRenderInfo &Node::getBannerRenderInfo() const {
+  return bannerRenderInfo;
 }
 
 void Node::handle(const undo::TransmitEvent &e) {

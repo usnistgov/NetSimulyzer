@@ -9,6 +9,7 @@
         <file>resources/textures/skybox/bottom.png</file>
         <file>resources/textures/skybox/back.png</file>
         <file>resources/textures/skybox/front.png</file>
+        <file>resources/textures/undefined-medium.png</file>
     </qresource>
     <qresource prefix="/shader">
         <file>shaders/area.frag</file>

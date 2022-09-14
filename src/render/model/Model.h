@@ -99,6 +99,7 @@ public:
   [[nodiscard]] const glm::vec3 &getPosition() const;
 
   [[nodiscard]] glm::vec3 getCenter() const;
+  [[nodiscard]] glm::vec3 getTop() const;
 
   void setKeepRatio(bool value);
   [[nodiscard]] bool getKeepRatio() const;
