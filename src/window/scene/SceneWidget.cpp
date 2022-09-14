@@ -271,6 +271,8 @@ void SceneWidget::paintGL() {
       continue;
     if (selectedNode.has_value())
       renderer.render(node, key == selectedNode.value());
+    else
+      renderer.render(node, false);
     if (renderMotionTrails)
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }
@@ -308,7 +310,7 @@ void SceneWidget::paintGL() {
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
     renderer.render(buildings);
 
-//  const auto cameraRotateInverse = glm::inverse(glm::mat3x3(camera.view_matrix()));
+  //  const auto cameraRotateInverse = glm::inverse(glm::mat3x3(camera.view_matrix()));
   for (const auto &[_, node] : nodes) {
     const auto &nodeModel = node.getModel();
     renderer.renderTransparent(nodeModel);
