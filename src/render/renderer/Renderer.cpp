@@ -81,8 +81,8 @@ void Renderer::init() {
   initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
   initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
   initShader(pickingShader, ":/shader/shaders/picking.vert", ":/shader/shaders/picking.frag");
-  initShader(fontShader, "./shaders/font.vert", "./shaders/font.frag");
-  initShader(fontBackgroundShader, "./shaders/font_bg.vert", "./shaders/font_bg.frag");
+  initShader(fontShader, ":/shader/shaders/font.vert", ":/shader/shaders/font.frag");
+  initShader(fontBackgroundShader, ":/shader/shaders/font_bg.vert", ":/shader/shaders/font_bg.frag");
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
