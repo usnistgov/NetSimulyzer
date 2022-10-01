@@ -141,7 +141,9 @@ If you are not building for Linux, then skip to [Cloning](#cloning).
 
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
-Ubuntu: `cmake pkg-config qt5-default libqt5charts5-dev`
+Ubuntu:
+* (22.04) `cmake pkg-config qtbase5-dev libqt5charts5-dev`
+* (20.04 and prior) `cmake pkg-config qt5-default libqt5charts5-dev`
 
 Arch: `cmake pkgconf qt5-base qt5-charts`
 
