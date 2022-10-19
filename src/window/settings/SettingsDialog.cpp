@@ -64,6 +64,9 @@ void SettingsDialog::loadSettings() {
   ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
   ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
 
+  ui.checkBoxShowLabels->setChecked(settings.get<bool>(Key::RenderShowLabels).value());
+  ui.sliderLabelScale->setValue(static_cast<int>(settings.get<float>(Key::RenderLabelScale).value() * labelScaleScale));
+
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
   ui.lineEditResource->setText(resourcePath);
@@ -138,6 +141,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
   QObject::connect(ui.buttonResetTrails, &QPushButton::clicked, this, &SettingsDialog::defaultShowTrails);
   QObject::connect(ui.buttonResetTrailLength, &QPushButton::clicked, this, &SettingsDialog::defaultTrailsLength);
+  QObject::connect(ui.buttonResetShowLabels, &QPushButton::clicked, this, &SettingsDialog::defaultShowLabels);
+  QObject::connect(ui.buttonResetLabelScale, &QPushButton::clicked, this, &SettingsDialog::defaultLabelScale);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -324,6 +329,18 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       requiresRestart = true;
     }
 
+    const auto showLabels = ui.checkBoxShowLabels->isChecked();
+    if (showLabels != settings.get<bool>(Key::RenderShowLabels)) {
+      settings.set(Key::RenderShowLabels, showLabels);
+      emit showLabelsChanged(showLabels);
+    }
+
+    const auto labelScale = static_cast<float>(ui.sliderLabelScale->value()) / labelScaleScale;
+    if (labelScale != settings.get<float>(Key::RenderLabelScale)) {
+      settings.set(Key::RenderLabelScale, labelScale);
+      emit labelScaleChanged(labelScale);
+    }
+
     // Playback
 
     const auto playKey = ui.keyPlay->keySequence()[0];
@@ -435,6 +452,15 @@ void SettingsDialog::defaultShowTrails() {
 
 void SettingsDialog::defaultTrailsLength() {
   ui.sliderTrailLength->setValue(settings.getDefault<int>(SettingsManager::Key::RenderMotionTrailLength));
+}
+
+void SettingsDialog::defaultShowLabels() {
+  ui.checkBoxShowLabels->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderShowLabels));
+}
+
+void SettingsDialog::defaultLabelScale() {
+  ui.sliderLabelScale->setValue(
+      static_cast<int>(settings.getDefault<float>(SettingsManager::Key::RenderLabelScale) * labelScaleScale));
 }
 
 void SettingsDialog::defaultGridStep() {

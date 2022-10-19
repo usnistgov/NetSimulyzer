@@ -767,11 +767,13 @@ void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
     mesh.render();
   }
 }
-void Renderer::renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location) {
+
+void Renderer::renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location, float scale) {
   // TODO: Maybe make this configurable?
   const glm::vec3 offset{0.0f, 2.0f, 0.0f};
 
   auto modelMatrix = glm::translate(glm::identity<glm::mat4>(), location + offset);
+  modelMatrix = glm::scale(modelMatrix, glm::vec3{scale});
   modelMatrix *= cameraRotateInverse;
 
   // ----- Background -----

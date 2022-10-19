@@ -124,7 +124,7 @@ public:
   void render(SkyBox &skyBox);
   void render(CoordinateGrid &coordinateGrid);
   void render(const std::vector<WiredLink> &wiredLinks);
-  void renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location);
+  void renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location, float scale);
 };
 
 } // namespace netsimulyzer

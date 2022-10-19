@@ -47,8 +47,10 @@ public:
     RenderBuildingOutlines,
     RenderGrid,
     RenderGridStep,
+    RenderLabelScale,
     RenderMotionTrails,
     RenderMotionTrailLength,
+    RenderShowLabels,
     RenderSkybox,
     ChartDropdownSortOrder,
   };
@@ -138,9 +140,11 @@ private:
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
       {Key::RenderBuildingOutlines, {"renderer/showBuildingOutlines", true}},
+      {Key::RenderLabelScale, {"renderer/labelScale", 0.1f}},
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
+      {Key::RenderShowLabels, {"renderer/enableLabels", true}},
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", false}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};

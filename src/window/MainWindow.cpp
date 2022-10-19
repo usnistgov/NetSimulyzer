@@ -116,7 +116,7 @@ MainWindow::MainWindow() : QMainWindow() {
     scene.setSelectedNode(id);
   });
 
-  QObject::connect(&scene, &SceneWidget::nodeSelected, [this] (unsigned int nodeID) {
+  QObject::connect(&scene, &SceneWidget::nodeSelected, [this](unsigned int nodeID) {
     detailWidget.describe(scene.getNode(nodeID));
     // Scene already has the selected Node ID set
   });
@@ -202,6 +202,9 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
   QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, &scene, &SceneWidget::setRenderTrails);
+
+  QObject::connect(&settingsDialog, &SettingsDialog::showLabelsChanged, &scene, &SceneWidget::setRenderLabels);
+  QObject::connect(&settingsDialog, &SettingsDialog::labelScaleChanged, &scene, &SceneWidget::setLabelScale);
 
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});

@@ -318,7 +318,8 @@ void SceneWidget::paintGL() {
     renderer.renderTransparent(nodeModel);
 
     // Name Banner
-    renderer.renderFont(node.getBannerRenderInfo(), node.getTop());
+    if (renderLabels)
+      renderer.renderFont(node.getBannerRenderInfo(), node.getTop(), labelScale);
     // `renderFont` ends with us in light transparent mode,
     // so make sure we're back in dark mode, since other transparent
     // items assume that mode`
@@ -737,6 +738,14 @@ void SceneWidget::changeGridStepSize(int stepSize) {
 
 void SceneWidget::setRenderTrails(bool enable) {
   renderMotionTrails = enable;
+}
+
+void SceneWidget::setRenderLabels(bool enable) {
+  renderLabels = enable;
+}
+
+void SceneWidget::setLabelScale(float value) {
+  labelScale = value;
 }
 
 void SceneWidget::setSelectedNode(unsigned int nodeId) {
