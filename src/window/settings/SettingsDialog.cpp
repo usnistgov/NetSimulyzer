@@ -61,7 +61,8 @@ void SettingsDialog::loadSettings() {
     break;
   }
 
-  ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
+  const auto motionTrailMode = settings.get<SettingsManager::MotionTrailRenderMode>(Key::RenderMotionTrails).value();
+  ui.comboMotionTrailRender->setCurrentIndex(ui.comboMotionTrailRender->findData(static_cast<int>(motionTrailMode)));
   ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
 
   ui.checkBoxShowLabels->setChecked(settings.get<bool>(Key::RenderShowLabels).value());
@@ -92,6 +93,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboGridSize->addItem("1", 1);
   ui.comboGridSize->addItem("5", 5);
   ui.comboGridSize->addItem("10", 10);
+
+  using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+  ui.comboMotionTrailRender->addItem("Always", static_cast<int>(MotionTrailRenderMode::Always));
+  ui.comboMotionTrailRender->addItem("Enabled Only", static_cast<int>(MotionTrailRenderMode::EnabledOnly));
+  ui.comboMotionTrailRender->addItem("Never", static_cast<int>(MotionTrailRenderMode::Never));
 
   using TimeUnit = SettingsManager::TimeUnit;
   ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
@@ -317,10 +323,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit gridStepSizeChanged(gridStepSize);
     }
 
-    const auto enableTrails = ui.checkBoxShowTrails->isChecked();
-    if (enableTrails != settings.get<bool>(Key::RenderMotionTrails).value()) {
-      settings.set(Key::RenderMotionTrails, enableTrails);
-      emit renderTrailsChanged(enableTrails);
+    using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+    const auto motionTrailRenderMode =
+        SettingsManager::MotionTrailRenderModeFromInt(ui.comboMotionTrailRender->currentData().toInt());
+    if (motionTrailRenderMode != settings.get<MotionTrailRenderMode>(Key::RenderMotionTrails).value()) {
+      settings.set(Key::RenderMotionTrails, motionTrailRenderMode);
+      emit renderTrailsChanged(static_cast<int>(motionTrailRenderMode));
     }
 
     const auto trailLength = ui.sliderTrailLength->value();
@@ -447,7 +455,9 @@ void SettingsDialog::defaultShowGrid() {
 }
 
 void SettingsDialog::defaultShowTrails() {
-  ui.checkBoxShowTrails->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderMotionTrails));
+  const auto defaultTrailMode =
+      settings.getDefault<SettingsManager::MotionTrailRenderMode>(SettingsManager::Key::RenderMotionTrails);
+  ui.comboMotionTrailRender->setCurrentIndex(ui.comboMotionTrailRender->findData(static_cast<int>(defaultTrailMode)));
 }
 
 void SettingsDialog::defaultTrailsLength() {

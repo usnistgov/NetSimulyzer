@@ -360,10 +360,10 @@ signals:
    * Signal emitted when the user changes the
    * Motion Trail render mode.
    *
-   * @param enable
-   * Flag indicating trails should be rendered or not
+   * @param value
+   * Enum value from SettingsManager::MotionTrailRenderMode
    */
-  void renderTrailsChanged(bool enable);
+  void renderTrailsChanged(int value);
 
   /**
    * Signal emitted when the user changes the

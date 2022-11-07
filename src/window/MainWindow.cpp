@@ -201,7 +201,9 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
-  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, &scene, &SceneWidget::setRenderTrails);
+  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, [this] (int value) {
+    scene.setRenderTrails(SettingsManager::MotionTrailRenderModeFromInt((value)));
+  });
 
   QObject::connect(&settingsDialog, &SettingsDialog::showLabelsChanged, &scene, &SceneWidget::setRenderLabels);
   QObject::connect(&settingsDialog, &SettingsDialog::labelScaleChanged, &scene, &SceneWidget::setLabelScale);

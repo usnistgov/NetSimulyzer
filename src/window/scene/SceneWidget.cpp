@@ -273,7 +273,10 @@ void SceneWidget::paintGL() {
       renderer.render(node, key == selectedNode.value());
     else
       renderer.render(node, false);
-    if (renderMotionTrails)
+
+    using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+    if (renderMotionTrails == MotionTrailRenderMode::Always ||
+        (renderMotionTrails == MotionTrailRenderMode::EnabledOnly && node.getNs3Model().trailEnabled))
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }
 
@@ -736,8 +739,8 @@ void SceneWidget::changeGridStepSize(int stepSize) {
   doneCurrent();
 }
 
-void SceneWidget::setRenderTrails(bool enable) {
-  renderMotionTrails = enable;
+void SceneWidget::setRenderTrails(SettingsManager::MotionTrailRenderMode value) {
+  renderMotionTrails = value;
 }
 
 void SceneWidget::setRenderLabels(bool enable) {

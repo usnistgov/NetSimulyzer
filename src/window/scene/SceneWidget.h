@@ -96,7 +96,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
-  bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
+  SettingsManager::MotionTrailRenderMode renderMotionTrails =
+      settings.get<SettingsManager::MotionTrailRenderMode>(SettingsManager::Key::RenderMotionTrails).value();
 
   std::unique_ptr<PickingFramebuffer> pickingFbo;
 
@@ -263,12 +264,12 @@ public:
   void changeGridStepSize(int stepSize);
 
   /**
-   * Enable or disable showing of motion trails
+   * Set the motion trail rendering behavior
    *
-   * @param enable
-   * True to show trails, false to hide
+   * @param value
+   * Enum value from SettingsManager::MotionTrailRenderMode
    */
-  void setRenderTrails(bool enable);
+  void setRenderTrails(SettingsManager::MotionTrailRenderMode value);
 
   /**
    * Enable or disable showing
@@ -287,7 +288,6 @@ public:
    * The new scale, should be > 0.0f
    */
   void setLabelScale(float value);
-
 
   void setSelectedNode(unsigned int nodeId);
   void clearSelectedNode();

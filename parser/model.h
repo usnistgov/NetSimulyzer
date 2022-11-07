@@ -86,6 +86,7 @@ struct Node {
   Ns3Coordinate offset;
   std::optional<Ns3Color3> baseColor;
   std::optional<Ns3Color3> highlightColor;
+  bool trailEnabled{false};
   Ns3Color3 trailColor;
   std::array<double, 3> orientation{0.0};
 };

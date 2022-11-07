@@ -418,6 +418,13 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
     node.highlightColor = colorFromObject(object["highlight-color"].object());
 
   // TODO: Compatability with v1.0.0, remove for v1.1.0
+  // This is required 1.0.6+
+  if (object.contains("trail-enabled"))
+    node.trailEnabled = object["trail-enabled"].get<bool>();
+  else
+    node.trailEnabled = false;
+
+  // TODO: Compatability with v1.0.0, remove for v1.1.0
   // This is required 1.0.4+
   if (object.contains("trail-color"))
     node.trailColor = colorFromObject(object["trail-color"].object());

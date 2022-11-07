@@ -38,6 +38,23 @@ SettingsManager::ChartDropdownSortOrder SettingsManager::ChartDropdownSortOrderF
   }
 }
 
+SettingsManager::MotionTrailRenderMode SettingsManager::MotionTrailRenderModeFromInt(int value) {
+  using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+
+  switch (value) {
+  case static_cast<int>(MotionTrailRenderMode::Always):
+    return MotionTrailRenderMode::Always;
+  case static_cast<int>(MotionTrailRenderMode::EnabledOnly):
+    return MotionTrailRenderMode::EnabledOnly;
+  case static_cast<int>(MotionTrailRenderMode::Never):
+    return MotionTrailRenderMode::Never;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'Motion Trail Render Mode'!",
+                          "An unrecognised value for 'Motion Trail Render Mode':" + QString{value} + " was provided");
+    std::abort();
+  }
+}
+
 SettingsManager::TimeUnit SettingsManager::TimeUnitFromInt(int value) {
   switch (value) {
   case static_cast<int>(SettingsManager::TimeUnit::Nanoseconds):
