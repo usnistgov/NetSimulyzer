@@ -149,7 +149,7 @@ private:
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
-      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10LL}},
+      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10'000'000LL}}, // 10ms in nanoseconds
       {Key::PlaybackTimeStepUnit, {"playback/timeStepUnit", "milliseconds"}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
@@ -228,7 +228,7 @@ public:
     const auto &settingKey = getQtKey(key);
     const auto qtSetting = qtSettings.value(settingKey.key, settingKey.defaultValue);
 
-    if (qtSetting.isValid() && qtSetting.template canConvert<T>())
+    if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<T>())
       return {qtSetting.template value<T>()};
     else if (mode == RetrieveMode::AllowDefault && settingKey.defaultValue.isValid() &&
              settingKey.defaultValue.template canConvert<T>())
@@ -402,10 +402,12 @@ template <>
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
 
   if (stringMode == "transparent")
     return {SettingsManager::BuildingRenderMode::Transparent};
@@ -428,10 +430,12 @@ template <>
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
 
   if (stringMode == "always")
     return {SettingsManager::MotionTrailRenderMode::Always};
@@ -455,11 +459,12 @@ template <>
   const auto qtSetting = qtSettings.value(settingKey.key);
 
   QString stringMode;
-
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else // Handle unset/empty string values
+    return {};
 
   if (stringMode == "milliseconds")
     return {SettingsManager::TimeUnit::Milliseconds};
@@ -485,10 +490,12 @@ SettingsManager::get(Key key, RetrieveMode mode) const {
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
 
   if (stringMode == "alphabetical")
     return {SettingsManager::ChartDropdownSortOrder::Alphabetical};
