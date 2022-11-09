@@ -227,6 +227,11 @@ int main(int argc, char *argv[]) {
   // on some platforms
   QApplication application(argc, argv);
 
+  // Set default window icon for the whole application
+  // seems to be required on macOS, but shouldn't hurt
+  // on other platforms as well
+  QApplication::setWindowIcon(QIcon{":/application/application.png"});
+
   // Enable auto mnemonics on all platforms
   // since our widget titles use them
   qt_set_sequence_auto_mnemonic(true);
