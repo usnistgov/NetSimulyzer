@@ -47,6 +47,22 @@
 #include <parser/model.h>
 #include <project.h>
 
+namespace {
+/**
+ * Remove the extra ampersand from the title of
+ * a dock widget with a mnemonic defined with an
+ * ampersand in the title
+ *
+ * Seems to be only a problem on macOS
+ *
+ * @param widget
+ * The dock widget to correct the title of
+ */
+void removeAmpersandDockWidget(QDockWidget& widget){
+  widget.setWindowTitle(widget.windowTitle().remove('&'));
+}
+}
+
 namespace netsimulyzer {
 
 MainWindow::MainWindow() : QMainWindow() {
@@ -54,10 +70,17 @@ MainWindow::MainWindow() : QMainWindow() {
   setWindowTitle(NETSIMULYZER_APPLICATION_NAME);
   setCentralWidget(&scene);
 
+  // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
   ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
+
+  // Remove extra ampersands on macOS
+  removeAmpersandDockWidget(*ui.nodesDock);
+  removeAmpersandDockWidget(*ui.nodeDetailsDock);
+  removeAmpersandDockWidget(*ui.logDock);
+  removeAmpersandDockWidget(*ui.playbackDock);
 
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
