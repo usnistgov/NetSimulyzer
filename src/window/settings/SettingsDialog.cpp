@@ -65,7 +65,9 @@ void SettingsDialog::loadSettings() {
   ui.comboMotionTrailRender->setCurrentIndex(ui.comboMotionTrailRender->findData(static_cast<int>(motionTrailMode)));
   ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
 
-  ui.checkBoxShowLabels->setChecked(settings.get<bool>(Key::RenderShowLabels).value());
+  const auto labelRenderMode = settings.get<SettingsManager::LabelRenderMode>(Key::RenderLabels).value();
+  ui.comboLabelRender->setCurrentIndex(ui.comboLabelRender->findData(static_cast<int>(labelRenderMode)));
+
   ui.sliderLabelScale->setValue(static_cast<int>(settings.get<float>(Key::RenderLabelScale).value() * labelScaleScale));
 
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
@@ -98,6 +100,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboMotionTrailRender->addItem("Always", static_cast<int>(MotionTrailRenderMode::Always));
   ui.comboMotionTrailRender->addItem("Enabled Only", static_cast<int>(MotionTrailRenderMode::EnabledOnly));
   ui.comboMotionTrailRender->addItem("Never", static_cast<int>(MotionTrailRenderMode::Never));
+
+  using LabelRenderMode = SettingsManager::LabelRenderMode;
+  ui.comboLabelRender->addItem("Always", static_cast<int>(LabelRenderMode::Always));
+  ui.comboLabelRender->addItem("Enabled Only", static_cast<int>(LabelRenderMode::EnabledOnly));
+  ui.comboLabelRender->addItem("Never", static_cast<int>(LabelRenderMode::Never));
 
   using TimeUnit = SettingsManager::TimeUnit;
   ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
@@ -337,10 +344,11 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       requiresRestart = true;
     }
 
-    const auto showLabels = ui.checkBoxShowLabels->isChecked();
-    if (showLabels != settings.get<bool>(Key::RenderShowLabels)) {
-      settings.set(Key::RenderShowLabels, showLabels);
-      emit showLabelsChanged(showLabels);
+    using LabelRenderMode = SettingsManager::LabelRenderMode;
+    const auto labelRenderMode = SettingsManager::LabelRenderModeFromInt(ui.comboLabelRender->currentData().toInt());
+    if (labelRenderMode != settings.get<LabelRenderMode>(Key::RenderLabels).value()) {
+      settings.set(Key::RenderLabels, labelRenderMode);
+      emit renderLabelsChanged(static_cast<int>(labelRenderMode));
     }
 
     const auto labelScale = static_cast<float>(ui.sliderLabelScale->value()) / labelScaleScale;
@@ -465,7 +473,8 @@ void SettingsDialog::defaultTrailsLength() {
 }
 
 void SettingsDialog::defaultShowLabels() {
-  ui.checkBoxShowLabels->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderShowLabels));
+  const auto defaultMode = settings.getDefault<SettingsManager::LabelRenderMode>(SettingsManager::Key::RenderLabels);
+  ui.comboLabelRender->setCurrentIndex(ui.comboLabelRender->findData(static_cast<int>(defaultMode)));
 }
 
 void SettingsDialog::defaultLabelScale() {

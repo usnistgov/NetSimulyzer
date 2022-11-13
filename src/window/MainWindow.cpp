@@ -58,10 +58,10 @@ namespace {
  * @param widget
  * The dock widget to correct the title of
  */
-void removeAmpersandDockWidget(QDockWidget& widget){
+void removeAmpersandDockWidget(QDockWidget &widget) {
   widget.setWindowTitle(widget.windowTitle().remove('&'));
 }
-}
+} // namespace
 
 namespace netsimulyzer {
 
@@ -223,11 +223,13 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
-  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, [this] (int value) {
+  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, [this](int value) {
     scene.setRenderTrails(SettingsManager::MotionTrailRenderModeFromInt((value)));
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::showLabelsChanged, &scene, &SceneWidget::setRenderLabels);
+  QObject::connect(&settingsDialog, &SettingsDialog::renderLabelsChanged, [this](int value) {
+    scene.setRenderLabels(SettingsManager::LabelRenderModeFromInt(value));
+  });
   QObject::connect(&settingsDialog, &SettingsDialog::labelScaleChanged, &scene, &SceneWidget::setLabelScale);
 
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {

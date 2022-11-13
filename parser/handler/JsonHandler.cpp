@@ -356,6 +356,14 @@ void JsonHandler::parseNode(const util::json::JsonObject &object) {
 
   node.id = object["id"].get<unsigned int>();
   node.name = object["name"].get<std::string>();
+
+  // TODO: Compatability with v1.0.0, remove for v1.1.0
+  // This is required 1.0.6+
+  if (object.contains("label-enabled"))
+    node.labelEnabled = object["label-enabled"].get<bool>();
+  else
+    node.labelEnabled = true;
+
   node.model = object["model"].get<std::string>();
 
   if (object["scale"].isObject()) {

@@ -91,7 +91,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Renderer renderer{models, textures, fontManager};
   QTimer timer{this};
   QElapsedTimer frameTimer;
-  bool renderLabels = settings.get<bool>(SettingsManager::Key::RenderShowLabels).value();
+  SettingsManager::LabelRenderMode renderLabels =
+      settings.get<SettingsManager::LabelRenderMode>(SettingsManager::Key::RenderLabels).value();
   float labelScale = settings.get<float>(SettingsManager::Key::RenderLabelScale).value();
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
@@ -272,13 +273,15 @@ public:
   void setRenderTrails(SettingsManager::MotionTrailRenderMode value);
 
   /**
-   * Enable or disable showing
-   * labels above elements
+   * Set Node label rendering behavior
    *
-   * @param enable
-   * True to show labels, false to hide
+   * @param value
+   * `Always`: Always render Node labels,
+   * `EnabledOnly`: Only render labels on ones explicitly opted-in
+   * in the module,
+   * `Never`: Never render Node labels
    */
-  void setRenderLabels(bool enable);
+  void setRenderLabels(SettingsManager::LabelRenderMode value);
 
   /**
    * Change the scale of the text labels

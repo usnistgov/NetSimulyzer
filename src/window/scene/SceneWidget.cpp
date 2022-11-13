@@ -321,11 +321,13 @@ void SceneWidget::paintGL() {
     renderer.renderTransparent(nodeModel);
 
     // Name Banner
-    if (renderLabels)
+    using LabelRenderMode = SettingsManager::LabelRenderMode;
+    if (renderLabels == LabelRenderMode::Always ||
+        (renderLabels == LabelRenderMode::EnabledOnly && node.getNs3Model().labelEnabled))
       renderer.renderFont(node.getBannerRenderInfo(), node.getTop(), labelScale);
     // `renderFont` ends with us in light transparent mode,
     // so make sure we're back in dark mode, since other transparent
-    // items assume that mode`
+    // items assume that mode
     renderer.startTransparentDark();
 
     const auto &transmit = node.getTransmitInfo();
@@ -743,8 +745,8 @@ void SceneWidget::setRenderTrails(SettingsManager::MotionTrailRenderMode value) 
   renderMotionTrails = value;
 }
 
-void SceneWidget::setRenderLabels(bool enable) {
-  renderLabels = enable;
+void SceneWidget::setRenderLabels(SettingsManager::LabelRenderMode value) {
+  renderLabels = value;
 }
 
 void SceneWidget::setLabelScale(float value) {

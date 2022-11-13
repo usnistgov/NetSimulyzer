@@ -50,12 +50,13 @@ public:
     RenderLabelScale,
     RenderMotionTrails,
     RenderMotionTrailLength,
-    RenderShowLabels,
+    RenderLabels,
     RenderSkybox,
     ChartDropdownSortOrder,
   };
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
+  enum class LabelRenderMode : int { Always, EnabledOnly, Never };
   enum class ChartDropdownSortOrder : int { Alphabetical, Type, Id, None };
   enum class MotionTrailRenderMode: int { Always, EnabledOnly, Never };
   enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
@@ -71,6 +72,18 @@ public:
    * The enum value corresponding to `value`
    */
   static BuildingRenderMode BuildingRenderModeFromInt(int value);
+
+  /**
+   * Convert an int to a `LabelRenderMode` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static LabelRenderMode LabelRenderModeFromInt(int value);
 
   /**
    * Convert an int to a `ChartDropdownSortOrder` enum value.
@@ -158,7 +171,7 @@ private:
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
-      {Key::RenderShowLabels, {"renderer/enableLabels", true}},
+      {Key::RenderLabels, {"renderer/showLabels", "enabledOnly"}},
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};
@@ -357,6 +370,14 @@ template <>
   return SettingsManager::BuildingRenderMode::Transparent;
 }
 
+// Specialization for LabelRenderMode enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::LabelRenderMode SettingsManager::getDefault(SettingsManager::Key) const {
+  // TODO: Use the map value
+  return SettingsManager::LabelRenderMode::EnabledOnly;
+}
+
 // Specialization for ChartManager::SortOrder enum
 // so each widget does not need to convert to/from the settings representation
 template <>
@@ -419,6 +440,36 @@ template <>
   // Final catch if the provided string value is invalid
   if (mode == RetrieveMode::AllowDefault)
     return getDefault<BuildingRenderMode>(Key::RenderBuildingMode);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::LabelRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "always")
+    return {SettingsManager::LabelRenderMode::Always};
+  else if (stringMode == "enabledOnly")
+    return {SettingsManager::LabelRenderMode::EnabledOnly};
+  else if (stringMode == "never")
+    return {SettingsManager::LabelRenderMode::Never};
+  else
+    std::cerr << "Unrecognised 'LabelRenderMode '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<SettingsManager::LabelRenderMode>(Key::RenderLabels);
 
   return {};
 }
@@ -528,6 +579,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'BuildingRenderMode': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::LabelRenderMode &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::LabelRenderMode::Always:
+    qtSettings.setValue(settingKey.key, "always");
+    break;
+  case SettingsManager::LabelRenderMode::EnabledOnly:
+    qtSettings.setValue(settingKey.key, "enabledOnly");
+    break;
+  case SettingsManager::LabelRenderMode::Never:
+    qtSettings.setValue(settingKey.key, "never");
+    break;
+  default:
+    std::cerr << "Unrecognised 'LabelRenderMode': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

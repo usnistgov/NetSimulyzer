@@ -369,11 +369,10 @@ signals:
    * Signal emitted when the user changes the
    * Label render mode.
    *
-   * @param enable
-   * Flag indicating labels should be rendered or not
+   * @param value
+   * Enum value from SettingsManager::LabelRenderMode
    */
-  void showLabelsChanged(bool enabled);
-
+  void renderLabelsChanged(int value);
 
   /**
    * Signal emitted when the user changes the

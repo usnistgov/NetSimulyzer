@@ -75,6 +75,7 @@ struct GlobalConfiguration {
 struct Node {
   unsigned int id = 0;
   std::string name;
+  bool labelEnabled{true};
   std::string model;
   std::array<float, 3> scale{1.0f};
   bool keepRatio{true};

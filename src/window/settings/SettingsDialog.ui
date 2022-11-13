@@ -44,9 +44,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-473</y>
+        <y>-488</y>
         <width>530</width>
-        <height>1139</height>
+        <height>1138</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
@@ -267,43 +267,6 @@
           <string>Default</string>
          </property>
         </widget>
-       </item>
-       <item row="25" column="12">
-        <layout class="QHBoxLayout" name="layoutShowLabels">
-         <item>
-          <spacer name="hsLabelsLeft">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBoxShowLabels">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="hsShowLabelsRight">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
        </item>
        <item row="17" column="0">
         <widget class="QLabel" name="labelSamples">
@@ -897,6 +860,9 @@
        </item>
        <item row="23" column="12">
         <widget class="QComboBox" name="comboMotionTrailRender"/>
+       </item>
+       <item row="25" column="12">
+        <widget class="QComboBox" name="comboLabelRender"/>
        </item>
       </layout>
      </widget>
