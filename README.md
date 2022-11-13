@@ -19,6 +19,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
   * [Chart](#chart)
 * [Building From Source](#building-from-source)
     * [Linux Packages](#linux-packages)
+    * [macOS (Homebrew) Packages](#macos-homebrew-packages)
     * [Cloning](#cloning)
     * [Building](#building)
     * [CMake Options](#cmake-options)
