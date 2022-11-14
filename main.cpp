@@ -35,21 +35,21 @@
 #include <QOpenGLContext>
 // clang-format on
 
-#include "src/window/MainWindow.h"
 #include "src/settings/SettingsManager.h"
+#include "src/window/MainWindow.h"
 #include "src/window/util/file-operations.h"
 #include <QApplication>
 #include <QCoreApplication>
-#include <QSettings>
-#include <QMessageBox>
-#include <QFileDialog>
+#include <QDebug>
 #include <QDir>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QSettings>
 #include <QSurfaceFormat>
 #include <iostream>
-#include <string>
 #include <optional>
 #include <project.h>
-#include <QDebug>
+#include <string>
 
 // Signals to Qt that titles beginning with ampersands (&)
 // should be generated from the characters following the
@@ -65,6 +65,16 @@ struct ParsedSettingsVersion {
   unsigned int minor;
   unsigned int patch;
 };
+
+bool operator<(const ParsedSettingsVersion &left, const ParsedSettingsVersion &right) {
+  if (left.major != right.major)
+    return left.major < right.major;
+
+  if (left.minor != right.minor)
+    return left.minor < right.minor;
+
+  return left.patch < right.patch;
+}
 
 ParsedSettingsVersion parseVersion(const std::string &s) {
   ParsedSettingsVersion result;
@@ -175,19 +185,21 @@ int main(int argc, char *argv[]) {
   netsimulyzer::SettingsManager settings;
 
   if (settings.isDefined(Key::SettingsVersion)) {
-    auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
+    const auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
 
     if (settingsVersion != std::string{NETSIMULYZER_VERSION}) {
       std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
                 << NETSIMULYZER_VERSION << '\n';
 
-      auto version = parseVersion(settingsVersion);
-      if (version.major == 0 && version.minor <= 1 && version.patch <= 3) {
-        std::cout << "Migrating: 0.1.3\n";
-        if (!settings.isDefined(Key::NumberSamples)) {
-          settings.setDefault(Key::NumberSamples);
-          std::cout << "Adding numberSamples\n";
-        }
+      const auto version = parseVersion(settingsVersion);
+      if (version < ParsedSettingsVersion{1,0,6}) {
+        std::cout << "Migrating: 1.0.6\n";
+        QSettings qSettings;
+        const auto oldVal = qSettings.value("renderer/showMotionTrails", false);
+        if (oldVal.canConvert<bool>() && oldVal.toBool())
+          settings.set(Key::RenderMotionTrails, netsimulyzer::SettingsManager::MotionTrailRenderMode::Always);
+        else
+          settings.setDefault(Key::RenderMotionTrails);
       }
 
       // Clear the resource directory on update,
@@ -195,6 +207,7 @@ int main(int argc, char *argv[]) {
       // It will be re-detected below
       settings.clear(Key::ResourcePath);
       settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
+      settings.sync();
     }
   } else
     settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
@@ -213,6 +226,11 @@ int main(int argc, char *argv[]) {
   // Default QSurfaceFormat must be set before QApplication
   // on some platforms
   QApplication application(argc, argv);
+
+  // Set default window icon for the whole application
+  // seems to be required on macOS, but shouldn't hurt
+  // on other platforms as well
+  QApplication::setWindowIcon(QIcon{":/application/application.png"});
 
   // Enable auto mnemonics on all platforms
   // since our widget titles use them

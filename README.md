@@ -19,6 +19,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
   * [Chart](#chart)
 * [Building From Source](#building-from-source)
     * [Linux Packages](#linux-packages)
+    * [macOS (Homebrew) Packages](#macos-homebrew-packages)
     * [Cloning](#cloning)
     * [Building](#building)
     * [CMake Options](#cmake-options)
@@ -137,13 +138,28 @@ Currently, these keys cannot be configured.
 # Building From Source
 
 ## Linux Packages
-If you are not building for Linux, then skip to [Cloning](#cloning).
+If you are not building for Linux, then skip this section.
 
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
-Ubuntu: `cmake pkg-config qt5-default libqt5charts5-dev`
+Ubuntu:
+* (22.04) `cmake pkg-config qtbase5-dev libqt5charts5-dev`
+* (20.04 and prior) `cmake pkg-config qt5-default libqt5charts5-dev`
 
 Arch: `cmake pkgconf qt5-base qt5-charts`
+
+## macOS Homebrew Packages
+If you are not building for macOS (or a distro that uses [Homebrew](https://brew.sh/))
+then skip this section
+
+The following Homebrew items are required to build/run the NetSimulyzer:
+* `qt@5`
+* `cmake`
+
+They may be installed with the following command:
+```shell
+brew install qt@5 cmake
+```
 
 ## Cloning
 Clone the repository _recursively_ to collect the dependencies as well as the source
@@ -181,14 +197,28 @@ All of the following are optional
 
 #### Running CMake
 
-Run `cmake` and specify the source directory, build type, and and desired build options from above. Then run the build tool.
+##### Windows/Linux
+Run `cmake` and specify the source directory, build type, and desired build options from above. Then run the build tool.
 ```shell
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --parallel
 ```
 
+##### macOS (Homebrew Install)
+When using Homebrew, it may be necessary
+to specify the location of Qt
+using the `Qt5_DIR` variable.
+Otherwise, the command to configure is identical to the Windows/Linux
+build
+
+```shell
+cmake -DQt5_DIR=$(brew --prefix qt5)/lib/cmake/Qt5 -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --parallel
+```
+
 ## Running
-After building the application may launched from the project root directory with the following command:
+After building the application may be launched
+from the project root directory with the following command:
 ```shell
 cd ../
 ./build/netsimulyzer

@@ -32,63 +32,25 @@
  */
 
 #pragma once
-
-#include "texture.h"
-#include <QDir>
-#include <QImage>
-#include <QOpenGLFunctions_3_3_Core>
-#include <array>
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <glm/vec2.hpp>
 
 namespace netsimulyzer {
 
 /**
- * ID for outside code to access a given texture
+ * Represents a single character from
+ * a font.
+ *
+ * Specifies the location
+ * of the character on an atlas,
+ * and how it should be rendered
  */
-using texture_id = std::size_t;
-
-class TextureCache : protected QOpenGLFunctions_3_3_Core {
-  std::unordered_map<std::string, std::size_t> indexMap;
-  std::vector<Texture> textures;
-  texture_id fallbackTexture;
-  QDir resourceDirectory;
-
-public:
-  struct CubeMap {
-    QImage right;
-    QImage left;
-    QImage top;
-    QImage bottom;
-    QImage back;
-    QImage front;
-  };
-
-  ~TextureCache() override;
-
-  bool init();
-
-  void setResourceDirectory(const QDir &value);
-  texture_id load(const std::string &filename);
-  unsigned int load(const CubeMap &cubeMap);
-  texture_id loadInternal(const std::string &path, GLint filter = GL_LINEAR, GLint repeat = GL_REPEAT);
-  [[nodiscard]] const Texture &get(texture_id index);
-
-  [[nodiscard]] texture_id getFallbackTexture() const;
-
-  const Texture &operator[](texture_id index) {
-    return get(index);
-  }
-
-  void clear();
-
-  void use(texture_id index);
-
-  // TODO: Track the same way as normal textures
-  void useCubeMap(unsigned int id);
+struct Character {
+  unsigned int id;
+  unsigned int x;
+  unsigned int y;
+  glm::ivec2 size;
+  glm::ivec2 offset;
+  long advance;
 };
 
 } // namespace netsimulyzer

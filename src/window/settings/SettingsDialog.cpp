@@ -61,8 +61,14 @@ void SettingsDialog::loadSettings() {
     break;
   }
 
-  ui.checkBoxShowTrails->setChecked(settings.get<bool>(Key::RenderMotionTrails).value());
+  const auto motionTrailMode = settings.get<SettingsManager::MotionTrailRenderMode>(Key::RenderMotionTrails).value();
+  ui.comboMotionTrailRender->setCurrentIndex(ui.comboMotionTrailRender->findData(static_cast<int>(motionTrailMode)));
   ui.sliderTrailLength->setValue(settings.get<int>(Key::RenderMotionTrailLength).value());
+
+  const auto labelRenderMode = settings.get<SettingsManager::LabelRenderMode>(Key::RenderLabels).value();
+  ui.comboLabelRender->setCurrentIndex(ui.comboLabelRender->findData(static_cast<int>(labelRenderMode)));
+
+  ui.sliderLabelScale->setValue(static_cast<int>(settings.get<float>(Key::RenderLabelScale).value() * labelScaleScale));
 
   ui.keyPlay->setKeySequence(*settings.get<int>(Key::SceneKeyPlay));
 
@@ -89,6 +95,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboGridSize->addItem("1", 1);
   ui.comboGridSize->addItem("5", 5);
   ui.comboGridSize->addItem("10", 10);
+
+  using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+  ui.comboMotionTrailRender->addItem("Always", static_cast<int>(MotionTrailRenderMode::Always));
+  ui.comboMotionTrailRender->addItem("Enabled Only", static_cast<int>(MotionTrailRenderMode::EnabledOnly));
+  ui.comboMotionTrailRender->addItem("Never", static_cast<int>(MotionTrailRenderMode::Never));
+
+  using LabelRenderMode = SettingsManager::LabelRenderMode;
+  ui.comboLabelRender->addItem("Always", static_cast<int>(LabelRenderMode::Always));
+  ui.comboLabelRender->addItem("Enabled Only", static_cast<int>(LabelRenderMode::EnabledOnly));
+  ui.comboLabelRender->addItem("Never", static_cast<int>(LabelRenderMode::Never));
 
   using TimeUnit = SettingsManager::TimeUnit;
   ui.comboTimeStepUnit->addItem("ns", static_cast<int>(TimeUnit::Nanoseconds));
@@ -138,6 +154,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetGridSize, &QPushButton::clicked, this, &SettingsDialog::defaultGridStep);
   QObject::connect(ui.buttonResetTrails, &QPushButton::clicked, this, &SettingsDialog::defaultShowTrails);
   QObject::connect(ui.buttonResetTrailLength, &QPushButton::clicked, this, &SettingsDialog::defaultTrailsLength);
+  QObject::connect(ui.buttonResetShowLabels, &QPushButton::clicked, this, &SettingsDialog::defaultShowLabels);
+  QObject::connect(ui.buttonResetLabelScale, &QPushButton::clicked, this, &SettingsDialog::defaultLabelScale);
 
   QObject::connect(ui.buttonResetPlay, &QPushButton::clicked, ui.keyPlay, &SingleKeySequenceEdit::setDefault);
   QObject::connect(ui.buttonResetTimeStep, &QPushButton::clicked, this, &SettingsDialog::defaultTimeStep);
@@ -312,16 +330,31 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       emit gridStepSizeChanged(gridStepSize);
     }
 
-    const auto enableTrails = ui.checkBoxShowTrails->isChecked();
-    if (enableTrails != settings.get<bool>(Key::RenderMotionTrails).value()) {
-      settings.set(Key::RenderMotionTrails, enableTrails);
-      emit renderTrailsChanged(enableTrails);
+    using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+    const auto motionTrailRenderMode =
+        SettingsManager::MotionTrailRenderModeFromInt(ui.comboMotionTrailRender->currentData().toInt());
+    if (motionTrailRenderMode != settings.get<MotionTrailRenderMode>(Key::RenderMotionTrails).value()) {
+      settings.set(Key::RenderMotionTrails, motionTrailRenderMode);
+      emit renderTrailsChanged(static_cast<int>(motionTrailRenderMode));
     }
 
     const auto trailLength = ui.sliderTrailLength->value();
     if (trailLength != settings.get<int>(Key::RenderMotionTrailLength).value()) {
       settings.set(Key::RenderMotionTrailLength, trailLength);
       requiresRestart = true;
+    }
+
+    using LabelRenderMode = SettingsManager::LabelRenderMode;
+    const auto labelRenderMode = SettingsManager::LabelRenderModeFromInt(ui.comboLabelRender->currentData().toInt());
+    if (labelRenderMode != settings.get<LabelRenderMode>(Key::RenderLabels).value()) {
+      settings.set(Key::RenderLabels, labelRenderMode);
+      emit renderLabelsChanged(static_cast<int>(labelRenderMode));
+    }
+
+    const auto labelScale = static_cast<float>(ui.sliderLabelScale->value()) / labelScaleScale;
+    if (labelScale != settings.get<float>(Key::RenderLabelScale)) {
+      settings.set(Key::RenderLabelScale, labelScale);
+      emit labelScaleChanged(labelScale);
     }
 
     // Playback
@@ -430,11 +463,23 @@ void SettingsDialog::defaultShowGrid() {
 }
 
 void SettingsDialog::defaultShowTrails() {
-  ui.checkBoxShowTrails->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderMotionTrails));
+  const auto defaultTrailMode =
+      settings.getDefault<SettingsManager::MotionTrailRenderMode>(SettingsManager::Key::RenderMotionTrails);
+  ui.comboMotionTrailRender->setCurrentIndex(ui.comboMotionTrailRender->findData(static_cast<int>(defaultTrailMode)));
 }
 
 void SettingsDialog::defaultTrailsLength() {
   ui.sliderTrailLength->setValue(settings.getDefault<int>(SettingsManager::Key::RenderMotionTrailLength));
+}
+
+void SettingsDialog::defaultShowLabels() {
+  const auto defaultMode = settings.getDefault<SettingsManager::LabelRenderMode>(SettingsManager::Key::RenderLabels);
+  ui.comboLabelRender->setCurrentIndex(ui.comboLabelRender->findData(static_cast<int>(defaultMode)));
+}
+
+void SettingsDialog::defaultLabelScale() {
+  ui.sliderLabelScale->setValue(
+      static_cast<int>(settings.getDefault<float>(SettingsManager::Key::RenderLabelScale) * labelScaleScale));
 }
 
 void SettingsDialog::defaultGridStep() {

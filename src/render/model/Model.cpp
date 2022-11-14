@@ -157,6 +157,25 @@ glm::vec3 Model::getCenter() const {
   return result;
 }
 
+glm::vec3 Model::getTop() const {
+  // Pull the final scale from the
+  // built scale matrix
+  // [x 0 0 0]
+  // [0 y 0 0]
+  // [0 0 z 0]
+  // [0 0 0 1]
+  const auto xScale = scaleMatrix[0].x;
+  const auto yScale = scaleMatrix[1].y;
+  const auto zScale = scaleMatrix[2].z;
+
+  glm::vec3 result;
+  result.x = (max.x + min.x) * xScale / 2.0f;
+  result.y = (max.y + min.y) * yScale;
+  result.z = (max.z + min.z) * zScale / 2.0f;
+
+  return result;
+}
+
 glm::vec3 Model::getScale() const {
   return scale;
 }

@@ -54,6 +54,7 @@ public:
   void init(const std::string &vertex, const std::string &fragment);
 
   void uniform(const std::string &name, const glm::vec3 &value);
+  void uniform(const std::string &name, const glm::vec2 &value);
   void uniform(const std::string &name, float value);
 
   void uniform(const std::string &name, const glm::mat4 &value);

@@ -54,6 +54,8 @@ uniform vec3 eye_position;
 
 uniform vec3 material_color;
 
+uniform bool is_selected;
+
 vec4 lightByDirection(Light base, vec3 direction) {
     vec4 ambient_color = vec4(base.color, 1.0) * base.ambient_intensity;
 
@@ -139,4 +141,11 @@ void main()
 
     if (useLighting)
         final_color *= calculateDirectionalLight() + calculatePointLights() + calculateSpotLights();
+    
+    // Significantly decrease colors aside from green in selected items
+    if (is_selected) {
+        final_color *= vec4(0.5, 1.5, 0.5, 1.0);
+        if (final_color.g < 0.1)
+            final_color.g += 0.25;
+    }
 }

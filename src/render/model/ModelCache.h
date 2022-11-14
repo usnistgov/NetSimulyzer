@@ -92,6 +92,8 @@ public:
 
   void render(Shader &s, const Model &model);
   void renderTransparent(Shader &s, const Model &model);
+  std::vector<Mesh> &getMeshes();
+  std::vector<Mesh> &getTransparentMeshes();
   void clear();
 };
 
@@ -100,21 +102,25 @@ class ModelCache : protected QOpenGLFunctions_3_3_Core {
   std::vector<ModelRenderInfo> models;
   TextureCache &textureCache;
   std::string basePath;
+  std::string _fallbackModelPath;
+  model_id fallbackModel = 0u;
 
 public:
-  const model_id fallbackModel = 0u;
   explicit ModelCache(TextureCache &textureCache);
-  ~ModelCache() override;
+  ~ModelCache() override = default;
 
   void setBasePath(std::string value);
-  void init(const std::string &fallbackModelPath);
+  void init(std::string_view fallbackModelPath);
   Model::ModelLoadInfo load(const std::string &path);
+  Model::ModelLoadInfo loadAbsolute(const std::string &path);
+
   ModelRenderInfo &get(model_id index);
+  [[nodiscard]] model_id getFallbackModelId() const;
 
   ModelRenderInfo &operator[](model_id index) {
     return get(index);
   }
-  void clear();
+  void reset();
 };
 
 } // namespace netsimulyzer

@@ -47,6 +47,22 @@
 #include <parser/model.h>
 #include <project.h>
 
+namespace {
+/**
+ * Remove the extra ampersand from the title of
+ * a dock widget with a mnemonic defined with an
+ * ampersand in the title
+ *
+ * Seems to be only a problem on macOS
+ *
+ * @param widget
+ * The dock widget to correct the title of
+ */
+void removeAmpersandDockWidget(QDockWidget &widget) {
+  widget.setWindowTitle(widget.windowTitle().remove('&'));
+}
+} // namespace
+
 namespace netsimulyzer {
 
 MainWindow::MainWindow() : QMainWindow() {
@@ -54,9 +70,17 @@ MainWindow::MainWindow() : QMainWindow() {
   setWindowTitle(NETSIMULYZER_APPLICATION_NAME);
   setCentralWidget(&scene);
 
+  // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
+  ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
+
+  // Remove extra ampersands on macOS
+  removeAmpersandDockWidget(*ui.nodesDock);
+  removeAmpersandDockWidget(*ui.nodeDetailsDock);
+  removeAmpersandDockWidget(*ui.logDock);
+  removeAmpersandDockWidget(*ui.playbackDock);
 
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
@@ -71,6 +95,7 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
+  ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
@@ -109,61 +134,76 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
 
+  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) {
+    detailWidget.describe(scene.getNode(id));
+    scene.setSelectedNode(id);
+  });
+
+  QObject::connect(&scene, &SceneWidget::nodeSelected, [this](unsigned int nodeID) {
+    detailWidget.describe(scene.getNode(nodeID));
+    // Scene already has the selected Node ID set
+  });
+
+  QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);
+
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
+
+  QObject::connect(ui.actionPreviewModel, &QAction::triggered, [this]() {
+    scene.previewModel(getModelFile(this));
+  });
 
   QObject::connect(ui.actionSettings, &QAction::triggered, [this]() {
     scene.pause();
     settingsDialog.show();
   });
 
-  auto &camera = scene.getCamera();
-  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [&camera](float value) {
-    camera.setMoveSpeed(value);
+  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [this](float value) {
+    scene.getCamera().setMoveSpeed(value);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged, [&camera](float value) {
-    camera.setTurnSpeed(value);
+  QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged, [this](float value) {
+    scene.getCamera().setTurnSpeed(value);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::mouseTurnSpeedChanged, [&camera](float value) {
-    camera.setMouseTurnSpeed(value);
+  QObject::connect(&settingsDialog, &SettingsDialog::mouseTurnSpeedChanged, [this](float value) {
+    scene.getCamera().setMouseTurnSpeed(value);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::fieldOfViewChanged, [this, &camera](float value) {
-    camera.setFieldOfView(value);
+  QObject::connect(&settingsDialog, &SettingsDialog::fieldOfViewChanged, [this](float value) {
+    scene.getCamera().setFieldOfView(value);
     scene.updatePerspective();
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::forwardKeyChanged, [&camera](int key) {
-    camera.setKeyForward(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::forwardKeyChanged, [this](int key) {
+    scene.getCamera().setKeyForward(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::backwardKeyChanged, [&camera](int key) {
-    camera.setKeyBackward(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::backwardKeyChanged, [this](int key) {
+    scene.getCamera().setKeyBackward(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::leftKeyChanged, [&camera](int key) {
-    camera.setKeyLeft(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::leftKeyChanged, [this](int key) {
+    scene.getCamera().setKeyLeft(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::rightKeyChanged, [&camera](int key) {
-    camera.setKeyRight(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::rightKeyChanged, [this](int key) {
+    scene.getCamera().setKeyRight(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::turnLeftKeyChanged, [&camera](int key) {
-    camera.setKeyTurnLeft(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::turnLeftKeyChanged, [this](int key) {
+    scene.getCamera().setKeyTurnLeft(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::turnRightKeyChanged, [&camera](int key) {
-    camera.setKeyTurnRight(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::turnRightKeyChanged, [this](int key) {
+    scene.getCamera().setKeyTurnRight(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::upKeyChanged, [&camera](int key) {
-    camera.setKeyUp(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::upKeyChanged, [this](int key) {
+    scene.getCamera().setKeyUp(key);
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::downKeyChanged, [&camera](int key) {
-    camera.setKeyDown(key);
+  QObject::connect(&settingsDialog, &SettingsDialog::downKeyChanged, [this](int key) {
+    scene.getCamera().setKeyDown(key);
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::chartSortOrderChanged, [this](int value) {
@@ -183,7 +223,14 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::renderGridChanged, &scene, &SceneWidget::setRenderGrid);
   QObject::connect(&settingsDialog, &SettingsDialog::gridStepSizeChanged, &scene, &SceneWidget::changeGridStepSize);
 
-  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, &scene, &SceneWidget::setRenderTrails);
+  QObject::connect(&settingsDialog, &SettingsDialog::renderTrailsChanged, [this](int value) {
+    scene.setRenderTrails(SettingsManager::MotionTrailRenderModeFromInt((value)));
+  });
+
+  QObject::connect(&settingsDialog, &SettingsDialog::renderLabelsChanged, [this](int value) {
+    scene.setRenderLabels(SettingsManager::LabelRenderModeFromInt(value));
+  });
+  QObject::connect(&settingsDialog, &SettingsDialog::labelScaleChanged, &scene, &SceneWidget::setLabelScale);
 
   QObject::connect(&settingsDialog, &SettingsDialog::playKeyChanged, [this](int key) {
     ui.actionPlayPause->setShortcut(QKeySequence{key});
@@ -230,6 +277,7 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   scene.reset();
   nodeWidget.reset();
+  detailWidget.reset();
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);

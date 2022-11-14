@@ -35,6 +35,7 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include "src/conversion.h"
 #include <QByteArray>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -68,9 +69,15 @@ static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
 namespace netsimulyzer {
 
 void SceneWidget::handleEvents() {
+  // Flag to indicate the selected Node has been updated
+  // Use a flag instead of emitting a signal from the
+  // handler, just in case the Node is updated several times
+  // this event period
+  bool selectedNodeUpdated = false;
+
   // Returns true after handling an event
   // false otherwise
-  auto handleEvent = [this](auto &&arg) -> bool {
+  auto handleEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -88,6 +95,10 @@ void SceneWidget::handleEvents() {
       if (node == nodes.end())
         return false;
       undoEvents.emplace_back(node->second.handle(arg));
+
+      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
+        selectedNodeUpdated = true;
+
       return true;
     } else if constexpr (std::is_same_v<T, parser::DecorationMoveEvent> ||
                          std::is_same_v<T, parser::DecorationOrientationChangeEvent>) {
@@ -102,6 +113,9 @@ void SceneWidget::handleEvents() {
   while (!events.empty() && std::visit(handleEvent, events.front())) {
     events.pop_front();
   }
+
+  if (selectedNodeUpdated)
+    emit selectedItemUpdated();
 }
 
 void SceneWidget::handleUndoEvents() {
@@ -175,6 +189,7 @@ void SceneWidget::initializeGL() {
   }
 
   models.init("models/fallback.obj");
+  fontManager.init(":/texture/resources/textures/undefined-medium.png");
   renderer.init();
 
   transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
@@ -209,6 +224,10 @@ void SceneWidget::initializeGL() {
 
   updatePerspective();
 
+  // picking FBO
+  pickingFbo = std::make_unique<PickingFramebuffer>(openGl, width(), height());
+  pickingFbo->unbind(GL_FRAMEBUFFER, defaultFramebufferObject());
+
   // Cheap hack to get Qt to repaint at a reasonable rate
   // Seems to only work with the old connect syntax
   QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -225,17 +244,39 @@ void SceneWidget::paintGL() {
       handleUndoEvents();
   }
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT(hicpp-signed-bitwise)
+  // Picking
+  pickingFbo->bind(GL_FRAMEBUFFER);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  for (auto &[key, node] : nodes) {
+    if (!node.visible())
+      continue;
+    renderer.renderPickingNode(node.getNs3Model().id, node.getModel());
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+  // end Picking
+
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
+
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (renderSkybox)
     renderer.render(*skyBox);
 
   for (auto &[key, node] : nodes) {
     if (!node.visible())
       continue;
-    renderer.render(node.getModel());
-    if (renderMotionTrails)
+    if (selectedNode.has_value())
+      renderer.render(node, key == selectedNode.value());
+    else
+      renderer.render(node, false);
+
+    using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+    if (renderMotionTrails == MotionTrailRenderMode::Always ||
+        (renderMotionTrails == MotionTrailRenderMode::EnabledOnly && node.getNs3Model().trailEnabled))
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
   }
 
@@ -266,15 +307,28 @@ void SceneWidget::paintGL() {
   if (renderGrid)
     renderer.render(*coordinateGrid);
   // Keep this after all opaque items
-  renderer.startTransparent();
+  renderer.startTransparentDark();
 
   // Other condition in opaque section
   if (buildingRenderMode == SettingsManager::BuildingRenderMode::Transparent)
     renderer.render(buildings);
 
   for (const auto &[_, node] : nodes) {
+    if (!node.visible())
+      continue;
+
     const auto &nodeModel = node.getModel();
     renderer.renderTransparent(nodeModel);
+
+    // Name Banner
+    using LabelRenderMode = SettingsManager::LabelRenderMode;
+    if (renderLabels == LabelRenderMode::Always ||
+        (renderLabels == LabelRenderMode::EnabledOnly && node.getNs3Model().labelEnabled))
+      renderer.renderFont(node.getBannerRenderInfo(), node.getTop(), labelScale);
+    // `renderFont` ends with us in light transparent mode,
+    // so make sure we're back in dark mode, since other transparent
+    // items assume that mode
+    renderer.startTransparentDark();
 
     const auto &transmit = node.getTransmitInfo();
     if (transmit.isTransmitting && transmit.startTime <= simulationTime &&
@@ -288,6 +342,7 @@ void SceneWidget::paintGL() {
     }
   }
 
+  renderer.startTransparentDark();
   for (auto &[key, decoration] : decorations) {
     renderer.renderTransparent(decoration.getModel());
   }
@@ -318,6 +373,7 @@ void SceneWidget::paintGL() {
 void SceneWidget::resizeGL(int w, int h) {
   updatePerspective();
   glViewport(0, 0, w, h);
+  pickingFbo->resize(w, h);
 }
 
 void SceneWidget::keyPressEvent(QKeyEvent *event) {
@@ -332,6 +388,22 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
+
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
+  if (selected.object && selected.type == 1u) {
+    emit nodeSelected(selected.id);
+    selectedNode = selected.id;
+    return;
+  }
+
   if (!camera.mouseControlsEnabled())
     return;
 
@@ -454,6 +526,8 @@ void SceneWidget::reset() {
   wiredLinks.clear();
   events.clear();
   undoEvents.clear();
+  selectedNode.reset();
+  fontManager.reset();
   simulationTime = 0.0;
 }
 
@@ -484,7 +558,7 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   const auto trailLength = settings.get<int>(SettingsManager::Key::RenderMotionTrailLength).value();
   for (const auto &node : nodeModels) {
     nodes.try_emplace(node.id, Model{models.load(node.model)}, node,
-                      renderer.allocateTrailBuffer(functions, trailLength));
+                      renderer.allocateTrailBuffer(functions, trailLength), fontManager.allocate(node.name));
   }
 
   wiredLinks.reserve(links.size());
@@ -513,6 +587,45 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   doneCurrent();
 }
 
+void SceneWidget::previewModel(const std::string &modelPath) {
+  makeCurrent();
+
+  // Reset the model cache, since it's not out of the question
+  // that a model has changed since the last load
+  models.reset();
+
+  // The scene should only have our previewed model in it
+  // so, remove everything else
+  reset();
+
+  const Model previewedModel{models.loadAbsolute(modelPath)};
+
+  // If we get the fallback model ID, then the model failed to load
+  // (Unless someone is trying to load the fallback model itself...)
+  if (previewedModel.getModelId() == models.getFallbackModelId()) {
+    QMessageBox::warning(this, "Failed to Load Model", "Failed to load the model. Check the console for more info");
+    models.reset();
+    reset();
+    doneCurrent();
+    return;
+  }
+
+  decorations.try_emplace(0u, previewedModel, parser::Decoration{});
+
+  // Put the camera slightly away from the loaded model
+  // accounting for how large the model is
+  const auto bounds = previewedModel.getBounds();
+  auto position = previewedModel.getPosition();
+  position.z += bounds.max.z + 5.0f;
+
+  // Put us at the middle of the model (height wise)
+  position.y = (bounds.max.y - bounds.min.y) / 2.0f;
+
+  camera.setPosition(position);
+  camera.resetRotation();
+  doneCurrent();
+}
+
 void SceneWidget::focusNode(uint32_t nodeId) {
   auto iter = nodes.find(nodeId);
   if (iter == nodes.end()) {
@@ -536,6 +649,17 @@ void SceneWidget::focusNode(uint32_t nodeId) {
 
   camera.setPosition(position);
   camera.resetRotation();
+}
+
+const Node &SceneWidget::getNode(unsigned int nodeId) {
+  const auto iter = nodes.find(nodeId);
+
+  if (iter == nodes.end()) {
+    std::cerr << "Error: Node with ID: " << nodeId << " not found\n";
+    std::abort();
+  }
+
+  return iter->second;
 }
 
 void SceneWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
@@ -617,8 +741,29 @@ void SceneWidget::changeGridStepSize(int stepSize) {
   doneCurrent();
 }
 
-void SceneWidget::setRenderTrails(bool enable) {
-  renderMotionTrails = enable;
+void SceneWidget::setRenderTrails(SettingsManager::MotionTrailRenderMode value) {
+  renderMotionTrails = value;
+}
+
+void SceneWidget::setRenderLabels(SettingsManager::LabelRenderMode value) {
+  renderLabels = value;
+}
+
+void SceneWidget::setLabelScale(float value) {
+  labelScale = value;
+}
+
+void SceneWidget::setSelectedNode(unsigned int nodeId) {
+  if (nodes.find(nodeId) == nodes.end()) {
+    std::cerr << "Node with ID: " << nodeId << " selected, but not found in `nodes`, ignoring!\n";
+    return;
+  }
+
+  selectedNode = nodeId;
+}
+
+void SceneWidget::clearSelectedNode() {
+  selectedNode.reset();
 }
 
 } // namespace netsimulyzer

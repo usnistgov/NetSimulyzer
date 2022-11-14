@@ -9,17 +9,24 @@
         <file>resources/textures/skybox/bottom.png</file>
         <file>resources/textures/skybox/back.png</file>
         <file>resources/textures/skybox/front.png</file>
+        <file>resources/textures/undefined-medium.png</file>
     </qresource>
     <qresource prefix="/shader">
         <file>shaders/area.frag</file>
         <file>shaders/area.vert</file>
         <file>shaders/building.frag</file>
         <file>shaders/building.vert</file>
+        <file>shaders/font.frag</file>
+        <file>shaders/font.vert</file>
+        <file>shaders/font_bg.frag</file>
+        <file>shaders/font_bg.vert</file>
         <file>shaders/grid.frag</file>
         <file>shaders/grid.vert</file>
         <file>shaders/model.vert</file>
         <file>shaders/model.frag</file>
         <file>shaders/skybox.vert</file>
         <file>shaders/skybox.frag</file>
+        <file>shaders/picking.frag</file>
+        <file>shaders/picking.vert</file>
     </qresource>
 </RCC>

@@ -40,9 +40,11 @@
 
 namespace netsimulyzer {
 
-Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer)
+Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
+           const FontManager::FontBannerRenderInfo &bannerRenderInfo)
     : model(model), ns3Node(std::move(ns3Node)),
-      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)} {
+      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{
+                                                                                                 bannerRenderInfo} {
   this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
   this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
@@ -96,6 +98,10 @@ glm::vec3 Node::getCenter() const {
   return position;
 }
 
+glm::vec3 Node::getTop() const {
+  return model.getTop() + model.getPosition();
+}
+
 const Node::TransmitInfo &Node::getTransmitInfo() const {
   return transmitInfo;
 }
@@ -108,6 +114,7 @@ void Node::addWiredLink(WiredLink *link) {
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo::MoveEvent undo;
   undo.position = model.getPosition();
+  undo.ns3Position = ns3Node.position;
   undo.event = e;
 
   if (trailBuffer.empty()) {
@@ -115,6 +122,7 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
     trailBuffer.append(currentPosition.x, currentPosition.y, currentPosition.z);
   }
 
+  ns3Node.position = e.targetPosition;
   const auto target = toRenderCoordinate(e.targetPosition) + offset;
   model.setPosition(target);
   trailBuffer.append(target.x, target.y, target.z);
@@ -162,6 +170,7 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
+  ns3Node.position = e.ns3Position;
 
   trailBuffer.pop();
 
@@ -215,6 +224,10 @@ const TrailBuffer &Node::getTrailBuffer() const {
 
 const glm::vec3 &Node::getTrailColor() const {
   return trailColor;
+}
+
+const FontManager::FontBannerRenderInfo &Node::getBannerRenderInfo() const {
+  return bannerRenderInfo;
 }
 
 void Node::handle(const undo::TransmitEvent &e) {

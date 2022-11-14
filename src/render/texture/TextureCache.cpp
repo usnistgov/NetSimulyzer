@@ -201,6 +201,51 @@ unsigned int TextureCache::load(const CubeMap &cubeMap) {
   return id;
 }
 
+texture_id TextureCache::loadInternal(const std::string &path, GLint filter, GLint repeat) {
+  QImage image{QString::fromStdString(path)};
+  if (image.isNull())
+    return fallbackTexture;
+
+  unsigned int glFormat;
+  switch (image.format()) {
+  case QImage::Format::Format_RGB32:
+    glFormat = GL_RGB;
+    break;
+  case QImage::Format::Format_ARGB32:
+    glFormat = GL_RGBA;
+    break;
+  default:
+    qDebug() << "Unsupported format: " << image.format() << "\nAttempting conversion...";
+    image = image.convertToFormat(QImage::Format_ARGB32);
+    glFormat = GL_RGBA;
+
+    if (image.isNull())
+      return fallbackTexture;
+  }
+
+  Texture t;
+  t.height = image.height();
+  t.width = image.width();
+
+  glGenTextures(1, &t.id);
+  glBindTexture(GL_TEXTURE_2D, t.id);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, repeat);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, repeat);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+
+  // QImage keeps BGRA format, event without an alpha channel
+  glTexImage2D(GL_TEXTURE_2D, 0, glFormat, t.width, t.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, image.constBits());
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindTexture(GL_TEXTURE_2D, 0u);
+
+  textures.emplace_back(t);
+  return textures.size() - 1u;
+}
+
 const Texture &TextureCache::get(texture_id index) {
   return textures[index];
 }

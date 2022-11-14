@@ -33,62 +33,53 @@
 
 #pragma once
 
-#include "texture.h"
-#include <QDir>
-#include <QImage>
+#include "src/render/texture/TextureCache.h"
 #include <QOpenGLFunctions_3_3_Core>
-#include <array>
-#include <cstddef>
-#include <optional>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace netsimulyzer {
 
-/**
- * ID for outside code to access a given texture
- */
-using texture_id = std::size_t;
-
-class TextureCache : protected QOpenGLFunctions_3_3_Core {
-  std::unordered_map<std::string, std::size_t> indexMap;
-  std::vector<Texture> textures;
-  texture_id fallbackTexture;
-  QDir resourceDirectory;
-
+class FontManager {
 public:
-  struct CubeMap {
-    QImage right;
-    QImage left;
-    QImage top;
-    QImage bottom;
-    QImage back;
-    QImage front;
+  struct FontBannerRenderInfo {
+    unsigned int glyphVao;
+    unsigned int glyphVbo;
+    unsigned int backgroundVao;
+    unsigned int backgroundVbo;
+
+    /**
+     * Size of the string to render (in characters)
+     */
+    int size;
+
+    /**
+     * Number of vertices of the VBO holding the glyphs
+     */
+    int glyphVboSize;
+
+    /**
+     * Number of vertices of the VBO holding the background banner
+     */
+    int backgroundVboSize;
   };
 
-  ~TextureCache() override;
+private:
+  TextureCache &textureCache;
+  texture_id atlasTexture;
+  float atlasWidth;
+  float atlasHeight;
+  QOpenGLFunctions_3_3_Core gl;
+  std::vector<FontBannerRenderInfo> createdFontMeshes;
 
-  bool init();
+public:
+  explicit FontManager(TextureCache &textureCache);
+  ~FontManager();
+  void init(const std::string &atlasFilePath);
+  void reset();
 
-  void setResourceDirectory(const QDir &value);
-  texture_id load(const std::string &filename);
-  unsigned int load(const CubeMap &cubeMap);
-  texture_id loadInternal(const std::string &path, GLint filter = GL_LINEAR, GLint repeat = GL_REPEAT);
-  [[nodiscard]] const Texture &get(texture_id index);
+  [[nodiscard]] texture_id getAtlasTexture() const;
 
-  [[nodiscard]] texture_id getFallbackTexture() const;
-
-  const Texture &operator[](texture_id index) {
-    return get(index);
-  }
-
-  void clear();
-
-  void use(texture_id index);
-
-  // TODO: Track the same way as normal textures
-  void useCubeMap(unsigned int id);
+  FontBannerRenderInfo allocate(std::string_view text);
 };
 
 } // namespace netsimulyzer

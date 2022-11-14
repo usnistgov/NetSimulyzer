@@ -49,6 +49,8 @@
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
+#include "src/render/font/FontManager.h"
+#include "src/render/framebuffer/PickingFramebuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
 #include "src/render/helper/SkyBox.h"
 #include <QApplication>
@@ -85,13 +87,20 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool isInitialMove = true;
   TextureCache textures;
   ModelCache models{textures};
-  Renderer renderer{models, textures};
+  FontManager fontManager{textures};
+  Renderer renderer{models, textures, fontManager};
   QTimer timer{this};
   QElapsedTimer frameTimer;
+  SettingsManager::LabelRenderMode renderLabels =
+      settings.get<SettingsManager::LabelRenderMode>(SettingsManager::Key::RenderLabels).value();
+  float labelScale = settings.get<float>(SettingsManager::Key::RenderLabelScale).value();
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
-  bool renderMotionTrails = settings.get<bool>(SettingsManager::Key::RenderMotionTrails).value();
+  SettingsManager::MotionTrailRenderMode renderMotionTrails =
+      settings.get<SettingsManager::MotionTrailRenderMode>(SettingsManager::Key::RenderMotionTrails).value();
+
+  std::unique_ptr<PickingFramebuffer> pickingFbo;
 
   DirectionalLight mainLight;
   std::unique_ptr<SkyBox> skyBox;
@@ -117,6 +126,8 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Node> nodes;
   std::unordered_map<unsigned int, Decoration> decorations;
   std::vector<WiredLink> wiredLinks;
+
+  std::optional<unsigned int> selectedNode;
 
   PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
@@ -148,6 +159,16 @@ public:
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
            const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::WiredLink> &links,
            const std::vector<parser::Node> &nodeModels);
+
+  /**
+   * Load an individual model specified by `modelPath`
+   * as a `Decoration` in the center of the scene
+   *
+   * @param modelPath
+   * The absolute path to the model to load
+   */
+  void previewModel(const std::string &modelPath);
+
   /**
    * Center the specified Node in the view.
    * If the Node with ID nodeId is not found,
@@ -157,6 +178,19 @@ public:
    * The ID of the Node to focus on
    */
   void focusNode(uint32_t nodeId);
+
+  /**
+   * Retrieves a Node from the scene by ID.
+   * If the Node is not found, this method
+   * will abort.
+   *
+   * @param nodeId
+   * The ID of the Node to retrieve
+   *
+   * @return
+   * The Node from the scene
+   */
+  const Node &getNode(unsigned int nodeId);
 
   void enqueueEvents(const std::vector<parser::SceneEvent> &e);
   void resetCamera();
@@ -231,16 +265,41 @@ public:
   void changeGridStepSize(int stepSize);
 
   /**
-   * Enable or disable showing of motion trails
+   * Set the motion trail rendering behavior
    *
-   * @param enable
-   * True to show trails, false to hide
+   * @param value
+   * Enum value from SettingsManager::MotionTrailRenderMode
    */
-  void setRenderTrails(bool enable);
+  void setRenderTrails(SettingsManager::MotionTrailRenderMode value);
+
+  /**
+   * Set Node label rendering behavior
+   *
+   * @param value
+   * `Always`: Always render Node labels,
+   * `EnabledOnly`: Only render labels on ones explicitly opted-in
+   * in the module,
+   * `Never`: Never render Node labels
+   */
+  void setRenderLabels(SettingsManager::LabelRenderMode value);
+
+  /**
+   * Change the scale of the text labels
+   * show above scene elements (like Nodes)
+   *
+   * @param value
+   * The new scale, should be > 0.0f
+   */
+  void setLabelScale(float value);
+
+  void setSelectedNode(unsigned int nodeId);
+  void clearSelectedNode();
 
 signals:
   void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);
   void paused();
   void playing();
+  void selectedItemUpdated();
+  void nodeSelected(unsigned int nodeId);
 };
 } // namespace netsimulyzer

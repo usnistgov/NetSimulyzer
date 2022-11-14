@@ -19,6 +19,21 @@ SettingsManager::BuildingRenderMode SettingsManager::BuildingRenderModeFromInt(i
   }
 }
 
+SettingsManager::LabelRenderMode SettingsManager::LabelRenderModeFromInt(int value) {
+  switch (value) {
+  case static_cast<int>(LabelRenderMode::Always):
+    return LabelRenderMode::Always;
+  case static_cast<int>(LabelRenderMode::EnabledOnly):
+    return LabelRenderMode::EnabledOnly;
+  case static_cast<int>(LabelRenderMode::Never):
+    return LabelRenderMode::Never;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'Label Render Mode'!",
+                          "An unrecognised value for 'Label Render Mode':" + QString{value} + " was provided");
+    std::abort();
+  }
+}
+
 SettingsManager::ChartDropdownSortOrder SettingsManager::ChartDropdownSortOrderFromInt(int value) {
   using SortOrder = SettingsManager::ChartDropdownSortOrder;
 
@@ -34,6 +49,23 @@ SettingsManager::ChartDropdownSortOrder SettingsManager::ChartDropdownSortOrderF
   default:
     QMessageBox::critical(nullptr, "Invalid value provided for 'Chart Sort Order'!",
                           "An unrecognised value for 'Chart Sort Order':" + QString{value} + " was provided");
+    std::abort();
+  }
+}
+
+SettingsManager::MotionTrailRenderMode SettingsManager::MotionTrailRenderModeFromInt(int value) {
+  using MotionTrailRenderMode = SettingsManager::MotionTrailRenderMode;
+
+  switch (value) {
+  case static_cast<int>(MotionTrailRenderMode::Always):
+    return MotionTrailRenderMode::Always;
+  case static_cast<int>(MotionTrailRenderMode::EnabledOnly):
+    return MotionTrailRenderMode::EnabledOnly;
+  case static_cast<int>(MotionTrailRenderMode::Never):
+    return MotionTrailRenderMode::Never;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'Motion Trail Render Mode'!",
+                          "An unrecognised value for 'Motion Trail Render Mode':" + QString{value} + " was provided");
     std::abort();
   }
 }

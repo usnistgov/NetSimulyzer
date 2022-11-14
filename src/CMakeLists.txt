@@ -37,6 +37,10 @@ target_sources(netsimulyzer PRIVATE
         group/node/Node.h group/node/Node.cpp
         group/node/TrailBuffer.h group/node/TrailBuffer.cpp
         render/camera/Camera.h render/camera/Camera.cpp
+        render/font/character.h
+        render/font/undefined-medium-font.h
+        render/font/FontManager.h render/font/FontManager.cpp
+        render/framebuffer/PickingFramebuffer.h render/framebuffer/PickingFramebuffer.cpp
         render/helper/Floor.h render/helper/Floor.cpp
         render/Light.h
         render/material/material.h
@@ -66,6 +70,7 @@ target_sources(netsimulyzer PRIVATE
         window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.h window/controls/SingleKeySequenceEdit/SingleKeySequenceEdit.cpp
         window/log/ScenarioLogWidget.h window/log/ScenarioLogWidget.cpp window/log/ScenarioLogWidget.ui
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
+        window/detail/DetailWidget.h window/detail/DetailWidget.cpp window/detail/DetailWidget.ui
         window/playback/PlaybackJumpDialog.cpp window/playback/PlaybackJumpDialog.h window/playback/PlaybackJumpDialog.ui
         window/playback/PlaybackTimeStepDialog.cpp window/playback/PlaybackTimeStepDialog.h window/playback/PlaybackTimeStepDialog.ui
         window/playback/PlaybackWidget.cpp window/playback/PlaybackWidget.h window/playback/PlaybackWidget.ui

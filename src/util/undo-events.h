@@ -53,6 +53,11 @@ struct MoveEvent {
   glm::vec3 position;
 
   /**
+   * Position stored in the ns-3 model
+   */
+  parser::Ns3Coordinate ns3Position;
+
+  /**
    * The event which generated this undo event
    */
   parser::MoveEvent event;

@@ -839,6 +839,9 @@
               "blue"
             ]
           },
+          "trail-enabled": {
+            "type": "boolean"
+          },
           "trail-color": {
             "type": "object",
             "properties": {
@@ -884,6 +887,7 @@
           "offset",
           "orientation",
           "position",
+          "trail-enabled",
           "trail-color",
           "scale",
           "type",

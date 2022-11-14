@@ -30,65 +30,43 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
-
 #pragma once
-
-#include "texture.h"
-#include <QDir>
-#include <QImage>
 #include <QOpenGLFunctions_3_3_Core>
-#include <array>
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace netsimulyzer {
 
-/**
- * ID for outside code to access a given texture
- */
-using texture_id = std::size_t;
+class PickingFramebuffer {
+  QOpenGLFunctions_3_3_Core &openGl;
+  unsigned int fbo;
+  unsigned int idTexture;
+  unsigned int depthTexture;
 
-class TextureCache : protected QOpenGLFunctions_3_3_Core {
-  std::unordered_map<std::string, std::size_t> indexMap;
-  std::vector<Texture> textures;
-  texture_id fallbackTexture;
-  QDir resourceDirectory;
+  void generate(int width, int height);
 
 public:
-  struct CubeMap {
-    QImage right;
-    QImage left;
-    QImage top;
-    QImage bottom;
-    QImage back;
-    QImage front;
+  struct PixelInfo {
+    unsigned int object;
+    unsigned int type;
+    unsigned int id;
   };
 
-  ~TextureCache() override;
+  PickingFramebuffer(QOpenGLFunctions_3_3_Core &openGl, int width, int height);
+  ~PickingFramebuffer();
 
-  bool init();
+  // Disallow copying
+  PickingFramebuffer(const PickingFramebuffer &) = delete;
+  PickingFramebuffer &operator=(const PickingFramebuffer &) = delete;
 
-  void setResourceDirectory(const QDir &value);
-  texture_id load(const std::string &filename);
-  unsigned int load(const CubeMap &cubeMap);
-  texture_id loadInternal(const std::string &path, GLint filter = GL_LINEAR, GLint repeat = GL_REPEAT);
-  [[nodiscard]] const Texture &get(texture_id index);
+  void bind(GLenum mode) const;
+  void unbind(GLenum mode, unsigned int defaultFbo) const;
 
-  [[nodiscard]] texture_id getFallbackTexture() const;
+  [[nodiscard]] PixelInfo read(int x, int y) const;
 
-  const Texture &operator[](texture_id index) {
-    return get(index);
+  inline unsigned int getIds() {
+    return idTexture;
   }
 
-  void clear();
-
-  void use(texture_id index);
-
-  // TODO: Track the same way as normal textures
-  void useCubeMap(unsigned int id);
+  void resize(int width, int height);
 };
 
 } // namespace netsimulyzer

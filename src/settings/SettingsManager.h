@@ -47,14 +47,18 @@ public:
     RenderBuildingOutlines,
     RenderGrid,
     RenderGridStep,
+    RenderLabelScale,
     RenderMotionTrails,
     RenderMotionTrailLength,
+    RenderLabels,
     RenderSkybox,
     ChartDropdownSortOrder,
   };
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
+  enum class LabelRenderMode : int { Always, EnabledOnly, Never };
   enum class ChartDropdownSortOrder : int { Alphabetical, Type, Id, None };
+  enum class MotionTrailRenderMode: int { Always, EnabledOnly, Never };
   enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
 
   /**
@@ -70,6 +74,18 @@ public:
   static BuildingRenderMode BuildingRenderModeFromInt(int value);
 
   /**
+   * Convert an int to a `LabelRenderMode` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static LabelRenderMode LabelRenderModeFromInt(int value);
+
+  /**
    * Convert an int to a `ChartDropdownSortOrder` enum value.
    * Necessary since Qt will only allow sending registered types with signals/slots.
    *
@@ -80,6 +96,19 @@ public:
    * The enum value corresponding to `value`
    */
   static ChartDropdownSortOrder ChartDropdownSortOrderFromInt(int value);
+
+  /**
+   * Convert an int to a `MotionTrailRenderMode` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static MotionTrailRenderMode MotionTrailRenderModeFromInt(int value);
+
 
   /**
    * Convert an int to a `TimeUnit` enum value.
@@ -133,15 +162,17 @@ private:
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
-      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10LL}},
+      {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10'000'000LL}}, // 10ms in nanoseconds
       {Key::PlaybackTimeStepUnit, {"playback/timeStepUnit", "milliseconds"}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
       {Key::RenderBuildingOutlines, {"renderer/showBuildingOutlines", true}},
+      {Key::RenderLabelScale, {"renderer/labelScale", 0.1f}},
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
-      {Key::RenderMotionTrails, {"renderer/showMotionTrails", false}},
+      {Key::RenderLabels, {"renderer/showLabels", "enabledOnly"}},
+      {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};
 
@@ -210,7 +241,7 @@ public:
     const auto &settingKey = getQtKey(key);
     const auto qtSetting = qtSettings.value(settingKey.key, settingKey.defaultValue);
 
-    if (qtSetting.isValid() && qtSetting.template canConvert<T>())
+    if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<T>())
       return {qtSetting.template value<T>()};
     else if (mode == RetrieveMode::AllowDefault && settingKey.defaultValue.isValid() &&
              settingKey.defaultValue.template canConvert<T>())
@@ -339,6 +370,14 @@ template <>
   return SettingsManager::BuildingRenderMode::Transparent;
 }
 
+// Specialization for LabelRenderMode enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::LabelRenderMode SettingsManager::getDefault(SettingsManager::Key) const {
+  // TODO: Use the map value
+  return SettingsManager::LabelRenderMode::EnabledOnly;
+}
+
 // Specialization for ChartManager::SortOrder enum
 // so each widget does not need to convert to/from the settings representation
 template <>
@@ -352,6 +391,14 @@ SettingsManager::getDefault(SettingsManager::Key key) const {
 
   // TODO: Use the map value
   return SettingsManager::ChartDropdownSortOrder::Type;
+}
+
+// Specialization for MotionTrailRenderMode enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::MotionTrailRenderMode SettingsManager::getDefault(SettingsManager::Key) const {
+  // TODO: Use the map value
+  return SettingsManager::MotionTrailRenderMode::EnabledOnly;
 }
 
 // Specialization for TimeUnit enum
@@ -376,10 +423,12 @@ template <>
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
 
   if (stringMode == "transparent")
     return {SettingsManager::BuildingRenderMode::Transparent};
@@ -396,16 +445,77 @@ template <>
 }
 
 template <>
-[[nodiscard]] inline std::optional<SettingsManager::TimeUnit> SettingsManager::get(Key key, RetrieveMode mode) const {
+[[nodiscard]] inline std::optional<SettingsManager::LabelRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
   const auto qtSetting = qtSettings.value(settingKey.key);
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "always")
+    return {SettingsManager::LabelRenderMode::Always};
+  else if (stringMode == "enabledOnly")
+    return {SettingsManager::LabelRenderMode::EnabledOnly};
+  else if (stringMode == "never")
+    return {SettingsManager::LabelRenderMode::Never};
+  else
+    std::cerr << "Unrecognised 'LabelRenderMode '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<SettingsManager::LabelRenderMode>(Key::RenderLabels);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::MotionTrailRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "always")
+    return {SettingsManager::MotionTrailRenderMode::Always};
+  else if (stringMode == "enabledOnly")
+    return {SettingsManager::MotionTrailRenderMode::EnabledOnly};
+  else if (stringMode == "never")
+    return {SettingsManager::MotionTrailRenderMode::Never};
+  else
+    std::cerr << "Unrecognised 'MotionTrailRenderMode '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<SettingsManager::MotionTrailRenderMode>(Key::RenderMotionTrails);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::TimeUnit> SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else // Handle unset/empty string values
+    return {};
 
   if (stringMode == "milliseconds")
     return {SettingsManager::TimeUnit::Milliseconds};
@@ -431,10 +541,12 @@ SettingsManager::get(Key key, RetrieveMode mode) const {
 
   QString stringMode;
 
-  if (qtSetting.isValid() && qtSetting.template canConvert<QString>())
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
     stringMode = qtSetting.toString();
   else if (mode == RetrieveMode::AllowDefault)
     stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
 
   if (stringMode == "alphabetical")
     return {SettingsManager::ChartDropdownSortOrder::Alphabetical};
@@ -471,6 +583,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
 }
 
 template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::LabelRenderMode &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::LabelRenderMode::Always:
+    qtSettings.setValue(settingKey.key, "always");
+    break;
+  case SettingsManager::LabelRenderMode::EnabledOnly:
+    qtSettings.setValue(settingKey.key, "enabledOnly");
+    break;
+  case SettingsManager::LabelRenderMode::Never:
+    qtSettings.setValue(settingKey.key, "never");
+    break;
+  default:
+    std::cerr << "Unrecognised 'LabelRenderMode': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
 inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::ChartDropdownSortOrder &value) {
   const auto &settingKey = getQtKey(key);
 
@@ -489,6 +620,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'ChartDropdownSortOrder': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::MotionTrailRenderMode &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::MotionTrailRenderMode::Always:
+    qtSettings.setValue(settingKey.key, "always");
+    break;
+  case SettingsManager::MotionTrailRenderMode::EnabledOnly:
+    qtSettings.setValue(settingKey.key, "enabledOnly");
+    break;
+  case SettingsManager::MotionTrailRenderMode::Never:
+    qtSettings.setValue(settingKey.key, "never");
+    break;
+  default:
+    std::cerr << "Unrecognised 'MotionTrailRenderMode': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

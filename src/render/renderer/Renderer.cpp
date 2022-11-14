@@ -64,8 +64,8 @@ void Renderer::initShader(Shader &s, const QString &vertexPath, const QString &f
   s.init(vertexSrc, fragmentSrc);
 }
 
-Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache)
-    : modelCache(modelCache), textureCache(textureCache) {
+Renderer::Renderer(ModelCache &modelCache, TextureCache &textureCache, FontManager &fontManager)
+    : modelCache(modelCache), textureCache(textureCache), fontManager(fontManager) {
 }
 
 void Renderer::init() {
@@ -80,6 +80,9 @@ void Renderer::init() {
 
   initShader(modelShader, ":shader/shaders/model.vert", ":shader/shaders/model.frag");
   initShader(skyBoxShader, ":shader/shaders/skybox.vert", ":shader/shaders/skybox.frag");
+  initShader(pickingShader, ":/shader/shaders/picking.vert", ":/shader/shaders/picking.frag");
+  initShader(fontShader, ":/shader/shaders/font.vert", ":/shader/shaders/font.frag");
+  initShader(fontBackgroundShader, ":/shader/shaders/font_bg.vert", ":/shader/shaders/font_bg.frag");
 }
 
 void Renderer::setPerspective(const glm::mat4 &perspective) {
@@ -88,6 +91,9 @@ void Renderer::setPerspective(const glm::mat4 &perspective) {
   gridShader.uniform("projection", perspective);
   modelShader.uniform("projection", perspective);
   skyBoxShader.uniform("projection", perspective);
+  pickingShader.uniform("projection", perspective);
+  fontShader.uniform("projection", perspective);
+  fontBackgroundShader.uniform("projection", perspective);
 }
 
 void Renderer::setPointLightCount(unsigned int count) {
@@ -511,8 +517,16 @@ void Renderer::resize(CoordinateGrid &grid, float size, int stepSize) {
   grid.resized(gridVertices.size(), size);
 }
 
-void Renderer::startTransparent() {
+void Renderer::startTransparentDark() {
   glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+  glBlendEquation(GL_FUNC_ADD);
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+}
+
+void Renderer::startTransparentLight() {
+  glBlendFunc(GL_ONE, GL_ONE);
   glBlendEquation(GL_FUNC_ADD);
 
   glDepthMask(GL_FALSE);
@@ -539,6 +553,15 @@ void Renderer::use(const Camera &cam) {
   auto noTranslationView = cam.view_matrix();
   noTranslationView[3] = {0.0f, 0.0f, 0.0f, 1.0f};
   skyBoxShader.uniform("view", noTranslationView);
+
+  pickingShader.uniform("view", cam.view_matrix());
+
+  // Convert to 3x3 since that's the rotation section of the model matrix (the top left 3x3)
+  // then invert that.
+  cameraRotateInverse = glm::inverse(glm::mat3x3(cam.view_matrix()));
+
+  fontShader.uniform("view", cam.view_matrix());
+  fontBackgroundShader.uniform("view", cam.view_matrix());
 }
 
 void Renderer::render(const DirectionalLight &light) {
@@ -633,8 +656,21 @@ void Renderer::renderTrail(const TrailBuffer &buffer, const glm::vec3 &color) {
   glDisable(GL_LINE_SMOOTH);
 }
 
+void Renderer::render(const Node &node, bool isSelected, LightingMode lightingMode) {
+  const auto &m = node.getModel();
+
+  modelShader.bind();
+  modelShader.uniform("is_selected", isSelected);
+  modelShader.uniform("model", m.getModelMatrix());
+  modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
+  modelCache.get(m.getModelId()).render(modelShader, m);
+
+  modelShader.uniform("is_selected", false);
+}
+
 void Renderer::render(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
+  modelShader.uniform("is_selected", false);
   modelShader.uniform("model", m.getModelMatrix());
   modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
   modelCache.get(m.getModelId()).render(modelShader, m);
@@ -649,6 +685,7 @@ void Renderer::renderTransparent(const Model &m, LightingMode lightingMode) {
   modelShader.bind();
   modelShader.uniform("model", m.getModelMatrix());
   modelShader.uniform("useLighting", lightingMode == LightingMode::LightingEnabled);
+  modelShader.uniform("is_selected", false);
   renderInfo.renderTransparent(modelShader, m);
 }
 
@@ -657,6 +694,7 @@ void Renderer::render(Floor &f) {
   modelShader.uniform("model", f.getModelMatrix());
   modelShader.uniform("useTexture", false);
   modelShader.uniform("material_color", f.getMesh().getMaterial().color.value());
+  modelShader.uniform("is_selected", false);
   f.render();
 }
 
@@ -710,6 +748,54 @@ void Renderer::render(const std::vector<WiredLink> &wiredLinks) {
   }
 
   glDisable(GL_LINE_SMOOTH);
+}
+
+void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
+  auto &model = modelCache.get(m.getModelId());
+
+  pickingShader.uniform("model", m.getModelMatrix());
+  pickingShader.uniform("object_id", nodeId);
+  pickingShader.uniform("object_type", 1u);
+
+  pickingShader.bind();
+  auto &meshes = model.getMeshes();
+  for (auto &mesh : meshes) {
+    mesh.render();
+  }
+  auto &transparentMeshes = model.getTransparentMeshes();
+  for (auto &mesh : transparentMeshes) {
+    mesh.render();
+  }
+}
+
+void Renderer::renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location, float scale) {
+  // TODO: Maybe make this configurable?
+  const glm::vec3 offset{0.0f, 2.0f, 0.0f};
+
+  auto modelMatrix = glm::translate(glm::identity<glm::mat4>(), location + offset);
+  modelMatrix = glm::scale(modelMatrix, glm::vec3{scale});
+  modelMatrix *= cameraRotateInverse;
+
+  // ----- Background -----
+  startTransparentDark();
+  fontBackgroundShader.bind();
+  fontBackgroundShader.uniform("model", glm::translate(modelMatrix, {0.0, 0.0, -0.01f}));
+
+  glBindVertexArray(info.backgroundVao);
+  glBindBuffer(GL_ARRAY_BUFFER, info.backgroundVbo);
+  glDrawArrays(GL_TRIANGLES, 0, info.backgroundVboSize);
+
+  // ----- Glyphs -----
+  startTransparentLight();
+
+  textureCache.use(fontManager.getAtlasTexture());
+
+  fontShader.bind();
+  fontShader.uniform("model", modelMatrix);
+
+  glBindVertexArray(info.glyphVao);
+  glBindBuffer(GL_ARRAY_BUFFER, info.glyphVbo);
+  glDrawArrays(GL_TRIANGLES, 0, info.glyphVboSize);
 }
 
 } // namespace netsimulyzer

@@ -79,4 +79,34 @@ QString getScenarioFile(QWidget *parent) {
   return selected;
 }
 
+std::string getModelFile(QWidget *parent) {
+  SettingsManager settings;
+  auto lastPath =
+      settings.get<QString>(SettingsManager::Key::LastLoadPath, SettingsManager::RetrieveMode::DisallowDefault);
+
+  // Use either the last loaded path, or the current working directory
+  QString startingDirectory = ".";
+  if (lastPath && QFileInfo::exists(lastPath.value()))
+    startingDirectory = lastPath.value();
+
+  const auto selected = QFileDialog::getOpenFileName(parent, "Open Model File", startingDirectory, "Model Files (*)",
+                                                     nullptr
+#ifdef __linux__
+                                                     // Disable native dialogs on linux,
+                                                     // as some distros have poor performance with them
+                                                     ,
+                                                     QFileDialog::DontUseNativeDialog
+#endif
+  );
+
+  // Save the current path if a file was selected
+  QFileInfo selectedFile{selected};
+  if (!selected.isEmpty() && selectedFile.exists() && selectedFile.isFile() && selectedFile.isReadable()) {
+    settings.set(SettingsManager::Key::LastLoadPath, selectedFile.absolutePath());
+    return selected.toStdString();
+  }
+
+  return {};
+}
+
 } // namespace netsimulyzer

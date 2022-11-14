@@ -75,6 +75,7 @@ struct GlobalConfiguration {
 struct Node {
   unsigned int id = 0;
   std::string name;
+  bool labelEnabled{true};
   std::string model;
   std::array<float, 3> scale{1.0f};
   bool keepRatio{true};
@@ -86,6 +87,7 @@ struct Node {
   Ns3Coordinate offset;
   std::optional<Ns3Color3> baseColor;
   std::optional<Ns3Color3> highlightColor;
+  bool trailEnabled{false};
   Ns3Color3 trailColor;
   std::array<double, 3> orientation{0.0};
 };
@@ -110,7 +112,7 @@ struct Decoration {
   std::optional<float> height;
   std::optional<float> width;
   std::optional<float> depth;
-  std::array<float, 3> scale{1.0f};
+  std::array<float, 3> scale{1.0f, 1.0f, 1.0f};
 };
 
 struct Area {

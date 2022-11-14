@@ -61,6 +61,12 @@ class SettingsDialog : public QDialog {
    */
   const float turnSpeedScale = 10.0f;
 
+  /**
+   * Scale to divide the value of the label scale slider
+   * to produce the actual value used for the setting
+   */
+  const float labelScaleScale = 100.0f;
+
   QString resourcePath = *settings.get<QString>(SettingsManager::Key::ResourcePath);
 
   /**
@@ -155,6 +161,18 @@ class SettingsDialog : public QDialog {
    * spinner to the default value
    */
   void defaultTrailsLength();
+
+  /**
+   * Sets the Show Labels
+   * checkbox to the default value
+   */
+  void defaultShowLabels();
+
+  /**
+   * Sets the Label Scale
+   * slider to the default value
+   */
+  void defaultLabelScale();
 
   /**
    * Sets the grid step size spinner to its default value
@@ -342,10 +360,28 @@ signals:
    * Signal emitted when the user changes the
    * Motion Trail render mode.
    *
-   * @param enable
-   * Flag indicating trails should be rendered or not
+   * @param value
+   * Enum value from SettingsManager::MotionTrailRenderMode
    */
-  void renderTrailsChanged(bool enable);
+  void renderTrailsChanged(int value);
+
+  /**
+   * Signal emitted when the user changes the
+   * Label render mode.
+   *
+   * @param value
+   * Enum value from SettingsManager::LabelRenderMode
+   */
+  void renderLabelsChanged(int value);
+
+  /**
+   * Signal emitted when the user changes the
+   * Label scale.
+   *
+   * @param value
+   * The scale to use for the Label Scale
+   */
+  void labelScaleChanged(float value);
 
   /**
    * Signal emitted when the user saves a new Play/Pause Key
