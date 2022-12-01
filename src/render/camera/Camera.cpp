@@ -102,6 +102,16 @@ void Camera::handle_keyrelease(int key) {
     active.upDown = active_directions::verticalDirection::none;
 }
 
+void Camera::setYaw(float value) {
+  yaw = value;
+  update();
+}
+
+void Camera::setPitch(float value) {
+  pitch = value;
+  update();
+}
+
 float Camera::getFieldOfView() const {
   return fieldOfView;
 }

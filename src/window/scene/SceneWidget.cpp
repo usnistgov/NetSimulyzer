@@ -259,6 +259,27 @@ void SceneWidget::paintGL() {
   // end Picking
 
   camera.move(static_cast<float>(frameTimer.elapsed()));
+
+  // Following
+  if (followedNode) {
+    const auto iter = nodes.find(followedNode.value());
+
+    // Just in case
+    if (iter == nodes.end()) {
+      QMessageBox::critical(this, "Node Not Found",
+                            "Followed Node with id: " + QString::number(followedNode.value())
+                            + " not found");
+      std::abort();
+    }
+
+    const auto &node = iter->second;
+    auto position = node.getTop();
+    // Put us slightly behind the model
+    position.z -= 5.0f;
+    camera.setPosition(position);
+
+  }
+
   renderer.use(camera);
 
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -462,6 +483,18 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
+
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
+
+
   QMenu menu;
   menu.addAction("Save as Image", [this]() {
     const auto image = grab();
@@ -471,6 +504,12 @@ void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
     }
     image.save(fileName);
   });
+
+  if (selected.object && selected.type == 1u) {
+    menu.addAction("Follow", [this, selected] () {
+      followedNode = selected.id;
+    });
+  }
 
   menu.exec(event->globalPos());
 }

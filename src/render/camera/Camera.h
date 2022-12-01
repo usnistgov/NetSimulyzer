@@ -93,6 +93,9 @@ public:
   void handle_keypress(int key);
   void handle_keyrelease(int key);
 
+  void setYaw(float value);
+  void setPitch(float value);
+
   [[nodiscard]] float getFieldOfView() const;
   void setFieldOfView(float value);
 

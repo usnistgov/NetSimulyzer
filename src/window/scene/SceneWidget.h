@@ -128,6 +128,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::vector<WiredLink> wiredLinks;
 
   std::optional<unsigned int> selectedNode;
+  std::optional<unsigned int> followedNode;
 
   PlayMode playMode = PlayMode::Paused;
   std::deque<parser::SceneEvent> events;
