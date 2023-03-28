@@ -76,6 +76,8 @@ configure_file(project.h.in
 add_executable(netsimulyzer
         main.cpp
         netsimulyzer.rc
+        lib/QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc
+        lib/QDarkStyleSheet/qdarkstyle/light/lightstyle.qrc
         resources.qrc)
 
 target_compile_features(netsimulyzer PRIVATE cxx_std_17)

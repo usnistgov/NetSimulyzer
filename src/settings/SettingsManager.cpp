@@ -1,7 +1,9 @@
 #include "SettingsManager.h"
 #include "src/conversion.h"
 #include <QApplication>
+#include <QFile>
 #include <QMessageBox>
+#include <QTextStream>
 #include <iostream>
 
 namespace netsimulyzer {
@@ -89,6 +91,27 @@ SettingsManager::TimeUnit SettingsManager::TimeUnitFromInt(int value) {
   return SettingsManager::TimeUnit::Nanoseconds;
 }
 
+SettingsManager::WindowTheme SettingsManager::WindowThemeFromInt(int value) {
+  using WindowTheme = SettingsManager::WindowTheme;
+
+  switch (value) {
+  case static_cast<int>(WindowTheme::Dark):
+    return WindowTheme::Dark;
+  case static_cast<int>(WindowTheme::Light):
+    return WindowTheme::Light;
+  case static_cast<int>(WindowTheme::Native):
+    return WindowTheme::Native;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'WindowTheme'!",
+                          "An unrecognised value for 'WindowTheme': " + QString::number(value) + " was provided");
+    QApplication::exit(1);
+    break;
+  }
+
+  // Should never happen, but just in case
+  return WindowTheme::Dark;
+}
+
 const SettingsManager::SettingValue &SettingsManager::getQtKey(SettingsManager::Key key) const {
   auto iterator = SettingsManager::qtKeyMap.find(key);
   if (iterator == SettingsManager::qtKeyMap.end()) {
@@ -120,6 +143,32 @@ void SettingsManager::clear(SettingsManager::Key key) {
 
 void SettingsManager::sync() {
   qtSettings.sync();
+}
+
+void SettingsManager::setTheme() {
+  setTheme(get<SettingsManager::WindowTheme>(Key::WindowTheme).value());
+}
+
+void SettingsManager::setTheme(SettingsManager::WindowTheme theme) {
+  const auto application = static_cast<QApplication *>(QCoreApplication::instance());
+
+  switch (theme) {
+  case WindowTheme::Dark: {
+    QFile themeQss{":qdarkstyle/dark/darkstyle.qss"};
+    themeQss.open(QFile::ReadOnly | QFile::Text);
+    application->setStyleSheet(QTextStream{&themeQss}.readAll());
+    break;
+  }
+  case WindowTheme::Light: {
+    QFile themeQss{":qdarkstyle/light/lightstyle.qss"};
+    themeQss.open(QFile::ReadOnly | QFile::Text);
+    application->setStyleSheet(QTextStream{&themeQss}.readAll());
+    break;
+  }
+  case WindowTheme::Native:
+    application->setStyleSheet("");
+    return;
+  }
 }
 
 } // namespace netsimulyzer
