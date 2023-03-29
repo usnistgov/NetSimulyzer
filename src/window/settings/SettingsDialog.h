@@ -93,6 +93,11 @@ class SettingsDialog : public QDialog {
   void dialogueButtonClicked(QAbstractButton *button);
 
   /**
+   * Set the Window Theme combobox to the default value
+   */
+  void defaultWindowTheme();
+
+  /**
    * Set the Move Speed slider to the default value from the Settings Manager
    */
   void defaultMoveSpeed();

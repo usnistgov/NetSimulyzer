@@ -3,6 +3,7 @@
 #include "src/settings/SettingsManager.h"
 #include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
+#include <QApplication>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -12,6 +13,9 @@ namespace netsimulyzer {
 
 void SettingsDialog::loadSettings() {
   using Key = SettingsManager::Key;
+
+  const auto windowTheme = settings.get<SettingsManager::WindowTheme>(Key::WindowTheme).value();
+  ui.comboTheme->setCurrentIndex(ui.comboTheme->findData(static_cast<int>(windowTheme)));
 
   ui.sliderMoveSpeed->setValue(static_cast<int>(*settings.get<float>(Key::MoveSpeed) * moveSpeedScale));
   ui.sliderKeyboardTurnSpeed->setValue(static_cast<int>(*settings.get<float>(Key::KeyboardTurnSpeed) * turnSpeedScale));
@@ -77,6 +81,11 @@ void SettingsDialog::loadSettings() {
 
 SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.setupUi(this);
+  using WindowTheme = SettingsManager::WindowTheme;
+  ui.comboTheme->addItem("Dark", static_cast<int>(WindowTheme::Dark));
+  ui.comboTheme->addItem("Light", static_cast<int>(WindowTheme::Light));
+  ui.comboTheme->addItem("Native", static_cast<int>(WindowTheme::Native));
+
   ui.comboSamples->addItem("0 (Off)", 0);
   ui.comboSamples->addItem("2", 2);
   ui.comboSamples->addItem("4", 4);
@@ -128,6 +137,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   loadSettings();
 
+  QObject::connect(ui.buttonResetTheme, &QPushButton::clicked, this, &SettingsDialog::defaultWindowTheme);
   QObject::connect(ui.buttonResetMoveSpeed, &QPushButton::clicked, this, &SettingsDialog::defaultMoveSpeed);
   QObject::connect(ui.buttonResetKeyboardTurnSpeed, &QPushButton::clicked, this,
                    &SettingsDialog::defaultKeyboardTurnSpeed);
@@ -188,6 +198,8 @@ void SettingsDialog::setStepSpinSuffix(SettingsManager::TimeUnit unit) {
 void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
   switch (ui.buttonBox->standardButton(button)) {
   case QDialogButtonBox::RestoreDefaults:
+    ui.buttonResetTheme->click();
+
     ui.buttonResetMoveSpeed->click();
     ui.buttonResetKeyboardTurnSpeed->click();
     ui.buttonResetMouseTurnSpeed->click();
@@ -219,6 +231,13 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
   case QDialogButtonBox::Save: {
     bool requiresRestart = false;
     using Key = SettingsManager::Key;
+
+    // Window
+    const auto theme = SettingsManager::WindowThemeFromInt(ui.comboTheme->currentData().toInt());
+    if (theme != settings.get<SettingsManager::WindowTheme>(Key::WindowTheme).value()) {
+      settings.setTheme(theme);
+      settings.set(Key::WindowTheme, theme);
+    }
 
     // Camera
     const auto moveSpeed = static_cast<float>(ui.sliderMoveSpeed->value()) / moveSpeedScale;
@@ -405,6 +424,11 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
   default:
     break;
   }
+}
+
+void SettingsDialog::defaultWindowTheme() {
+  const auto defaultTheme = settings.getDefault<SettingsManager::WindowTheme>(SettingsManager::Key::WindowTheme);
+  ui.comboTheme->setCurrentIndex(ui.comboTheme->findData(static_cast<int>(defaultTheme)));
 }
 
 void SettingsDialog::defaultMoveSpeed() {

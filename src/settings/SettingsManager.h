@@ -53,13 +53,15 @@ public:
     RenderLabels,
     RenderSkybox,
     ChartDropdownSortOrder,
+    WindowTheme
   };
 
   enum class BuildingRenderMode : int { Transparent, Opaque };
   enum class LabelRenderMode : int { Always, EnabledOnly, Never };
   enum class ChartDropdownSortOrder : int { Alphabetical, Type, Id, None };
-  enum class MotionTrailRenderMode: int { Always, EnabledOnly, Never };
+  enum class MotionTrailRenderMode : int { Always, EnabledOnly, Never };
   enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
+  enum class WindowTheme : int { Dark, Light, Native };
 
   /**
    * Convert an int to a `BuildingRenderMode` enum value.
@@ -109,7 +111,6 @@ public:
    */
   static MotionTrailRenderMode MotionTrailRenderModeFromInt(int value);
 
-
   /**
    * Convert an int to a `TimeUnit` enum value.
    * Necessary since Qt will only allow sending registered types with signals/slots.
@@ -121,6 +122,18 @@ public:
    * The enum value corresponding to `value`
    */
   static TimeUnit TimeUnitFromInt(int value);
+
+  /**
+   * Convert an int to a `WindowTheme` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static WindowTheme WindowThemeFromInt(int value);
 
   /**
    * Defines when retrieving a value fails,
@@ -174,7 +187,8 @@ private:
       {Key::RenderLabels, {"renderer/showLabels", "enabledOnly"}},
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
-      {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}}};
+      {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}},
+      {Key::WindowTheme, {"window/theme", "dark"}}};
 
   /**
    * Get the Qt key for the corresponding enum value.
@@ -321,6 +335,20 @@ public:
    * Sync settings to storage
    */
   void sync();
+
+  /**
+   * Sets the application wide theme to the current setting.
+   */
+  void setTheme();
+
+  /**
+   * Sets the application wide theme.
+   * This does not persist the selected theme as a setting
+   *
+   * @param theme
+   * The theme to load into the application.
+   */
+  void setTheme(WindowTheme theme);
 };
 
 // Specialize so we don't have to convert to/from QString all the time
@@ -416,6 +444,12 @@ template <>
 }
 
 template <>
+[[nodiscard]] inline SettingsManager::WindowTheme SettingsManager::getDefault(SettingsManager::Key) const {
+  // TODO: Use the map value
+  return SettingsManager::WindowTheme::Dark;
+}
+
+template <>
 [[nodiscard]] inline std::optional<SettingsManager::BuildingRenderMode> SettingsManager::get(Key key,
                                                                                              RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
@@ -475,7 +509,8 @@ template <>
 }
 
 template <>
-[[nodiscard]] inline std::optional<SettingsManager::MotionTrailRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
+[[nodiscard]] inline std::optional<SettingsManager::MotionTrailRenderMode>
+SettingsManager::get(Key key, RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
   const auto qtSetting = qtSettings.value(settingKey.key);
 
@@ -562,6 +597,37 @@ SettingsManager::get(Key key, RetrieveMode mode) const {
   // Final catch if the provided string value is invalid
   if (mode == RetrieveMode::AllowDefault)
     return getDefault<ChartDropdownSortOrder>(Key::ChartDropdownSortOrder);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::WindowTheme>
+SettingsManager::get(Key key, RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "dark")
+    return {WindowTheme::Dark};
+  else if (stringMode == "light")
+    return {WindowTheme::Light};
+  else if (stringMode == "native")
+    return {WindowTheme::Native};
+  else
+    std::cerr << "Unrecognised 'WindowTheme' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<WindowTheme>(Key::WindowTheme);
 
   return {};
 }
@@ -658,6 +724,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'TimeUnit': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::WindowTheme &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case WindowTheme::Dark:
+    qtSettings.setValue(settingKey.key, "dark");
+    break;
+  case WindowTheme::Light:
+    qtSettings.setValue(settingKey.key, "light");
+    break;
+  case WindowTheme::Native:
+    qtSettings.setValue(settingKey.key, "native");
+    break;
+  default:
+    std::cerr << "Unrecognised 'WindowTheme': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

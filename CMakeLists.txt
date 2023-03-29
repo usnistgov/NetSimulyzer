@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 project(NetSimulyzer
-        VERSION 1.0.6
+        VERSION 1.0.7
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
@@ -51,6 +51,10 @@ set(ASSIMP_NO_EXPORT ON)
 
 option(BUILD_SHARED_LIBS "Build package with shared libraries." OFF)
 set(BUILD_SHARED_LIBS OFF)
+
+# STEP Importer seems to cause issues building on Windows
+option(ASSIMP_BUILD_STEP_IMPORTER "" ON)
+set(ASSIMP_BUILD_STEP_IMPORTER OFF)
 
 add_subdirectory(lib/assimp)
 # Suppress assimp warnings
@@ -76,6 +80,8 @@ configure_file(project.h.in
 add_executable(netsimulyzer
         main.cpp
         netsimulyzer.rc
+        lib/QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc
+        lib/QDarkStyleSheet/qdarkstyle/light/lightstyle.qrc
         resources.qrc)
 
 target_compile_features(netsimulyzer PRIVATE cxx_std_17)

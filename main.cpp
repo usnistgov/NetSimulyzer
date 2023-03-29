@@ -186,6 +186,7 @@ int main(int argc, char *argv[]) {
 
   if (settings.isDefined(Key::SettingsVersion)) {
     const auto settingsVersion = *settings.get<std::string>(Key::SettingsVersion);
+    using SettingsManager = netsimulyzer::SettingsManager;
 
     if (settingsVersion != std::string{NETSIMULYZER_VERSION}) {
       std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
@@ -197,9 +198,15 @@ int main(int argc, char *argv[]) {
         QSettings qSettings;
         const auto oldVal = qSettings.value("renderer/showMotionTrails", false);
         if (oldVal.canConvert<bool>() && oldVal.toBool())
-          settings.set(Key::RenderMotionTrails, netsimulyzer::SettingsManager::MotionTrailRenderMode::Always);
+          settings.set(Key::RenderMotionTrails, SettingsManager::MotionTrailRenderMode::Always);
         else
           settings.setDefault(Key::RenderMotionTrails);
+      }
+
+      if (version < ParsedSettingsVersion{1, 0, 7}) {
+        std::cout << "Migrating: 1.0.7\n";
+        std::cout << "Setting theme to default\n";
+        settings.set(Key::WindowTheme, settings.getDefault<SettingsManager::WindowTheme>(Key::WindowTheme));
       }
 
       // Clear the resource directory on update,
@@ -226,6 +233,10 @@ int main(int argc, char *argv[]) {
   // Default QSurfaceFormat must be set before QApplication
   // on some platforms
   QApplication application(argc, argv);
+
+  // Make sure the theme stylesheets are loaded
+  // before we open anything
+  settings.setTheme();
 
   // Set default window icon for the whole application
   // seems to be required on macOS, but shouldn't hurt
