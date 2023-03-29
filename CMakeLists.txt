@@ -52,6 +52,10 @@ set(ASSIMP_NO_EXPORT ON)
 option(BUILD_SHARED_LIBS "Build package with shared libraries." OFF)
 set(BUILD_SHARED_LIBS OFF)
 
+# STEP Importer seems to cause issues building on Windows
+option(ASSIMP_BUILD_STEP_IMPORTER "" ON)
+set(ASSIMP_BUILD_STEP_IMPORTER OFF)
+
 add_subdirectory(lib/assimp)
 # Suppress assimp warnings
 target_compile_options(assimp PRIVATE -w)
