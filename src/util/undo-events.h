@@ -39,6 +39,7 @@
 #include <glm/vec3.hpp>
 #include <model.h>
 #include <variant>
+#include <lib/QCustomPlot/qcustomplot.h>
 
 namespace netsimulyzer::undo {
 
@@ -149,6 +150,12 @@ struct XYSeriesAddValue {
    * The event which generated this undo event
    */
   parser::XYSeriesAddValue event;
+
+  /**
+   * The QCP `t` index to uniquely
+   * identify the added point
+   */
+  double pointIndex;
 };
 
 struct XYSeriesAddValues {
@@ -156,6 +163,12 @@ struct XYSeriesAddValues {
    * The event which generated this undo event
    */
   parser::XYSeriesAddValues event;
+
+  /**
+   * The range [low, high] of QCP `t`
+   * indexes to remove from the plot
+   */
+  std::pair<double, double> tIndexRange;
 };
 
 struct XYSeriesClear {
@@ -167,7 +180,7 @@ struct XYSeriesClear {
   /**
    * The list of points on the chart before it was cleared
    */
-  QVector<QPointF> points;
+  QSharedPointer<QCPCurveDataContainer> oldData;
 };
 
 /**

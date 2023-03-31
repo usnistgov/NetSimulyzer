@@ -48,7 +48,6 @@ class ChartWidget : public QDockWidget {
 
   ChartManager &manager;
   SettingsManager settings{};
-  QtCharts::QChart chart;
   Ui::ChartWidget ui{};
   unsigned int currentSeries{ChartManager::PlaceholderId};
   std::vector<ChartManager::DropdownValue> dropdownValues;
@@ -76,6 +75,8 @@ public:
   void populateDropdown();
   void reset();
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
+
+  void dataChanged(const ChartManager::XYSeriesTie &tie) const;
 
   /**
    * Unselects the current series

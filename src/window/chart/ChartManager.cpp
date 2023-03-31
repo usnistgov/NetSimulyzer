@@ -47,34 +47,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
-
-namespace {
-
-void updateRange(QtCharts::QAbstractAxis *axis, qreal value) {
-  // Amount to scale past the min/max
-  // so we don't cut off the actual point
-  const auto additionalScale = 0.05;
-
-  qreal min;
-  qreal max;
-  if (const auto valueAxis = qobject_cast<QtCharts::QValueAxis *>(axis)) {
-    min = valueAxis->min();
-    max = valueAxis->max();
-  } else if (const auto logAxis = qobject_cast<QtCharts::QLogValueAxis *>(axis)) {
-    min = logAxis->min();
-    max = logAxis->max();
-  } else {
-    std::cerr << "Error: Unhandled axis type in updateRange()\n";
-    return;
-  }
-
-  if (value > max)
-    axis->setMax(value + value * additionalScale);
-  else if (value < min)
-    axis->setMin(value - value * additionalScale);
-}
-
-} // namespace
+#include <unordered_set>
 
 namespace netsimulyzer {
 
@@ -83,6 +56,8 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   tie.model = model;
   switch (model.connection) {
   case parser::XYSeries::Connection::None: {
+    assert(false); // TODO Implement
+    /*
     auto scatterSeries = new QtCharts::QScatterSeries(this);
 
     // Hide the borders of points, as they cover up other points
@@ -91,21 +66,22 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
     // Cut this down, as the default size (15 at time of writing) is quite large
     scatterSeries->setMarkerSize(5.0);
     tie.qtSeries = scatterSeries;
+     */
   } break;
   case parser::XYSeries::Connection::Line:
-    tie.qtSeries = new QtCharts::QLineSeries(this);
+//    tie.qtSeries = new QtCharts::QLineSeries(this);
     break;
   case parser::XYSeries::Connection::Spline:
-    tie.qtSeries = new QtCharts::QSplineSeries(this);
+//    tie.qtSeries = new QtCharts::QSplineSeries(this);
     break;
   }
 
   switch (model.labelMode) {
   case parser::XYSeries::LabelMode::Hidden:
-    tie.qtSeries->setPointLabelsVisible(false);
+//    tie.qtSeries->setPointLabelsVisible(false);
     break;
   case parser::XYSeries::LabelMode::Shown:
-    tie.qtSeries->setPointLabelsVisible(true);
+//    tie.qtSeries->setPointLabelsVisible(true);
     break;
   }
 
@@ -115,29 +91,31 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   // Note, this will only work with line/spline/scatter plots
   // if we add more plot types, this will have to be disabled
   // See: https://doc.qt.io/qt-5/qabstractseries.html#useOpenGL-prop
-  tie.qtSeries->setUseOpenGL(true);
+//  tie.qtSeries->setUseOpenGL(true);
 #endif
 
-  tie.qtSeries->setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
-  tie.qtSeries->setName(QString::fromStdString(model.legend));
+
+  tie.pen.setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
+
+//  tie.qtSeries->setName(QString::fromStdString(model.legend));
 
   // X Axis
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
+//  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
+//    tie.xAxis = new QtCharts::QValueAxis(this);
+//  else
+//    tie.xAxis = new QtCharts::QLogValueAxis(this);
 
-  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
-  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+//  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
+//  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
 
   // Y Axis
-  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.yAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.yAxis = new QtCharts::QLogValueAxis(this);
-  tie.yAxis = new QtCharts::QValueAxis(this);
-  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
-  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
+//  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
+//    tie.yAxis = new QtCharts::QValueAxis(this);
+//  else
+//    tie.yAxis = new QtCharts::QLogValueAxis(this);
+//  tie.yAxis = new QtCharts::QValueAxis(this);
+//  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
+//  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
 
   return tie;
 }
@@ -219,19 +197,19 @@ void ChartManager::reset() {
     chartWidget->reset();
   }
 
-  for (auto &iterator : series) {
-    auto &value = iterator.second;
-    if (std::holds_alternative<XYSeriesTie>(value)) {
-      auto qtSeries = std::get<XYSeriesTie>(value).qtSeries;
-      qtSeries->setParent(nullptr);
-      qtSeries->deleteLater();
-    } else if (std::holds_alternative<CategoryValueTie>(value)) {
-      auto qtSeries = std::get<CategoryValueTie>(value).qtSeries;
-      qtSeries->setParent(nullptr);
-      qtSeries->deleteLater();
-    }
-    // No need to handle SeriesCollection since it has no pointers
-  }
+//  for (auto &iterator : series) {
+//    auto &value = iterator.second;
+//    if (std::holds_alternative<XYSeriesTie>(value)) {
+//      auto qtSeries = std::get<XYSeriesTie>(value).qtSeries;
+//      qtSeries->setParent(nullptr);
+//      qtSeries->deleteLater();
+//    } else if (std::holds_alternative<CategoryValueTie>(value)) {
+//      auto qtSeries = std::get<CategoryValueTie>(value).qtSeries;
+//      qtSeries->setParent(nullptr);
+//      qtSeries->deleteLater();
+//    }
+//    // No need to handle SeriesCollection since it has no pointers
+//  }
 
   series.clear();
 }
@@ -269,8 +247,32 @@ void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
   }
 }
 
+void ChartManager::updateRange(QCPRange &range, double point) {
+  range.lower = std::min(range.lower, point);
+  range.upper = std::max(range.upper, point);
+}
+
+void ChartManager::notifyDataChanged(const XYSeriesTie &tie) {
+  for (const auto widget : chartWidgets) {
+    if (widget->getCurrentSeries() == tie.model.id)
+      widget->dataChanged(tie);
+  }
+}
+
+void ChartManager::notifyDataChanged(const ChartManager::SeriesCollectionTie &tie) {
+  //TODO Implement
+  assert(false);
+}
+void ChartManager::notifyDataChanged(const ChartManager::CategoryValueTie &tie) {
+  //TODO Implement
+  assert(false);
+}
+
 void ChartManager::timeAdvanced(parser::nanoseconds time) {
-  auto handleEvent = [time, this](auto &&e) {
+  using BoundMode = parser::ValueAxis::BoundMode;
+  std::unordered_set<uint32_t> changedSeries;
+
+  auto handleEvent = [time, &changedSeries, this](auto &&e) {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -280,46 +282,58 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       return false;
 
     if constexpr (std::is_same_v<T, parser::XYSeriesAddValue>) {
-      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
-      if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-        updateRange(s.xAxis, e.point.x);
+      auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+      if (s.model.xAxis.boundMode == BoundMode::HighestValue) {
+        updateRange(s.XRange, e.point.x);
       }
-      if (s.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-        updateRange(s.yAxis, e.point.y);
+      if (s.model.yAxis.boundMode == BoundMode::HighestValue) {
+        updateRange(s.YRange, e.point.y);
       }
+
       updateCollectionRanges(e.seriesId, e.point.x, e.point.y);
-      s.qtSeries->append(e.point.x, e.point.y);
-      undoEvents.emplace_back(undo::XYSeriesAddValue{e});
+
+      const auto pointIndex = static_cast<double>(s.data->size());
+      s.data->add({pointIndex, e.point.x, e.point.y});
+
+      changedSeries.insert(e.seriesId);
+      undoEvents.emplace_back(undo::XYSeriesAddValue{e, pointIndex});
       events.pop_front();
       return true;
     }
 
     if constexpr (std::is_same_v<T, parser::XYSeriesAddValues>) {
-      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+      auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+
+      std::pair<double,double> range;
+      range.first = static_cast<double>(s.data->size());
 
       for (const auto &point : e.points) {
-        if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-          updateRange(s.xAxis, point.x);
+        if (s.model.xAxis.boundMode == BoundMode::HighestValue) {
+          updateRange(s.XRange, point.x);
         }
-        if (s.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-          updateRange(s.yAxis, point.y);
+        if (s.model.yAxis.boundMode == BoundMode::HighestValue) {
+          updateRange(s.YRange, point.y);
         }
 
         updateCollectionRanges(e.seriesId, point.x, point.y);
-        s.qtSeries->append(point.x, point.y);
+        s.data->add({static_cast<double>(s.data->size()), point.x, point.y});
       }
+      range.second = static_cast<double>(s.data->size());
 
-      undoEvents.emplace_back(undo::XYSeriesAddValues{e});
+      changedSeries.insert(e.seriesId);
+      undoEvents.emplace_back(undo::XYSeriesAddValues{e, range});
       events.pop_front();
       return true;
     }
 
     if constexpr (std::is_same_v<T, parser::XYSeriesClear>) {
-      const auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
-      auto points = s.qtSeries->pointsVector();
-      s.qtSeries->clear();
+      // Not const since we replace the data pointer
+      auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
+      auto oldData = s.data;
+      s.data = QSharedPointer<QCPCurveDataContainer>{new QCPCurveDataContainer{}};
 
-      undoEvents.emplace_back(undo::XYSeriesClear{e, std::move(points)});
+      changedSeries.insert(e.seriesId);
+      undoEvents.emplace_back(undo::XYSeriesClear{e, oldData});
       events.pop_front();
       return true;
     }
@@ -327,8 +341,8 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
     if constexpr (std::is_same_v<T, parser::CategorySeriesAddValue>) {
       // Not const since we change the lastUpdatedTime
       auto &s = std::get<CategoryValueTie>(series[e.seriesId]);
-      if (s.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-        updateRange(s.xAxis, e.value);
+      if (s.model.xAxis.boundMode == BoundMode::HighestValue) {
+        updateRange(s.XRange, e.value);
       }
 
       // Y axis on category charts is a fixed size
@@ -336,6 +350,8 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       s.lastUpdatedTime = time;
       s.qtSeries->append(e.value, e.category);
       updateCollectionRanges(e.seriesId, e.value, e.category);
+
+      changedSeries.insert(e.seriesId);
       undoEvents.emplace_back(undo::CategorySeriesAddValue{e});
       events.pop_front();
       return true;
@@ -374,22 +390,32 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
     fakeEvent.category = static_cast<unsigned int>(lastValue.y());
     fakeEvent.seriesId = key;
 
-    if (value.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue) {
-      updateRange(value.xAxis, fakeEvent.value);
+    if (value.model.xAxis.boundMode == BoundMode::HighestValue) {
+      updateRange(value.XRange, fakeEvent.value);
     }
 
     // Y axis on category charts is a fixed size
 
+    changedSeries.insert(value.model.id);
     value.qtSeries->append(fakeEvent.value, fakeEvent.category);
     updateCollectionRanges(fakeEvent.seriesId, fakeEvent.value, fakeEvent.category);
     undoEvents.emplace_back(undo::CategorySeriesAddValue{fakeEvent});
 
     value.lastUpdatedTime = time;
   }
+
+  for (const auto changedSeriesId: changedSeries) {
+    std::visit([this] (auto &&tie) {
+      notifyDataChanged(tie);
+    }, series[changedSeriesId]);
+  }
+
 }
 
 void ChartManager::timeRewound(parser::nanoseconds time) {
-  auto handleUndoEvent = [time, this](auto &&e) -> bool {
+  std::unordered_set<uint32_t> changedSeries;
+
+  auto handleUndoEvent = [time, &changedSeries, this](auto &&e) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -404,26 +430,27 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
     if constexpr (std::is_same_v<T, undo::XYSeriesAddValue>) {
       auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
 
-      s.qtSeries->remove(s.qtSeries->count() - 1);
+      s.data->remove(e.pointIndex);
 
+      changedSeries.insert(e.event.seriesId);
       events.emplace_front(e.event);
       return true;
     }
 
     if constexpr (std::is_same_v<T, undo::XYSeriesAddValues>) {
       auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
-      const auto count = e.event.points.size();
+      s.data->remove(e.tIndexRange.first, e.tIndexRange.second);
 
-      s.qtSeries->removePoints(s.qtSeries->count() - count, count);
-
+      changedSeries.insert(e.event.seriesId);
       events.emplace_front(e.event);
       return true;
     }
 
     if constexpr (std::is_same_v<T, undo::XYSeriesClear>) {
       auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
-      s.qtSeries->replace(e.points);
+      s.data = e.oldData;
 
+      changedSeries.insert(e.event.seriesId);
       events.emplace_front(e.event);
       return true;
     }
@@ -433,6 +460,7 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
 
       s.qtSeries->remove(s.qtSeries->count() - 1);
 
+      changedSeries.insert(e.event.seriesId);
       events.emplace_front(e.event);
       return true;
     }
@@ -442,6 +470,12 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
 
   while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
     undoEvents.pop_back();
+  }
+
+  for (const auto changedSeriesId: changedSeries) {
+    std::visit([this] (auto &&tie) {
+      notifyDataChanged(tie);
+    }, series[changedSeriesId]);
   }
 }
 
@@ -467,22 +501,24 @@ void ChartManager::widgetClosed(ChartWidget *widget) {
 }
 
 void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
-  for (auto &iterator : series) {
-    // Only update collections
-    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
-      continue;
 
-    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
-
-    // Only update the collection's ranges if it actually contains the series
-    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
-        collection.model.series.end()) {
-      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-        updateRange(collection.xAxis, x);
-      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-        updateRange(collection.yAxis, y);
-    }
-  }
+  // TODO: Update
+//  for (auto &iterator : series) {
+//    // Only update collections
+//    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
+//      continue;
+//
+//    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
+//
+//    // Only update the collection's ranges if it actually contains the series
+//    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
+//        collection.model.series.end()) {
+//      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
+//        updateRange(collection.xAxis, x);
+//      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
+//        updateRange(collection.yAxis, y);
+//    }
+//  }
 }
 
 ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {

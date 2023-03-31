@@ -38,7 +38,7 @@
 #include <QFileDialog>
 #include <QClipboard>
 #include <QGuiApplication>
-
+/*
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
   const auto alt = event->modifiers() & Qt::KeyboardModifier::AltModifier;
@@ -88,13 +88,13 @@ void ControlsChartView::keyPressEvent(QKeyEvent *event) {
     chart()->scroll(0, -scrollMagnitude);
     break;
   default:
-    QGraphicsView::keyPressEvent(event);
+    QCustomPlot::keyPressEvent(event);
     break;
   }
 }
 
 void ControlsChartView::mousePressEvent(QMouseEvent *event) {
-  QChartView::mousePressEvent(event);
+  QCustomPlot::mousePressEvent(event);
 
   // Only allow moves with Left Mouse
   if (!(event->buttons() & Qt::LeftButton))
@@ -104,7 +104,7 @@ void ControlsChartView::mousePressEvent(QMouseEvent *event) {
   lastMousePosition = event->pos();
 }
 void ControlsChartView::mouseMoveEvent(QMouseEvent *event) {
-  QChartView::mouseMoveEvent(event);
+  QCustomPlot::mouseMoveEvent(event);
   if (!mouseDown)
     return;
 
@@ -117,7 +117,7 @@ void ControlsChartView::mouseMoveEvent(QMouseEvent *event) {
   lastMousePosition = event->pos();
 }
 void ControlsChartView::mouseReleaseEvent(QMouseEvent *event) {
-  QChartView::mouseReleaseEvent(event);
+  QCustomPlot::mouseReleaseEvent(event);
 
   // If the event was fired but LeftMouse is still down
   if (event->buttons() & Qt::LeftButton)
@@ -126,13 +126,11 @@ void ControlsChartView::mouseReleaseEvent(QMouseEvent *event) {
   mouseDown = false;
 }
 
-ControlsChartView::ControlsChartView(QWidget *parent) : QChartView(parent) {
-}
 
 void ControlsChartView::wheelEvent(QWheelEvent *event) {
   const auto delta = event->angleDelta().y();
   if (delta == 0) {
-    QGraphicsView::wheelEvent(event);
+    QCustomPlot::wheelEvent(event);
     return;
   }
 
@@ -165,9 +163,9 @@ void ControlsChartView::wheelEvent(QWheelEvent *event) {
       chart()->zoom(1.0 / zoomFactor);
   }
 
-  QGraphicsView::wheelEvent(event);
+  QCustomPlot::wheelEvent(event);
 }
-
+*/
 void ControlsChartView::contextMenuEvent(QContextMenuEvent *event){
     QMenu menu;
     menu.addAction("Save Chart Image", [this](){
@@ -186,7 +184,10 @@ void ControlsChartView::contextMenuEvent(QContextMenuEvent *event){
     });
 
     menu.exec(event->globalPos());
-
-
 }
 
+
+ControlsChartView::ControlsChartView(QWidget *parent) : QCustomPlot(parent) {
+  setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+  // TODO: Keyboard controls maybe
+}

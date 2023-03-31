@@ -39,6 +39,7 @@
 #include <QLayout>
 #include <QMainWindow>
 #include <QObject>
+#include <QSharedPointer>
 #include <QString>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QCategoryAxis>
@@ -47,6 +48,7 @@
 #include <QtCharts/QValueAxis>
 #include <cstdint>
 #include <deque>
+#include <lib/QCustomPlot/qcustomplot.h>
 #include <model.h>
 #include <optional>
 #include <src/settings/SettingsManager.h>
@@ -67,13 +69,16 @@ public:
     parser::SeriesCollection model;
     QtCharts::QAbstractAxis *xAxis;
     QtCharts::QAbstractAxis *yAxis;
+    QCPRange XRange;
+    QCPRange YRange;
   };
 
   struct XYSeriesTie {
     parser::XYSeries model;
-    QtCharts::QXYSeries *qtSeries;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QAbstractAxis *yAxis;
+    QPen pen;
+    QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
+    QCPRange XRange;
+    QCPRange YRange;
   };
 
   struct CategoryValueTie {
@@ -82,6 +87,7 @@ public:
     QtCharts::QAbstractAxis *xAxis;
     QtCharts::QCategoryAxis *yAxis;
     parser::nanoseconds lastUpdatedTime;
+    QCPRange XRange;
   };
 
   struct DropdownValue {
@@ -134,6 +140,12 @@ private:
    * The ID of the series to clear selections of
    */
   void clearSeries(const ChartWidget *except, unsigned int id);
+
+  void updateRange(QCPRange &range, double point);
+
+  void notifyDataChanged(const XYSeriesTie &tie);
+  void notifyDataChanged(const SeriesCollectionTie &tie);
+  void notifyDataChanged(const CategoryValueTie &tie);
 
   void timeAdvanced(parser::nanoseconds time);
   void timeRewound(parser::nanoseconds time);

@@ -33,6 +33,7 @@
 
 #include "ChartWidget.h"
 #include <QConstOverload>
+#include <QDebug>
 #include <QGraphicsLayout>
 #include <QStandardItemModel>
 #include <QString>
@@ -68,23 +69,28 @@ void ChartWidget::seriesSelected(int index) {
 }
 
 void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
+  ui.chartView->clearItems();
+
+  // This is linked to the plot through the X Axis
+  // and is deleted by `clearItems()`
+  auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+
+  // Color
+  curve->setPen(tie.pen);
+
   const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
+
+  curve->setData(tie.data);
+  curve->setName(name);
   setWindowTitle(name);
 
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
+  ui.chartView->replot();
 }
 
 void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
+  // TODO: Implement
+  assert(false);
+  /*
   const auto name = QString::fromStdString(tie.model.name);
   chart.setTitle(name);
   setWindowTitle(name);
@@ -105,9 +111,11 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
     chartSeries->attachAxis(tie.xAxis);
     chartSeries->attachAxis(tie.yAxis);
   }
+   */
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
+  /*
   const auto name = QString::fromStdString(tie.model.name);
   chart.setTitle(name);
   setWindowTitle(name);
@@ -122,9 +130,13 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   // been added to the chart...
   tie.qtSeries->attachAxis(tie.xAxis);
   tie.qtSeries->attachAxis(tie.yAxis);
+   */
 }
 
 void ChartWidget::clearChart() {
+  ui.chartView->clearItems();
+  setWindowTitle("Chart Widget");
+  /*
   // Remove old axes
   auto currentAxes = chart.axes();
 
@@ -150,6 +162,7 @@ void ChartWidget::clearChart() {
   }
 
   chart.setTitle("");
+   */
 }
 
 void ChartWidget::closeEvent(QCloseEvent *event) {
@@ -163,6 +176,7 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<Cha
     : QDockWidget(parent), manager(manager), dropdownValues(std::move(initialSeries)) {
   ui.setupUi(this);
   setWindowTitle("Chart Widget");
+  /*
 
   chart.legend()->setVisible(true);
   chart.legend()->setAlignment(Qt::AlignBottom);
@@ -171,7 +185,8 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<Cha
   chart.layout()->setContentsMargins(0, 0, 0, 0);
   chart.setBackgroundRoundness(0.0);
 
-  ui.chartView->setChart(&chart);
+//  ui.chartView->setChart(&chart);
+   */
 
   sortDropdown();
   populateDropdown();
@@ -300,6 +315,20 @@ void ChartWidget::setSortOrder(SettingsManager::ChartDropdownSortOrder value) {
   sortOrder = value;
   sortDropdown();
   populateDropdown();
+}
+
+void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  if (tie.model.yAxis.boundMode == BoundMode::HighestValue && tie.YRange != ui.chartView->yAxis->range()) {
+    ui.chartView->yAxis->setRange(tie.YRange);
+  }
+
+  ui.chartView->replot();
 }
 
 void ChartWidget::clearSelected() {
