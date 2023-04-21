@@ -191,6 +191,12 @@ struct CategorySeriesAddValue {
    * The event which generated this undo event
    */
   parser::CategorySeriesAddValue event;
+
+  /**
+   * The QCP `t` index to uniquely
+   * identify the added point
+   */
+  double pointIndex;
 };
 
 struct StreamAppendEvent {

@@ -75,6 +75,9 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   // and is deleted by `clearItems()`
   auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
 
+  // Undo any changes from a CategoryValueSeries
+  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+
   // Color
   curve->setPen(tie.pen);
 
@@ -115,6 +118,24 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
+  ui.chartView->clearItems();
+
+  // This is linked to the plot through the X Axis
+  // and is deleted by `clearItems()`
+  auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+
+  // Color
+  curve->setPen(tie.pen);
+
+  const auto name = QString::fromStdString(tie.model.name);
+
+  ui.chartView->yAxis->setTicker(tie.labelTicker);
+
+  curve->setData(tie.data);
+  curve->setName(name);
+  setWindowTitle(name);
+
+  ui.chartView->replot();
   /*
   const auto name = QString::fromStdString(tie.model.name);
   chart.setTitle(name);
@@ -136,6 +157,7 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 void ChartWidget::clearChart() {
   ui.chartView->clearItems();
   setWindowTitle("Chart Widget");
+  ui.chartView->clearPlottables();
   /*
   // Remove old axes
   auto currentAxes = chart.axes();
@@ -326,6 +348,16 @@ void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
 
   if (tie.model.yAxis.boundMode == BoundMode::HighestValue && tie.YRange != ui.chartView->yAxis->range()) {
     ui.chartView->yAxis->setRange(tie.YRange);
+  }
+
+  ui.chartView->replot();
+}
+
+void ChartWidget::dataChanged(const ChartManager::CategoryValueTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
   }
 
   ui.chartView->replot();

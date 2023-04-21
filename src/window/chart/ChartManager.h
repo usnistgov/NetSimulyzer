@@ -83,11 +83,14 @@ public:
 
   struct CategoryValueTie {
     parser::CategoryValueSeries model;
-    QtCharts::QXYSeries *qtSeries;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QCategoryAxis *yAxis;
-    parser::nanoseconds lastUpdatedTime;
+    QSharedPointer<QCPAxisTickerText> labelTicker{new QCPAxisTickerText{}};
+
+    QPen pen;
+    QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
     QCPRange XRange;
+    // Y-axis on category charts is a fixed size
+    // so, no Y Range
+    parser::nanoseconds lastUpdatedTime;
   };
 
   struct DropdownValue {

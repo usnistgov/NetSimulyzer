@@ -77,6 +77,7 @@ public:
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
 
   void dataChanged(const ChartManager::XYSeriesTie &tie) const;
+  void dataChanged(const ChartManager::CategoryValueTie &tie) const;
 
   /**
    * Unselects the current series

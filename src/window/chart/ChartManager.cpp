@@ -147,39 +147,13 @@ ChartManager::SeriesCollectionTie ChartManager::makeTie(const parser::SeriesColl
 ChartManager::CategoryValueTie ChartManager::makeTie(const parser::CategoryValueSeries &model) {
   CategoryValueTie tie;
   tie.model = model;
-  tie.qtSeries = new QtCharts::QLineSeries(this);
 
-  tie.qtSeries->setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
-  tie.qtSeries->setName(QString::fromStdString(model.legend));
-
-  // X Axis (values)
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
-  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
-  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+  tie.pen.setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
 
   // Y axis (categories)
-  auto yAxis = new QtCharts::QCategoryAxis(this);
-  const auto &categories = tie.model.yAxis.values;
-
-  yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
-  // Just to be safe
-  if (!categories.empty()) {
-    // Give slight padding before/after the min/max values
-    yAxis->setMin(static_cast<double>(categories.front().id) - 0.1);
-    yAxis->setMax(static_cast<double>(categories.back().id) + 0.1);
+  for (const auto &category: tie.model.yAxis.values) {
+    tie.labelTicker->addTick(category.id, QString::fromStdString(category.name));
   }
-  for (const auto &category : categories)
-    yAxis->append(QString::fromStdString(category.name), category.id);
-
-  // Center the label within the range
-  // since we use the ID as the end
-  // of the range, rather than the center
-  yAxis->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
-
-  tie.yAxis = yAxis;
   return tie;
 }
 
@@ -264,8 +238,10 @@ void ChartManager::notifyDataChanged(const ChartManager::SeriesCollectionTie &ti
   assert(false);
 }
 void ChartManager::notifyDataChanged(const ChartManager::CategoryValueTie &tie) {
-  //TODO Implement
-  assert(false);
+  for (const auto widget : chartWidgets) {
+    if (widget->getCurrentSeries() == tie.model.id)
+      widget->dataChanged(tie);
+  }
 }
 
 void ChartManager::timeAdvanced(parser::nanoseconds time) {
@@ -348,11 +324,12 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       // Y axis on category charts is a fixed size
 
       s.lastUpdatedTime = time;
-      s.qtSeries->append(e.value, e.category);
+      const auto pointIndex = static_cast<double>(s.data->size());
+      s.data->add({pointIndex, e.value, static_cast<double>(e.category)});
       updateCollectionRanges(e.seriesId, e.value, e.category);
 
       changedSeries.insert(e.seriesId);
-      undoEvents.emplace_back(undo::CategorySeriesAddValue{e});
+      undoEvents.emplace_back(undo::CategorySeriesAddValue{e, pointIndex});
       events.pop_front();
       return true;
     }
@@ -365,6 +342,7 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
     // Intentionally Blank
   }
 
+
   // Add "Fake Events" to keep the category value series moving
   // TODO: Maybe move to parse time
   for (auto &[key, s] : series) {
@@ -376,18 +354,18 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
     if (!value.model.autoUpdate)
       continue;
 
-    const auto &points = value.qtSeries->pointsVector();
-    if (points.empty())
+    const auto &points = value.data;
+    if (points->isEmpty())
       continue;
 
     if (time - value.lastUpdatedTime < value.model.autoUpdateInterval)
       continue;
 
-    const auto lastValue = points.last();
+    const auto lastValue = *(points->end() - 1);
     parser::CategorySeriesAddValue fakeEvent;
     fakeEvent.time = time;
-    fakeEvent.value = lastValue.x() + value.model.autoUpdateIncrement;
-    fakeEvent.category = static_cast<unsigned int>(lastValue.y());
+    fakeEvent.value = lastValue.key + value.model.autoUpdateIncrement;
+    fakeEvent.category = static_cast<unsigned int>(lastValue.value);
     fakeEvent.seriesId = key;
 
     if (value.model.xAxis.boundMode == BoundMode::HighestValue) {
@@ -397,9 +375,12 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
     // Y axis on category charts is a fixed size
 
     changedSeries.insert(value.model.id);
-    value.qtSeries->append(fakeEvent.value, fakeEvent.category);
+
+    const auto pointIndex = static_cast<double>(points->size());
+    points->add({pointIndex, fakeEvent.value, static_cast<double>(fakeEvent.category)});
+
     updateCollectionRanges(fakeEvent.seriesId, fakeEvent.value, fakeEvent.category);
-    undoEvents.emplace_back(undo::CategorySeriesAddValue{fakeEvent});
+    undoEvents.emplace_back(undo::CategorySeriesAddValue{fakeEvent, pointIndex});
 
     value.lastUpdatedTime = time;
   }
@@ -409,6 +390,7 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       notifyDataChanged(tie);
     }, series[changedSeriesId]);
   }
+
 
 }
 
@@ -458,7 +440,7 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
     if constexpr (std::is_same_v<T, undo::CategorySeriesAddValue>) {
       auto &s = std::get<CategoryValueTie>(series[e.event.seriesId]);
 
-      s.qtSeries->remove(s.qtSeries->count() - 1);
+      s.data->remove(e.pointIndex);
 
       changedSeries.insert(e.event.seriesId);
       events.emplace_front(e.event);
