@@ -76,6 +76,7 @@ public:
   struct XYSeriesTie {
     parser::XYSeries model;
     QPen pen;
+    QCPScatterStyle scatterStyle;
     QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
     QCPRange XRange;
     QCPRange YRange;

@@ -75,6 +75,10 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   // and is deleted by `clearItems()`
   auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
 
+  curve->setScatterStyle(tie.scatterStyle);
+  if (tie.model.connection == parser::XYSeries::Connection::None)
+    curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+
   // Undo any changes from a CategoryValueSeries
   ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
