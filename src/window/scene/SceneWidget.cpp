@@ -261,7 +261,7 @@ void SceneWidget::paintGL() {
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
 
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClearColor(clearColorGl[0], clearColorGl[1], clearColorGl[2], 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (renderSkybox)
     renderer.render(*skyBox);
@@ -721,6 +721,14 @@ QSize SceneWidget::sizeHint() const {
 
 void SceneWidget::setSkyboxRenderState(bool enable) {
   renderSkybox = enable;
+}
+
+void SceneWidget::setClearColor(const QColor &value) {
+  clearColor = value;
+
+  clearColorGl[0] = static_cast<float>(clearColor.redF());
+  clearColorGl[1] = static_cast<float>(clearColor.greenF());
+  clearColorGl[2] = static_cast<float>(clearColor.blueF());
 }
 
 void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {

@@ -36,6 +36,7 @@
 #include "src/settings/SettingsManager.h"
 #include "src/window/scene/SceneWidget.h"
 #include "ui_SettingsDialog.h"
+#include <QColor>
 #include <QDialog>
 #include <QString>
 
@@ -75,6 +76,12 @@ class SettingsDialog : public QDialog {
    * Also set by `setTimeStep`
    */
   double passedTimeStep = 10.0;
+
+  /**
+   * The user specified clear color.
+   * Used when the skybox is off
+   */
+  QColor customBackgroundColor = settings.get<QColor>(SettingsManager::Key::RenderBackgroundColorCustom).value();
 
   /**
    * Sets the suffix in the time step preference SpinBox
@@ -126,6 +133,11 @@ class SettingsDialog : public QDialog {
    * Set the Samples input to the default value
    */
   void defaultSamples();
+
+  /**
+   * Set the background color combo box to it's default value
+   */
+  void defaultBackgroundColor();
 
   /**
    * Set the Skybox checkbox to the default value
@@ -209,6 +221,13 @@ public:
   void setTimeStep(double value);
 
 signals:
+
+  // Ignore unimplemented function warning
+  // for Qt Signals, since those are generated
+  // For us elsewhere
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "NotImplementedFunctions"
+
   /**
    * Signal emitted when the user saves a new Move Speed.
    *
@@ -326,6 +345,14 @@ signals:
   void renderSkyboxChanged(bool enable);
 
   /**
+   * Signal emitted when the user changes the background color.
+   *
+   * @param value
+   * The new value to use for the clear color
+   */
+  void backgroundColorChanged(QColor value);
+
+  /**
    * Signal emitted when the user changes the
    * Building render mode.
    *
@@ -404,6 +431,8 @@ signals:
    * with a trailing slash.
    */
   void resourcePathChanged(const QString &dir);
+
+#pragma clang diagnostic pop
 };
 
 } // namespace netsimulyzer
