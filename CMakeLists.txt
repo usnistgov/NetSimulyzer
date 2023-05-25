@@ -87,6 +87,7 @@ add_executable(netsimulyzer
 target_compile_features(netsimulyzer PRIVATE cxx_std_17)
 
 target_compile_options(netsimulyzer PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
+target_compile_options(netsimulyzer PRIVATE -Wno-unknown-pragmas) # Disable warnings for IDE pragmas
 
 if (IS_DEV_VERSION)
     target_compile_definitions(netsimulyzer PRIVATE NETSIMULYZER_DEVELOPMENT_VERSION)
