@@ -5,6 +5,7 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: None
 AllowShortLambdasOnASingleLine: Empty
 BreakBeforeBraces: Attach
+BreakAfterAttributes: Leave
 ColumnLimit: 120
 Cpp11BracedListStyle: true
 IncludeBlocks: Merge
