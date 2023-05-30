@@ -78,6 +78,7 @@ public:
 
   void dataChanged(const ChartManager::XYSeriesTie &tie) const;
   void dataChanged(const ChartManager::CategoryValueTie &tie) const;
+  void dataChanged(const ChartManager::SeriesCollectionTie &tie) const;
 
   /**
    * Unselects the current series

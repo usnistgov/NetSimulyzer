@@ -118,7 +118,7 @@ private:
   XYSeriesTie makeTie(const parser::XYSeries &model);
   SeriesCollectionTie makeTie(const parser::SeriesCollection &model);
   CategoryValueTie makeTie(const parser::CategoryValueSeries &model);
-  void updateCollectionRanges(uint32_t seriesId, double x, double y);
+  void updateCollectionRanges(unsigned int seriesId, double x, double y);
   void setChildrenSeries(const std::vector<DropdownValue> &values);
 
   /**
@@ -181,7 +181,6 @@ public:
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);
   TieVariant &getSeries(uint32_t seriesId);
 
-  void seriesSelected(const ChartWidget *widget, unsigned int selected);
   void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);

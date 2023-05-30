@@ -163,20 +163,6 @@ void ChartManager::reset() {
     chartWidget->reset();
   }
 
-  //  for (auto &iterator : series) {
-  //    auto &value = iterator.second;
-  //    if (std::holds_alternative<XYSeriesTie>(value)) {
-  //      auto qtSeries = std::get<XYSeriesTie>(value).qtSeries;
-  //      qtSeries->setParent(nullptr);
-  //      qtSeries->deleteLater();
-  //    } else if (std::holds_alternative<CategoryValueTie>(value)) {
-  //      auto qtSeries = std::get<CategoryValueTie>(value).qtSeries;
-  //      qtSeries->setParent(nullptr);
-  //      qtSeries->deleteLater();
-  //    }
-  //    // No need to handle SeriesCollection since it has no pointers
-  //  }
-
   series.clear();
 }
 
@@ -226,8 +212,10 @@ void ChartManager::notifyDataChanged(const XYSeriesTie &tie) {
 }
 
 void ChartManager::notifyDataChanged(const ChartManager::SeriesCollectionTie &tie) {
-  // TODO Implement
-  assert(false);
+  for (const auto widget : chartWidgets) {
+    if (widget->getCurrentSeries() == tie.model.id)
+      widget->dataChanged(tie);
+  }
 }
 void ChartManager::notifyDataChanged(const ChartManager::CategoryValueTie &tie) {
   for (const auto widget : chartWidgets) {
@@ -264,6 +252,9 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       s.data->add({pointIndex, e.point.x, e.point.y});
 
       changedSeries.insert(e.seriesId);
+      const auto collections = inCollections(e.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       undoEvents.emplace_back(undo::XYSeriesAddValue{e, pointIndex});
       events.pop_front();
       return true;
@@ -289,6 +280,9 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       range.second = static_cast<double>(s.data->size());
 
       changedSeries.insert(e.seriesId);
+      const auto collections = inCollections(e.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       undoEvents.emplace_back(undo::XYSeriesAddValues{e, range});
       events.pop_front();
       return true;
@@ -301,6 +295,9 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
       s.data = QSharedPointer<QCPCurveDataContainer>{new QCPCurveDataContainer{}};
 
       changedSeries.insert(e.seriesId);
+      const auto collections = inCollections(e.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       undoEvents.emplace_back(undo::XYSeriesClear{e, oldData});
       events.pop_front();
       return true;
@@ -406,6 +403,9 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
       s.data->remove(e.pointIndex);
 
       changedSeries.insert(e.event.seriesId);
+      const auto collections = inCollections(e.event.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       events.emplace_front(e.event);
       return true;
     }
@@ -415,6 +415,9 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
       s.data->remove(e.tIndexRange.first, e.tIndexRange.second);
 
       changedSeries.insert(e.event.seriesId);
+      const auto collections = inCollections(e.event.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       events.emplace_front(e.event);
       return true;
     }
@@ -424,6 +427,9 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
       s.data = e.oldData;
 
       changedSeries.insert(e.event.seriesId);
+      const auto collections = inCollections(e.event.seriesId);
+      changedSeries.insert(collections.begin(), collections.end());
+
       events.emplace_front(e.event);
       return true;
     }
@@ -475,25 +481,28 @@ void ChartManager::widgetClosed(ChartWidget *widget) {
   chartWidgets.erase(std::remove(chartWidgets.begin(), chartWidgets.end(), widget), chartWidgets.end());
 }
 
-void ChartManager::updateCollectionRanges(uint32_t seriesId, double x, double y) {
+void ChartManager::updateCollectionRanges(unsigned int seriesId, double x, double y) {
+  using BoundMode = parser::ValueAxis::BoundMode;
 
-  // TODO: Update
-  //  for (auto &iterator : series) {
-  //    // Only update collections
-  //    if (!std::holds_alternative<ChartManager::SeriesCollectionTie>(iterator.second))
-  //      continue;
-  //
-  //    auto &collection = std::get<ChartManager::SeriesCollectionTie>(iterator.second);
-  //
-  //    // Only update the collection's ranges if it actually contains the series
-  //    if (std::find(collection.model.series.begin(), collection.model.series.end(), seriesId) !=
-  //        collection.model.series.end()) {
-  //      if (collection.model.xAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-  //        updateRange(collection.xAxis, x);
-  //      if (collection.model.yAxis.boundMode == parser::ValueAxis::BoundMode::HighestValue)
-  //        updateRange(collection.yAxis, y);
-  //    }
-  //  }
+  for (auto &[key, value] : series) {
+    // We're only concerned about collections
+    // so we can skip everything else
+    if (!std::holds_alternative<SeriesCollectionTie>(value))
+      continue;
+
+    // Not `const` as we may need to change ranges
+    auto &tie = std::get<SeriesCollectionTie>(value);
+    const auto &model = tie.model;
+
+    // If the series isn't in the collection, then we can skip it
+    if (std::find(model.series.begin(), model.series.end(), seriesId) == model.series.end())
+      continue;
+    if (model.xAxis.boundMode == BoundMode::HighestValue)
+      updateRange(tie.XRange, x);
+
+    if (model.yAxis.boundMode == BoundMode::HighestValue)
+      updateRange(tie.YRange, y);
+  }
 }
 
 ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
@@ -505,29 +514,6 @@ ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
   }
 
   return seriesIterator->second;
-}
-
-void ChartManager::seriesSelected(const ChartWidget *widget, unsigned int selected) {
-  if (selected == PlaceholderId)
-    return;
-
-  clearSeries(widget, selected);
-
-  // If a collection was selected, clear the child series
-  const auto &tie = series[selected];
-  if (std::holds_alternative<SeriesCollectionTie>(tie)) {
-    const auto &tieValue = std::get<SeriesCollectionTie>(tie);
-
-    for (const auto seriesId : tieValue.model.series)
-      clearSeries(widget, seriesId);
-  } else if (std::holds_alternative<XYSeriesTie>(tie)) {
-    // Clear all the collections this series belongs to as well
-    // Only XYSeries may belong to collections
-    const auto &tieModel = std::get<XYSeriesTie>(tie).model;
-    const auto collections = inCollections(tieModel.id);
-    for (const auto id : collections)
-      clearSeries(widget, id);
-  }
 }
 
 void ChartManager::timeChanged(parser::nanoseconds time, parser::nanoseconds increment) {

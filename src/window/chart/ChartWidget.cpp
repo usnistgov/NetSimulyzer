@@ -49,7 +49,6 @@ void ChartWidget::seriesSelected(int index) {
   clearChart();
   auto selectedSeriesId = ui.comboBoxSeries->itemData(index).toUInt();
 
-  manager.seriesSelected(this, selectedSeriesId);
   currentSeries = selectedSeriesId;
 
   // ID for the "Select Series" element
@@ -95,30 +94,33 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
-  // TODO: Implement
-  assert(false);
-  /*
-  const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
-  setWindowTitle(name);
+  ui.chartView->clearItems();
 
   for (auto seriesId : tie.model.series) {
-    const auto &seriesVariant = manager.getSeries(seriesId);
+    const auto &seriesTie = manager.getSeries(seriesId);
 
-    if (std::holds_alternative<ChartManager::XYSeriesTie>(seriesVariant)) {
-      const auto &xySeries = std::get<ChartManager::XYSeriesTie>(seriesVariant);
-      chart.addSeries(xySeries.qtSeries);
+    if (!std::holds_alternative<ChartManager::XYSeriesTie>(seriesTie)) {
+      std::cerr << "Tried to add non-XYSeries to collection, skipping!\n";
+      continue;
     }
+
+    const auto series = std::get<ChartManager::XYSeriesTie>(seriesTie);
+
+    auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+    curve->setScatterStyle(series.scatterStyle);
+    if (series.model.connection == parser::XYSeries::Connection::None)
+      curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+
+    // Color
+    curve->setPen(series.pen);
+
+    curve->setData(series.data);
+    curve->setName(QString::fromStdString(series.model.name));
   }
 
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  for (auto chartSeries : chart.series()) {
-    chartSeries->attachAxis(tie.xAxis);
-    chartSeries->attachAxis(tie.yAxis);
-  }
-   */
+  // Undo any changes from a CategoryValueSeries
+  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+  setWindowTitle(QString::fromStdString(tie.model.name));
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
@@ -140,22 +142,6 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   setWindowTitle(name);
 
   ui.chartView->replot();
-  /*
-  const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
-  setWindowTitle(name);
-
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
-   */
 }
 
 void ChartWidget::clearChart() {
@@ -362,6 +348,20 @@ void ChartWidget::dataChanged(const ChartManager::CategoryValueTie &tie) const {
 
   if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
     ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  ui.chartView->replot();
+}
+
+void ChartWidget::dataChanged(const ChartManager::SeriesCollectionTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  if (tie.model.yAxis.boundMode == BoundMode::HighestValue && tie.YRange != ui.chartView->yAxis->range()) {
+    ui.chartView->yAxis->setRange(tie.YRange);
   }
 
   ui.chartView->replot();
