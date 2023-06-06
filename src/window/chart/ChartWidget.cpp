@@ -85,6 +85,10 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
 
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
+
   // Color
   curve->setPen(tie.pen);
 
@@ -129,6 +133,10 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
 
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
+
   setWindowTitle(QString::fromStdString(tie.model.name));
 
   ui.chartView->replot();
@@ -151,6 +159,10 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   // Range
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
+
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
 
   curve->setData(tie.data);
   curve->setName(name);
