@@ -81,6 +81,29 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   // Undo any changes from a CategoryValueSeries
   ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Y Axis
+  switch (tie.model.yAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
   // Range
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
@@ -130,6 +153,29 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
   // Undo any changes from a CategoryValueSeries
   ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Y Axis
+  switch (tie.model.yAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
   // Range
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
@@ -159,6 +205,19 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   const auto name = QString::fromStdString(tie.model.name);
 
   ui.chartView->yAxis->setTicker(tie.labelTicker);
+
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
 
   // Range
   ui.chartView->xAxis->setRange(tie.XRange);
