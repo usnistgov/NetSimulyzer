@@ -67,8 +67,6 @@ public:
 
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QAbstractAxis *yAxis;
     QCPRange XRange;
     QCPRange YRange;
   };
@@ -89,8 +87,7 @@ public:
     QPen pen;
     QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
     QCPRange XRange;
-    // Y-axis on category charts is a fixed size
-    // so, no Y Range
+    QCPRange YRange; // Fixed range containing the category IDs
     parser::nanoseconds lastUpdatedTime;
   };
 

@@ -81,6 +81,10 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   // Undo any changes from a CategoryValueSeries
   ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
+
   // Color
   curve->setPen(tie.pen);
 
@@ -120,7 +124,14 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
 
   // Undo any changes from a CategoryValueSeries
   ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
+
   setWindowTitle(QString::fromStdString(tie.model.name));
+
+  ui.chartView->replot();
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
@@ -136,6 +147,10 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   const auto name = QString::fromStdString(tie.model.name);
 
   ui.chartView->yAxis->setTicker(tie.labelTicker);
+
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
 
   curve->setData(tie.data);
   curve->setName(name);

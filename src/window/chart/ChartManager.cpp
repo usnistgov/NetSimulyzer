@@ -77,6 +77,9 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   //  tie.qtSeries->setName(QString::fromStdString(model.legend));
 
   // X Axis
+  tie.XRange.upper = model.xAxis.max;
+  tie.XRange.lower = model.xAxis.min;
+
   //  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
   //    tie.xAxis = new QtCharts::QValueAxis(this);
   //  else
@@ -86,6 +89,8 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   //  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
 
   // Y Axis
+  tie.YRange.upper = model.yAxis.max;
+  tie.YRange.lower = model.yAxis.min;
   //  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
   //    tie.yAxis = new QtCharts::QValueAxis(this);
   //  else
@@ -117,21 +122,12 @@ ChartManager::SeriesCollectionTie ChartManager::makeTie(const parser::SeriesColl
   tie.model = model;
 
   // X Axis
-  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.xAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.xAxis = new QtCharts::QLogValueAxis(this);
-  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
-  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
+  tie.XRange.upper = model.xAxis.max;
+  tie.XRange.lower = model.xAxis.min;
 
   // Y Axis
-  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
-    tie.yAxis = new QtCharts::QValueAxis(this);
-  else
-    tie.yAxis = new QtCharts::QLogValueAxis(this);
-  tie.yAxis = new QtCharts::QValueAxis(this);
-  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
-  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
+  tie.YRange.upper = model.yAxis.max;
+  tie.YRange.lower = model.yAxis.min;
 
   return tie;
 }
@@ -142,10 +138,21 @@ ChartManager::CategoryValueTie ChartManager::makeTie(const parser::CategoryValue
 
   tie.pen.setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
 
+  // X Axis (value)
+  tie.XRange.upper = model.xAxis.max;
+  tie.XRange.lower = model.xAxis.min;
+
+  auto minId = tie.model.yAxis.values[0].id;
+  auto maxId = tie.model.yAxis.values[0].id;
   // Y axis (categories)
   for (const auto &category : tie.model.yAxis.values) {
     tie.labelTicker->addTick(category.id, QString::fromStdString(category.name));
+    minId = std::min(category.id, minId);
+    maxId = std::max(category.id, maxId);
   }
+  tie.YRange.lower = static_cast<double>(minId);
+  tie.YRange.upper = static_cast<double>(maxId);
+
   return tie;
 }
 
