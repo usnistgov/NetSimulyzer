@@ -32,12 +32,12 @@
  */
 
 #include "ControlsChartView.h"
-#include <QtCharts/QChart>
+#include <QClipboard>
+#include <QFileDialog>
+#include <QGuiApplication>
 #include <QMenu>
 #include <QPixmap>
-#include <QFileDialog>
-#include <QClipboard>
-#include <QGuiApplication>
+#include <QtCharts/QChart>
 /*
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
@@ -166,28 +166,32 @@ void ControlsChartView::wheelEvent(QWheelEvent *event) {
   QCustomPlot::wheelEvent(event);
 }
 */
-void ControlsChartView::contextMenuEvent(QContextMenuEvent *event){
-    QMenu menu;
-    menu.addAction("Save Chart Image", [this](){
-        const auto image = grab();
-        const auto fileName = QFileDialog::getSaveFileName(this, "Save Chart Image", "", "Images (*.png *.jpeg)");
-        if (fileName.isEmpty()){
-            return;
-        }
-        image.save(fileName);
-    });
+void ControlsChartView::contextMenuEvent(QContextMenuEvent *event) {
+  QMenu menu;
+  menu.addAction("Save Chart Image", [this]() {
+    const auto image = grab();
+    const auto fileName = QFileDialog::getSaveFileName(this, "Save Chart Image", "", "Images (*.png *.jpeg)");
+    if (fileName.isEmpty()) {
+      return;
+    }
+    image.save(fileName);
+  });
 
-    menu.addAction("Copy Chart Image to Clipboard", [this](){
-        auto image = grab();
-        auto clipboard = QGuiApplication::clipboard();
-        clipboard->setPixmap(image);
-    });
+  menu.addAction("Copy Chart Image to Clipboard", [this]() {
+    auto image = grab();
+    auto clipboard = QGuiApplication::clipboard();
+    clipboard->setPixmap(image);
+  });
 
-    menu.exec(event->globalPos());
+  menu.exec(event->globalPos());
 }
 
-
-ControlsChartView::ControlsChartView(QWidget *parent) : QCustomPlot(parent) {
+ControlsChartView::ControlsChartView(QWidget *parent)
+    : QCustomPlot(parent), title(std::make_unique<QCPTextElement>(this, "")) {
   setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
+  plotLayout()->insertRow(0);
+  plotLayout()->addElement(0, 0, title.get());
+
   // TODO: Keyboard controls maybe
 }

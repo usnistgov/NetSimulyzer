@@ -83,4 +83,7 @@ public:
    * The widget that contains this one
    */
   ControlsChartView(QWidget *parent);
+
+  std::unique_ptr<QCPTextElement> title;
+
 };

@@ -96,6 +96,7 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
 
   curve->setData(tie.data);
   curve->setName(name);
+  ui.chartView->title->setText(name);
   setWindowTitle(name);
 
   ui.chartView->replot();
@@ -137,7 +138,10 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
   ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
   ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
 
-  setWindowTitle(QString::fromStdString(tie.model.name));
+  // Title
+  const auto name = QString::fromStdString(tie.model.name);
+  setWindowTitle(name);
+  ui.chartView->title->setText(name);
 
   ui.chartView->replot();
 }
@@ -166,6 +170,7 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 
   curve->setData(tie.data);
   curve->setName(name);
+  ui.chartView->title->setText(name);
   setWindowTitle(name);
 
   ui.chartView->replot();
@@ -174,7 +179,9 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 void ChartWidget::clearChart() {
   ui.chartView->clearItems();
   setWindowTitle("Chart Widget");
+  ui.chartView->title->setText(QString{});
   ui.chartView->clearPlottables();
+  ui.chartView->replot();
   /*
   // Remove old axes
   auto currentAxes = chart.axes();
