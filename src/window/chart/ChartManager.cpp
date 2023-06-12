@@ -109,9 +109,6 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   case parser::XYSeries::Connection::Line:
     tie.scatterStyle.setShape(QCPScatterStyle::ssNone);
     break;
-  case parser::XYSeries::Connection::Spline:
-    //    tie.qtSeries = new QtCharts::QSplineSeries(this);
-    break;
   }
 
   return tie;
