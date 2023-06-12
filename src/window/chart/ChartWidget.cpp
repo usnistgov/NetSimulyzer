@@ -42,6 +42,7 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QSplineSeries>
 #include <utility>
+#include <variant>
 
 namespace netsimulyzer {
 
@@ -218,7 +219,6 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
     break;
   }
 
-
   // Range
   ui.chartView->xAxis->setRange(tie.XRange);
   ui.chartView->yAxis->setRange(tie.YRange);
@@ -280,6 +280,7 @@ void ChartWidget::closeEvent(QCloseEvent *event) {
 ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries)
     : QDockWidget(parent), manager(manager), dropdownValues(std::move(initialSeries)) {
   ui.setupUi(this);
+  ui.chartView->setChartWidget(this);
   setWindowTitle("Chart Widget");
   /*
 
@@ -467,6 +468,17 @@ void ChartWidget::clearSelected() {
 
 unsigned int ChartWidget::getCurrentSeries() const {
   return currentSeries;
+}
+ChartWidget::RangePair ChartWidget::getTieRange() const {
+  if (currentSeries == ChartManager::PlaceholderId)
+    return {};
+
+  const auto &tie = manager.getSeries(currentSeries);
+  return std::visit(
+      [](auto &&t) -> ChartWidget::RangePair {
+        return {t.XRange, t.YRange};
+      },
+      tie);
 }
 
 } // namespace netsimulyzer

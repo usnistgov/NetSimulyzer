@@ -32,13 +32,14 @@
  */
 
 #include "ControlsChartView.h"
+#include "src/window/chart/ChartWidget.h"
 #include <QClipboard>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMenu>
 #include <QPixmap>
 #include <QtCharts/QChart>
-/*
+
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
   const auto alt = event->modifiers() & Qt::KeyboardModifier::AltModifier;
@@ -47,85 +48,48 @@ void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_Plus:
     [[fallthrough]];
   case Qt::Key_Equal: // Allow the + key next to Backspace to be used (without Shift)
-    // Horizontal zoom
-    if (ctrl) {
-      auto area = chart()->plotArea();
-      area.setWidth(area.width() / zoomFactor);
-      chart()->zoomIn(area);
-    } else if (alt) { // Vertical Zoom
-      auto area = chart()->plotArea();
-      area.setHeight(area.height() / zoomFactor);
-      chart()->zoomIn(area);
-    } else // Horizontal & Vertical zoom
-      chart()->zoom(zoomFactor);
+    if (ctrl)         // Horizontal zoom
+      xAxis->scaleRange(zoomFactor);
+    else if (alt) // Vertical Zoom
+      yAxis->scaleRange(zoomFactor);
+    else { // Horizontal & Vertical zoom
+      xAxis->scaleRange(zoomFactor);
+      yAxis->scaleRange(zoomFactor);
+    }
+    replot();
     break;
   case Qt::Key_Minus:
-    // Horizontal zoom
-    if (ctrl) {
-      auto area = chart()->plotArea();
-      area.setWidth(area.width() * zoomFactor);
-      chart()->zoomIn(area);
-    } else if (alt) { // Vertical Zoom
-      auto area = chart()->plotArea();
-      area.setHeight(area.height() * zoomFactor);
-      chart()->zoomIn(area);
-    } else // Horizontal & Vertical zoom
-      chart()->zoom(1.0 / zoomFactor);
+    if (ctrl) // Horizontal zoom
+      xAxis->scaleRange(1.0 / zoomFactor);
+    else if (alt) // Vertical Zoom
+      yAxis->scaleRange(1.0 / zoomFactor);
+    else { // Horizontal & Vertical zoom
+      xAxis->scaleRange(1.0 / zoomFactor);
+      yAxis->scaleRange(1.0 / zoomFactor);
+    }
+    replot();
     break;
-  case Qt::Key_R:
-    chart()->zoomReset();
-    break;
+  case Qt::Key_R: {
+    const auto &range = chartWidget->getTieRange();
+    xAxis->setRange(range.x);
+    yAxis->setRange(range.y);
+    replot();
+  } break;
   case Qt::Key_Left:
-    chart()->scroll(-scrollMagnitude, 0);
+    //    chart()->scroll(-scrollMagnitude, 0);
     break;
   case Qt::Key_Right:
-    chart()->scroll(scrollMagnitude, 0);
+    //    chart()->scroll(scrollMagnitude, 0);
     break;
   case Qt::Key_Up:
-    chart()->scroll(0, scrollMagnitude);
+    //    chart()->scroll(0, scrollMagnitude);
     break;
   case Qt::Key_Down:
-    chart()->scroll(0, -scrollMagnitude);
-    break;
-  default:
-    QCustomPlot::keyPressEvent(event);
+    //    chart()->scroll(0, -scrollMagnitude);
     break;
   }
+  QCustomPlot::keyPressEvent(event);
 }
-
-void ControlsChartView::mousePressEvent(QMouseEvent *event) {
-  QCustomPlot::mousePressEvent(event);
-
-  // Only allow moves with Left Mouse
-  if (!(event->buttons() & Qt::LeftButton))
-    return;
-
-  mouseDown = true;
-  lastMousePosition = event->pos();
-}
-void ControlsChartView::mouseMoveEvent(QMouseEvent *event) {
-  QCustomPlot::mouseMoveEvent(event);
-  if (!mouseDown)
-    return;
-
-  auto delta = lastMousePosition - event->pos();
-
-  // Invert delta Y otherwise the movement on the Y axis will
-  // be inverted relative to mouse movements
-  // (e.g. moving the mouse down will move the chart up)
-  chart()->scroll(delta.x(), -delta.y());
-  lastMousePosition = event->pos();
-}
-void ControlsChartView::mouseReleaseEvent(QMouseEvent *event) {
-  QCustomPlot::mouseReleaseEvent(event);
-
-  // If the event was fired but LeftMouse is still down
-  if (event->buttons() & Qt::LeftButton)
-    return;
-
-  mouseDown = false;
-}
-
 
 void ControlsChartView::wheelEvent(QWheelEvent *event) {
   const auto delta = event->angleDelta().y();
@@ -134,38 +98,33 @@ void ControlsChartView::wheelEvent(QWheelEvent *event) {
     return;
   }
 
-  const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
-  const auto alt = event->modifiers() & Qt::KeyboardModifier::AltModifier;
+  const auto horizontal = event->modifiers() & Qt::KeyboardModifier::ControlModifier;
+  const auto vertical = event->modifiers() & Qt::KeyboardModifier::AltModifier;
 
   if (delta > 0) {
-    // Horizontal zoom
-    if (ctrl) {
-      auto area = chart()->plotArea();
-      area.setWidth(area.width() / zoomFactor);
-      chart()->zoomIn(area);
-    } else if (alt) { // Vertical Zoom
-      auto area = chart()->plotArea();
-      area.setHeight(area.height() / zoomFactor);
-      chart()->zoomIn(area);
-    } else // Horizontal & Vertical zoom
-      chart()->zoom(zoomFactor);
+    if (horizontal)
+      xAxis->scaleRange(zoomFactor);
+    else if (vertical)
+      yAxis->scaleRange(zoomFactor);
+    else { // Horizontal & Vertical zoom
+      xAxis->scaleRange(zoomFactor);
+      yAxis->scaleRange(zoomFactor);
+    }
+    replot();
   } else { // delta < 0
-    // Horizontal zoom
-    if (ctrl) {
-      auto area = chart()->plotArea();
-      area.setWidth(area.width() * zoomFactor);
-      chart()->zoomIn(area);
-    } else if (alt) { // Vertical Zoom
-      auto area = chart()->plotArea();
-      area.setHeight(area.height() * zoomFactor);
-      chart()->zoomIn(area);
-    } else // Horizontal & Vertical zoom
-      chart()->zoom(1.0 / zoomFactor);
+    if (horizontal)
+      xAxis->scaleRange(1.0 / zoomFactor);
+    else if (vertical)
+      yAxis->scaleRange(1.0 / zoomFactor);
+    else {
+      xAxis->scaleRange(1.0 / zoomFactor);
+      yAxis->scaleRange(1.0 / zoomFactor);
+    }
+    replot();
   }
-
   QCustomPlot::wheelEvent(event);
 }
-*/
+
 void ControlsChartView::contextMenuEvent(QContextMenuEvent *event) {
   QMenu menu;
   menu.addAction("Save Chart Image", [this]() {
@@ -188,10 +147,15 @@ void ControlsChartView::contextMenuEvent(QContextMenuEvent *event) {
 
 ControlsChartView::ControlsChartView(QWidget *parent)
     : QCustomPlot(parent), title(std::make_unique<QCPTextElement>(this, "")) {
-  setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
+  // No `iRangeZoom`, since we handle that by hand
+  setInteractions(QCP::iRangeDrag);
+  legend->setVisible(true);
 
   plotLayout()->insertRow(0);
   plotLayout()->addElement(0, 0, title.get());
+}
 
-  // TODO: Keyboard controls maybe
+void ControlsChartView::setChartWidget(netsimulyzer::ChartWidget *value) {
+  chartWidget = value;
 }

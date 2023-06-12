@@ -95,6 +95,23 @@ public:
    * or 0u in no series is selected
    */
   [[nodiscard]] unsigned int getCurrentSeries() const;
+
+  struct RangePair {
+    QCPRange x;
+    QCPRange y;
+  };
+
+  /**
+   * Get the range of the current series.
+   * If no series is selected, returns a
+   * default constructed (invalid) range
+   *
+   * @return
+   * The current tie range, or an invalid range
+   * if no series is selected
+   */
+  [[nodiscard]]
+  RangePair getTieRange() const;
 };
 
 } // namespace netsimulyzer
