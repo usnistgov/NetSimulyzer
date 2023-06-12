@@ -123,7 +123,7 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   const auto name = QString::fromStdString(tie.model.name);
 
   curve->setData(tie.data);
-  curve->setName(name);
+  curve->setName(QString::fromStdString(tie.model.legend));
   ui.chartView->title->setText(name);
   setWindowTitle(name);
 
@@ -152,7 +152,7 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
     curve->setPen(series.pen);
 
     curve->setData(series.data);
-    curve->setName(QString::fromStdString(series.model.name));
+    curve->setName(QString::fromStdString(series.model.legend));
 
     // Point Labels
     if (series.model.labelMode == parser::XYSeries::LabelMode::Shown)
@@ -233,7 +233,7 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
 
   curve->setData(tie.data);
-  curve->setName(name);
+  curve->setName(QString::fromStdString(tie.model.legend));
   ui.chartView->title->setText(name);
   setWindowTitle(name);
 
