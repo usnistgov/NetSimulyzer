@@ -154,7 +154,7 @@ ControlsChartView::ControlsChartView(QWidget *parent)
 
   // No `iRangeZoom`, since we handle that by hand
   setInteractions(QCP::iRangeDrag);
-  legend->setVisible(true);
+  legend->setVisible(false);
 
   plotLayout()->insertRow(0);
   plotLayout()->addElement(0, 0, title.get());

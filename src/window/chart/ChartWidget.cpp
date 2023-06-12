@@ -55,8 +55,11 @@ void ChartWidget::seriesSelected(int index) {
   // ID for the "Select Series" element
   if (selectedSeriesId == ChartManager::PlaceholderId) {
     setWindowTitle("Chart Widget");
+    ui.chartView->legend->setVisible(false);
     return;
   }
+  // Only show the legend when we're actually showing something
+  ui.chartView->legend->setVisible(true);
 
   auto &s = manager.getSeries(selectedSeriesId);
 
@@ -69,7 +72,7 @@ void ChartWidget::seriesSelected(int index) {
 }
 
 void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
-  ui.chartView->clearItems();
+  clearChart();
 
   // This is linked to the plot through the X Axis
   // and is deleted by `clearItems()`
@@ -78,9 +81,6 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   curve->setScatterStyle(tie.scatterStyle);
   if (tie.model.connection == parser::XYSeries::Connection::None)
     curve->setLineStyle(QCPCurve::LineStyle::lsNone);
-
-  // Undo any changes from a CategoryValueSeries
-  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
   // Linear/Log Scale
   // X Axis
@@ -131,7 +131,7 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
-  ui.chartView->clearItems();
+  clearChart();
 
   for (auto seriesId : tie.model.series) {
     const auto &seriesTie = manager.getSeries(seriesId);
@@ -158,9 +158,6 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
     if (series.model.labelMode == parser::XYSeries::LabelMode::Shown)
       generateLabels(series.data.get());
   }
-
-  // Undo any changes from a CategoryValueSeries
-  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
   // Linear/Log Scale
   // X Axis
@@ -202,7 +199,7 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
-  ui.chartView->clearItems();
+  clearChart();
 
   // This is linked to the plot through the X Axis
   // and is deleted by `clearItems()`
@@ -245,7 +242,16 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 
 void ChartWidget::clearChart() {
   ui.chartView->clearItems();
+  ui.chartView->clearPlottables();
   pointLabels.clear(); // cleared by `clearItems`
+
+  // Clear tickers
+  ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+
+  // Clear axis labels
+  ui.chartView->xAxis->setLabel(QString{});
+  ui.chartView->yAxis->setLabel(QString{});
 
   setWindowTitle("Chart Widget");
   ui.chartView->title->setText(QString{});
