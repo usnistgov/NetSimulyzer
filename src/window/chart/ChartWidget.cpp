@@ -113,6 +113,10 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
   ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
 
+  // Point Labels
+  if (tie.model.labelMode == parser::XYSeries::LabelMode::Shown)
+    generateLabels(tie.data.get());
+
   // Color
   curve->setPen(tie.pen);
 
@@ -149,6 +153,10 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
 
     curve->setData(series.data);
     curve->setName(QString::fromStdString(series.model.name));
+
+    // Point Labels
+    if (series.model.labelMode == parser::XYSeries::LabelMode::Shown)
+      generateLabels(series.data.get());
   }
 
   // Undo any changes from a CategoryValueSeries
@@ -237,37 +245,12 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 
 void ChartWidget::clearChart() {
   ui.chartView->clearItems();
+  pointLabels.clear(); // cleared by `clearItems`
+
   setWindowTitle("Chart Widget");
   ui.chartView->title->setText(QString{});
   ui.chartView->clearPlottables();
   ui.chartView->replot();
-  /*
-  // Remove old axes
-  auto currentAxes = chart.axes();
-
-  // Remove currently attached series
-  for (const auto &activeSeries : chart.series()) {
-    // Detach the axes from each series,
-    // then they may be removed from the chart
-    for (const auto &axis : currentAxes) {
-      activeSeries->detachAxis(axis);
-    }
-
-    chart.removeSeries(activeSeries);
-    // The chart claims ownership of the series when it's attached
-    activeSeries->setParent(&manager);
-  }
-
-  for (const auto &axis : currentAxes) {
-    chart.removeAxis(axis);
-
-    // Reclaim ownership of the axis
-    // Since the chart takes it when it is attached
-    axis->setParent(&manager);
-  }
-
-  chart.setTitle("");
-   */
 }
 
 void ChartWidget::closeEvent(QCloseEvent *event) {
@@ -282,17 +265,6 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<Cha
   ui.setupUi(this);
   ui.chartView->setChartWidget(this);
   setWindowTitle("Chart Widget");
-  /*
-
-  chart.legend()->setVisible(true);
-  chart.legend()->setAlignment(Qt::AlignBottom);
-
-  // Remove padding
-  chart.layout()->setContentsMargins(0, 0, 0, 0);
-  chart.setBackgroundRoundness(0.0);
-
-//  ui.chartView->setChart(&chart);
-   */
 
   sortDropdown();
   populateDropdown();
@@ -434,6 +406,11 @@ void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
     ui.chartView->yAxis->setRange(tie.YRange);
   }
 
+  if (tie.model.labelMode == parser::XYSeries::LabelMode::Shown) {
+    clearLabels();
+    generateLabels(tie.data.get());
+  }
+
   ui.chartView->replot();
 }
 
@@ -458,6 +435,15 @@ void ChartWidget::dataChanged(const ChartManager::SeriesCollectionTie &tie) cons
     ui.chartView->yAxis->setRange(tie.YRange);
   }
 
+  for (const auto seriesId : tie.model.series) {
+    // Only XY Series allowed in collections
+    const auto childSeries = manager.getXySeries(seriesId);
+
+    clearLabels();
+    if (childSeries.model.labelMode == parser::XYSeries::LabelMode::Shown)
+      generateLabels(childSeries.data.get());
+  }
+
   ui.chartView->replot();
 }
 
@@ -479,6 +465,28 @@ ChartWidget::RangePair ChartWidget::getTieRange() const {
         return {t.XRange, t.YRange};
       },
       tie);
+}
+
+void ChartWidget::generateLabels(const QCPCurveDataContainer *data) const {
+  // TODO: I _really_ don't like this...
+  for (auto i = data->constBegin(); i != data->constEnd(); i++) {
+    const auto point = *i;
+    auto text = new QCPItemText{ui.chartView};
+
+    text->setPositionAlignment(Qt::AlignBottom | Qt::AlignHCenter);
+    text->position->setCoords(point.key, point.value);
+    text->position->setType(QCPItemPosition::ptPlotCoords);
+
+    text->setText(QString("%1, %2").arg(point.key).arg(point.value));
+    pointLabels.emplace_back(text);
+  }
+}
+
+void ChartWidget::clearLabels() const {
+  for (auto item : pointLabels) {
+    ui.chartView->removeItem(item);
+  }
+  pointLabels.clear();
 }
 
 } // namespace netsimulyzer

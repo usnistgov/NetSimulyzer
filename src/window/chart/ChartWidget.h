@@ -54,6 +54,7 @@ class ChartWidget : public QDockWidget {
   SettingsManager::ChartDropdownSortOrder sortOrder =
       settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
 
+  mutable std::vector<QCPItemText*> pointLabels;
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
   void showSeries(const ChartManager::SeriesCollectionTie &tie);
@@ -63,6 +64,9 @@ class ChartWidget : public QDockWidget {
    * Remove all axes & series from the chart
    */
   void clearChart();
+
+  void generateLabels(const QCPCurveDataContainer *data) const;
+  void clearLabels() const;
 
 protected:
   void closeEvent(QCloseEvent *event) override;

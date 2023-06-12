@@ -177,6 +177,7 @@ public:
                  const std::vector<parser::SeriesCollection> &collections,
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);
   TieVariant &getSeries(uint32_t seriesId);
+  XYSeriesTie &getXySeries(unsigned int seriesId);
 
   void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);

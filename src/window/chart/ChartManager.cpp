@@ -523,6 +523,19 @@ ChartManager::TieVariant &ChartManager::getSeries(uint32_t seriesId) {
   return seriesIterator->second;
 }
 
+ChartManager::XYSeriesTie &ChartManager::getXySeries(unsigned int seriesId) {
+  auto &tie = getSeries(seriesId);
+
+  // Just in case
+  if (!std::holds_alternative<XYSeriesTie>(tie)) {
+    QMessageBox::critical(qobject_cast<QMainWindow *>(parent()), "Variant Type Mismatch",
+                          "Tried to retrieve an XYSeries from a variant containing another type");
+    std::abort();
+  }
+
+  return std::get<XYSeriesTie>(tie);
+}
+
 void ChartManager::timeChanged(parser::nanoseconds time, parser::nanoseconds increment) {
   if (increment > 0LL)
     timeAdvanced(time);
