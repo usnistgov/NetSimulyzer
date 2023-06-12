@@ -71,7 +71,7 @@ class ControlsChartView : public QCustomPlot {
   /**
    * The amount to move the chart scrolling
    */
-  const double scrollMagnitude = 10.0;
+  const double scrollMagnitude = 1.0;
 
   netsimulyzer::ChartWidget *chartWidget{nullptr};
 

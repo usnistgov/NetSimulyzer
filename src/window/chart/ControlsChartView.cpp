@@ -76,16 +76,20 @@ void ControlsChartView::keyPressEvent(QKeyEvent *event) {
     replot();
   } break;
   case Qt::Key_Left:
-    //    chart()->scroll(-scrollMagnitude, 0);
+    xAxis->moveRange(-scrollMagnitude);
+    replot();
     break;
   case Qt::Key_Right:
-    //    chart()->scroll(scrollMagnitude, 0);
+    xAxis->moveRange(scrollMagnitude);
+    replot();
     break;
   case Qt::Key_Up:
-    //    chart()->scroll(0, scrollMagnitude);
+    yAxis->moveRange(scrollMagnitude);
+    replot();
     break;
   case Qt::Key_Down:
-    //    chart()->scroll(0, -scrollMagnitude);
+    yAxis->moveRange(-scrollMagnitude);
+    replot();
     break;
   }
   QCustomPlot::keyPressEvent(event);
