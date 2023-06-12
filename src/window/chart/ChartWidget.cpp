@@ -61,7 +61,7 @@ void ChartWidget::seriesSelected(int index) {
   // Only show the legend when we're actually showing something
   ui.chartView->legend->setVisible(true);
 
-  auto &s = manager.getSeries(selectedSeriesId);
+  const auto &s = manager.getSeries(selectedSeriesId);
 
   if (std::holds_alternative<ChartManager::XYSeriesTie>(s))
     showSeries(std::get<ChartManager::XYSeriesTie>(s));
