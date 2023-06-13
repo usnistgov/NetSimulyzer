@@ -35,6 +35,12 @@
 
 #include <QPoint>
 #include <QtCharts/QChartView>
+#include <lib/QCustomPlot/qcustomplot.h>
+
+// Pre-declared so we don't have a circular include
+namespace netsimulyzer {
+class ChartWidget;
+}
 
 // Unfortunately I can't have this in the
 // visualizer namespace and use it with
@@ -44,7 +50,7 @@
  * ChartView with mouse/keyboard controls
  * to zoom & move about the graph
  */
-class ControlsChartView : public QtCharts::QChartView {
+class ControlsChartView : public QCustomPlot {
   /**
    * Flag that tracks if the left mouse button is down
    */
@@ -58,19 +64,19 @@ class ControlsChartView : public QtCharts::QChartView {
 
   /**
    * The amount to scale the graph when zooming
+   * \see QCPAxisRect::mRangeZoomFactorHorz
    */
-  const double zoomFactor = 2.0;
+  const double zoomFactor = 0.85;
 
   /**
    * The amount to move the chart scrolling
    */
-  const double scrollMagnitude = 10.0;
+  const double scrollMagnitude = 1.0;
+
+  netsimulyzer::ChartWidget *chartWidget{nullptr};
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
-  void mousePressEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
   void contextMenuEvent(QContextMenuEvent *event) override;
 
@@ -82,4 +88,8 @@ public:
    * The widget that contains this one
    */
   ControlsChartView(QWidget *parent);
+
+  void setChartWidget(netsimulyzer::ChartWidget *value);
+
+  std::unique_ptr<QCPTextElement> title;
 };

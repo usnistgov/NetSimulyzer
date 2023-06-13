@@ -35,9 +35,6 @@
     </item>
     <item>
      <widget class="ControlsChartView" name="chartView">
-      <property name="renderHints">
-       <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
-      </property>
      </widget>
     </item>
    </layout>
@@ -46,7 +43,7 @@
  <customwidgets>
   <customwidget>
    <class>ControlsChartView</class>
-   <extends>QGraphicsView</extends>
+   <extends>QWidget</extends>
    <header>src/window/chart/ControlsChartView.h</header>
   </customwidget>
  </customwidgets>

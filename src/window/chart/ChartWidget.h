@@ -48,13 +48,13 @@ class ChartWidget : public QDockWidget {
 
   ChartManager &manager;
   SettingsManager settings{};
-  QtCharts::QChart chart;
   Ui::ChartWidget ui{};
   unsigned int currentSeries{ChartManager::PlaceholderId};
   std::vector<ChartManager::DropdownValue> dropdownValues;
   SettingsManager::ChartDropdownSortOrder sortOrder =
       settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
 
+  mutable std::vector<QCPItemText*> pointLabels;
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
   void showSeries(const ChartManager::SeriesCollectionTie &tie);
@@ -64,6 +64,9 @@ class ChartWidget : public QDockWidget {
    * Remove all axes & series from the chart
    */
   void clearChart();
+
+  void generateLabels(const QCPCurveDataContainer *data) const;
+  void clearLabels() const;
 
 protected:
   void closeEvent(QCloseEvent *event) override;
@@ -76,6 +79,10 @@ public:
   void populateDropdown();
   void reset();
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
+
+  void dataChanged(const ChartManager::XYSeriesTie &tie) const;
+  void dataChanged(const ChartManager::CategoryValueTie &tie) const;
+  void dataChanged(const ChartManager::SeriesCollectionTie &tie) const;
 
   /**
    * Unselects the current series
@@ -92,6 +99,23 @@ public:
    * or 0u in no series is selected
    */
   [[nodiscard]] unsigned int getCurrentSeries() const;
+
+  struct RangePair {
+    QCPRange x;
+    QCPRange y;
+  };
+
+  /**
+   * Get the range of the current series.
+   * If no series is selected, returns a
+   * default constructed (invalid) range
+   *
+   * @return
+   * The current tie range, or an invalid range
+   * if no series is selected
+   */
+  [[nodiscard]]
+  RangePair getTieRange() const;
 };
 
 } // namespace netsimulyzer

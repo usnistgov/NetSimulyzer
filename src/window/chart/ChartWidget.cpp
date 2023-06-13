@@ -33,6 +33,7 @@
 
 #include "ChartWidget.h"
 #include <QConstOverload>
+#include <QDebug>
 #include <QGraphicsLayout>
 #include <QStandardItemModel>
 #include <QString>
@@ -41,6 +42,7 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QSplineSeries>
 #include <utility>
+#include <variant>
 
 namespace netsimulyzer {
 
@@ -48,16 +50,18 @@ void ChartWidget::seriesSelected(int index) {
   clearChart();
   auto selectedSeriesId = ui.comboBoxSeries->itemData(index).toUInt();
 
-  manager.seriesSelected(this, selectedSeriesId);
   currentSeries = selectedSeriesId;
 
   // ID for the "Select Series" element
   if (selectedSeriesId == ChartManager::PlaceholderId) {
     setWindowTitle("Chart Widget");
+    ui.chartView->legend->setVisible(false);
     return;
   }
+  // Only show the legend when we're actually showing something
+  ui.chartView->legend->setVisible(true);
 
-  auto &s = manager.getSeries(selectedSeriesId);
+  const auto &s = manager.getSeries(selectedSeriesId);
 
   if (std::holds_alternative<ChartManager::XYSeriesTie>(s))
     showSeries(std::get<ChartManager::XYSeriesTie>(s));
@@ -68,88 +72,191 @@ void ChartWidget::seriesSelected(int index) {
 }
 
 void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
+  clearChart();
+
+  // This is linked to the plot through the X Axis
+  // and is deleted by `clearItems()`
+  auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+
+  curve->setScatterStyle(tie.scatterStyle);
+  if (tie.model.connection == parser::XYSeries::Connection::None)
+    curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Y Axis
+  switch (tie.model.yAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
+
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
+
+  // Point Labels
+  if (tie.model.labelMode == parser::XYSeries::LabelMode::Shown)
+    generateLabels(tie.data.get());
+
+  // Color
+  curve->setPen(tie.pen);
+
   const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
+
+  curve->setData(tie.data);
+  curve->setName(QString::fromStdString(tie.model.legend));
+  ui.chartView->title->setText(name);
   setWindowTitle(name);
 
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
+  ui.chartView->replot();
 }
 
 void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
-  const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
-  setWindowTitle(name);
+  clearChart();
 
   for (auto seriesId : tie.model.series) {
-    const auto &seriesVariant = manager.getSeries(seriesId);
+    const auto &seriesTie = manager.getSeries(seriesId);
 
-    if (std::holds_alternative<ChartManager::XYSeriesTie>(seriesVariant)) {
-      const auto &xySeries = std::get<ChartManager::XYSeriesTie>(seriesVariant);
-      chart.addSeries(xySeries.qtSeries);
+    if (!std::holds_alternative<ChartManager::XYSeriesTie>(seriesTie)) {
+      std::cerr << "Tried to add non-XYSeries to collection, skipping!\n";
+      continue;
     }
+
+    const auto series = std::get<ChartManager::XYSeriesTie>(seriesTie);
+
+    auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+    curve->setScatterStyle(series.scatterStyle);
+    if (series.model.connection == parser::XYSeries::Connection::None)
+      curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+
+    // Color
+    curve->setPen(series.pen);
+
+    curve->setData(series.data);
+    curve->setName(QString::fromStdString(series.model.legend));
+
+    // Point Labels
+    if (series.model.labelMode == parser::XYSeries::LabelMode::Shown)
+      generateLabels(series.data.get());
   }
 
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  for (auto chartSeries : chart.series()) {
-    chartSeries->attachAxis(tie.xAxis);
-    chartSeries->attachAxis(tie.yAxis);
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
   }
+
+  // Y Axis
+  switch (tie.model.yAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
+
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
+
+  // Title
+  const auto name = QString::fromStdString(tie.model.name);
+  setWindowTitle(name);
+  ui.chartView->title->setText(name);
+
+  ui.chartView->replot();
 }
 
 void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
+  clearChart();
+
+  // This is linked to the plot through the X Axis
+  // and is deleted by `clearItems()`
+  auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+
+  // Color
+  curve->setPen(tie.pen);
+
   const auto name = QString::fromStdString(tie.model.name);
-  chart.setTitle(name);
+
+  ui.chartView->yAxis->setTicker(tie.labelTicker);
+
+  // Linear/Log Scale
+  // X Axis
+  switch (tie.model.xAxis.scale) {
+  case parser::ValueAxis::Scale::Linear:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLinear);
+    break;
+  case parser::ValueAxis::Scale::Logarithmic:
+    ui.chartView->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>::create());
+    break;
+  }
+
+  // Range
+  ui.chartView->xAxis->setRange(tie.XRange);
+  ui.chartView->yAxis->setRange(tie.YRange);
+
+  // Label
+  ui.chartView->xAxis->setLabel(QString::fromStdString(tie.model.xAxis.name));
+  ui.chartView->yAxis->setLabel(QString::fromStdString(tie.model.yAxis.name));
+
+  curve->setData(tie.data);
+  curve->setName(QString::fromStdString(tie.model.legend));
+  ui.chartView->title->setText(name);
   setWindowTitle(name);
 
-  // Qt wants the series on the chart before the axes
-  chart.addSeries(tie.qtSeries);
-
-  chart.addAxis(tie.xAxis, Qt::AlignBottom);
-  chart.addAxis(tie.yAxis, Qt::AlignLeft);
-
-  // The series may only be attached to an axis _after_ both have
-  // been added to the chart...
-  tie.qtSeries->attachAxis(tie.xAxis);
-  tie.qtSeries->attachAxis(tie.yAxis);
+  ui.chartView->replot();
 }
 
 void ChartWidget::clearChart() {
-  // Remove old axes
-  auto currentAxes = chart.axes();
+  ui.chartView->clearItems();
+  ui.chartView->clearPlottables();
+  pointLabels.clear(); // cleared by `clearItems`
 
-  // Remove currently attached series
-  for (const auto &activeSeries : chart.series()) {
-    // Detach the axes from each series,
-    // then they may be removed from the chart
-    for (const auto &axis : currentAxes) {
-      activeSeries->detachAxis(axis);
-    }
+  // Clear tickers
+  ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
 
-    chart.removeSeries(activeSeries);
-    // The chart claims ownership of the series when it's attached
-    activeSeries->setParent(&manager);
-  }
+  // Clear axis labels
+  ui.chartView->xAxis->setLabel(QString{});
+  ui.chartView->yAxis->setLabel(QString{});
 
-  for (const auto &axis : currentAxes) {
-    chart.removeAxis(axis);
-
-    // Reclaim ownership of the axis
-    // Since the chart takes it when it is attached
-    axis->setParent(&manager);
-  }
-
-  chart.setTitle("");
+  setWindowTitle("Chart Widget");
+  ui.chartView->title->setText(QString{});
+  ui.chartView->clearPlottables();
+  ui.chartView->replot();
 }
 
 void ChartWidget::closeEvent(QCloseEvent *event) {
@@ -162,16 +269,8 @@ void ChartWidget::closeEvent(QCloseEvent *event) {
 ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries)
     : QDockWidget(parent), manager(manager), dropdownValues(std::move(initialSeries)) {
   ui.setupUi(this);
+  ui.chartView->setChartWidget(this);
   setWindowTitle("Chart Widget");
-
-  chart.legend()->setVisible(true);
-  chart.legend()->setAlignment(Qt::AlignBottom);
-
-  // Remove padding
-  chart.layout()->setContentsMargins(0, 0, 0, 0);
-  chart.setBackgroundRoundness(0.0);
-
-  ui.chartView->setChart(&chart);
 
   sortDropdown();
   populateDropdown();
@@ -302,6 +401,58 @@ void ChartWidget::setSortOrder(SettingsManager::ChartDropdownSortOrder value) {
   populateDropdown();
 }
 
+void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  if (tie.model.yAxis.boundMode == BoundMode::HighestValue && tie.YRange != ui.chartView->yAxis->range()) {
+    ui.chartView->yAxis->setRange(tie.YRange);
+  }
+
+  if (tie.model.labelMode == parser::XYSeries::LabelMode::Shown) {
+    clearLabels();
+    generateLabels(tie.data.get());
+  }
+
+  ui.chartView->replot();
+}
+
+void ChartWidget::dataChanged(const ChartManager::CategoryValueTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  ui.chartView->replot();
+}
+
+void ChartWidget::dataChanged(const ChartManager::SeriesCollectionTie &tie) const {
+  using BoundMode = parser::ValueAxis::BoundMode;
+
+  if (tie.model.xAxis.boundMode == BoundMode::HighestValue && tie.XRange != ui.chartView->xAxis->range()) {
+    ui.chartView->xAxis->setRange(tie.XRange);
+  }
+
+  if (tie.model.yAxis.boundMode == BoundMode::HighestValue && tie.YRange != ui.chartView->yAxis->range()) {
+    ui.chartView->yAxis->setRange(tie.YRange);
+  }
+
+  for (const auto seriesId : tie.model.series) {
+    // Only XY Series allowed in collections
+    const auto childSeries = manager.getXySeries(seriesId);
+
+    clearLabels();
+    if (childSeries.model.labelMode == parser::XYSeries::LabelMode::Shown)
+      generateLabels(childSeries.data.get());
+  }
+
+  ui.chartView->replot();
+}
+
 void ChartWidget::clearSelected() {
   clearChart();
   ui.comboBoxSeries->setCurrentIndex(0);
@@ -309,6 +460,39 @@ void ChartWidget::clearSelected() {
 
 unsigned int ChartWidget::getCurrentSeries() const {
   return currentSeries;
+}
+ChartWidget::RangePair ChartWidget::getTieRange() const {
+  if (currentSeries == ChartManager::PlaceholderId)
+    return {};
+
+  const auto &tie = manager.getSeries(currentSeries);
+  return std::visit(
+      [](auto &&t) -> ChartWidget::RangePair {
+        return {t.XRange, t.YRange};
+      },
+      tie);
+}
+
+void ChartWidget::generateLabels(const QCPCurveDataContainer *data) const {
+  // TODO: I _really_ don't like this...
+  for (auto i = data->constBegin(); i != data->constEnd(); i++) {
+    const auto point = *i;
+    auto text = new QCPItemText{ui.chartView};
+
+    text->setPositionAlignment(Qt::AlignBottom | Qt::AlignHCenter);
+    text->position->setCoords(point.key, point.value);
+    text->position->setType(QCPItemPosition::ptPlotCoords);
+
+    text->setText(QString("%1, %2").arg(point.key).arg(point.value));
+    pointLabels.emplace_back(text);
+  }
+}
+
+void ChartWidget::clearLabels() const {
+  for (auto item : pointLabels) {
+    ui.chartView->removeItem(item);
+  }
+  pointLabels.clear();
 }
 
 } // namespace netsimulyzer
