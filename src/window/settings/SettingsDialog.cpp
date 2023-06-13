@@ -362,6 +362,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       switch (backgroundColorMode) {
       case BackgroundColor::Black:
         emit backgroundColorChanged(QColorConstants::Black);
+        break;
       case BackgroundColor::White:
         emit backgroundColorChanged(QColorConstants::White);
         break;
