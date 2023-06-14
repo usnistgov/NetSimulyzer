@@ -63,7 +63,7 @@ target_compile_options(assimp PRIVATE -w)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
 
-find_package(Qt5 COMPONENTS Core Widgets Gui Charts PrintSupport REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui PrintSupport REQUIRED)
 add_subdirectory(lib/QCustomPlot)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -99,7 +99,7 @@ target_link_libraries(netsimulyzer PRIVATE parser)
 target_link_libraries(netsimulyzer PRIVATE assimp)
 target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
-target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Charts Qt5::Gui)
+target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
 add_subdirectory(src)

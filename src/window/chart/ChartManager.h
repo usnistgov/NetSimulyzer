@@ -130,18 +130,6 @@ private:
    */
   std::vector<unsigned int> inCollections(unsigned int id);
 
-  /**
-   * Clear the series identified by `id` from
-   * all widgets except for `except`
-   *
-   * @param except
-   * The widget to ignore when clearing selections
-   *
-   * @param id
-   * The ID of the series to clear selections of
-   */
-  void clearSeries(const ChartWidget *except, unsigned int id);
-
   void updateRange(QCPRange &range, double point);
 
   void notifyDataChanged(const XYSeriesTie &tie);

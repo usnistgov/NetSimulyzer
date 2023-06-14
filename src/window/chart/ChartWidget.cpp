@@ -37,10 +37,6 @@
 #include <QGraphicsLayout>
 #include <QStandardItemModel>
 #include <QString>
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QLogValueAxis>
-#include <QtCharts/QScatterSeries>
-#include <QtCharts/QSplineSeries>
 #include <utility>
 #include <variant>
 
@@ -282,10 +278,6 @@ ChartWidget::ChartWidget(QWidget *parent, ChartManager &manager, std::vector<Cha
   setVisible(true);
 }
 
-void ChartWidget::addSeries(ChartManager::DropdownValue dropdownValue) {
-  dropdownValues.emplace_back(dropdownValue);
-}
-
 void ChartWidget::setSeries(std::vector<ChartManager::DropdownValue> values) {
   dropdownValues = std::move(values);
   sortDropdown();
@@ -416,6 +408,10 @@ void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
     clearLabels();
     generateLabels(tie.data.get());
   }
+
+  ui.chartView->xAxis->ticker()->setTickCount(5);
+  ui.chartView->xAxis->ticker()->setTickCount(5);
+  ui.chartView->yAxis->ticker()->setTickCount(5);
 
   ui.chartView->replot();
 }

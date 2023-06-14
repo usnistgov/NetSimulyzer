@@ -54,7 +54,7 @@ class ChartWidget : public QDockWidget {
   SettingsManager::ChartDropdownSortOrder sortOrder =
       settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value();
 
-  mutable std::vector<QCPItemText*> pointLabels;
+  mutable std::vector<QCPItemText *> pointLabels;
   void seriesSelected(int index);
   void showSeries(const ChartManager::XYSeriesTie &tie);
   void showSeries(const ChartManager::SeriesCollectionTie &tie);
@@ -73,7 +73,6 @@ protected:
 
 public:
   ChartWidget(QWidget *parent, ChartManager &manager, std::vector<ChartManager::DropdownValue> initialSeries);
-  void addSeries(ChartManager::DropdownValue dropdownValue);
   void setSeries(std::vector<ChartManager::DropdownValue> values);
   void sortDropdown();
   void populateDropdown();

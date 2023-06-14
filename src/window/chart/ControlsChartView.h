@@ -33,8 +33,6 @@
 
 #pragma once
 
-#include <QPoint>
-#include <QtCharts/QChartView>
 #include <lib/QCustomPlot/qcustomplot.h>
 
 // Pre-declared so we don't have a circular include
@@ -51,17 +49,6 @@ class ChartWidget;
  * to zoom & move about the graph
  */
 class ControlsChartView : public QCustomPlot {
-  /**
-   * Flag that tracks if the left mouse button is down
-   */
-  bool mouseDown = false;
-
-  /**
-   * Last tracked position of the mouse cursor.
-   * Only relevant while the mouse is down
-   */
-  QPoint lastMousePosition;
-
   /**
    * The amount to scale the graph when zooming
    * \see QCPAxisRect::mRangeZoomFactorHorz

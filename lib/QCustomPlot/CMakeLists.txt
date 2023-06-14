@@ -39,6 +39,9 @@ add_library(QCustomPlot
     qcustomplot.h qcustomplot.cpp
     )
 
+# Suppress library warnings
+target_compile_options(QCustomPlot PRIVATE -w)
+
 # Compile needed definitions
 target_compile_definitions(QCustomPlot PUBLIC QCUSTOMPLOT_USE_LIBRARY)
 

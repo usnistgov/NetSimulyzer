@@ -54,14 +54,6 @@ namespace netsimulyzer {
 ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   ChartManager::XYSeriesTie tie;
   tie.model = model;
-  switch (model.labelMode) {
-  case parser::XYSeries::LabelMode::Hidden:
-    //    tie.qtSeries->setPointLabelsVisible(false);
-    break;
-  case parser::XYSeries::LabelMode::Shown:
-    //    tie.qtSeries->setPointLabelsVisible(true);
-    break;
-  }
 
   // It seems there's some difficulty with this setting on macOS,
   // so disable it
@@ -74,30 +66,13 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
 
   tie.pen.setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
 
-  //  tie.qtSeries->setName(QString::fromStdString(model.legend));
-
   // X Axis
   tie.XRange.upper = model.xAxis.max;
   tie.XRange.lower = model.xAxis.min;
 
-  //  if (tie.model.xAxis.scale == parser::ValueAxis::Scale::Linear)
-  //    tie.xAxis = new QtCharts::QValueAxis(this);
-  //  else
-  //    tie.xAxis = new QtCharts::QLogValueAxis(this);
-
-  //  tie.xAxis->setTitleText(QString::fromStdString(model.xAxis.name));
-  //  tie.xAxis->setRange(model.xAxis.min, model.xAxis.max);
-
   // Y Axis
   tie.YRange.upper = model.yAxis.max;
   tie.YRange.lower = model.yAxis.min;
-  //  if (tie.model.yAxis.scale == parser::ValueAxis::Scale::Linear)
-  //    tie.yAxis = new QtCharts::QValueAxis(this);
-  //  else
-  //    tie.yAxis = new QtCharts::QLogValueAxis(this);
-  //  tie.yAxis = new QtCharts::QValueAxis(this);
-  //  tie.yAxis->setTitleText(QString::fromStdString(model.yAxis.name));
-  //  tie.yAxis->setRange(model.yAxis.min, model.yAxis.max);
 
   switch (model.connection) {
   case parser::XYSeries::Connection::None: {
@@ -191,16 +166,6 @@ std::vector<unsigned int> ChartManager::inCollections(unsigned int id) {
   }
 
   return collections;
-}
-
-void ChartManager::clearSeries(const ChartWidget *except, unsigned int id) {
-  for (auto widget : chartWidgets) {
-    if (widget == except)
-      continue;
-
-    if (widget->getCurrentSeries() == id)
-      widget->clearSelected();
-  }
 }
 
 void ChartManager::updateRange(QCPRange &range, double point) {
