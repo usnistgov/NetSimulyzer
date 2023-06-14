@@ -242,8 +242,13 @@ void ChartWidget::clearChart() {
   pointLabels.clear(); // cleared by `clearItems`
 
   // Clear tickers
-  ui.chartView->xAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
-  ui.chartView->yAxis->setTicker(QSharedPointer<QCPAxisTickerFixed>::create());
+  auto xTicker = QSharedPointer<QCPAxisTickerFixed>::create();
+  xTicker->setScaleStrategy(QCPAxisTickerFixed::ssMultiples);
+  ui.chartView->xAxis->setTicker(xTicker);
+
+  auto yTicker = QSharedPointer<QCPAxisTickerFixed>::create();
+  yTicker->setScaleStrategy(QCPAxisTickerFixed::ssMultiples);
+  ui.chartView->yAxis->setTicker(yTicker);
 
   // Clear axis labels
   ui.chartView->xAxis->setLabel(QString{});
