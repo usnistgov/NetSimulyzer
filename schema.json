@@ -419,6 +419,29 @@
             "if": {
               "properties": {
                 "type": {
+                  "const": "node-model-change"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "model": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "model"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
                   "const": "node-orientation"
                 }
               }
