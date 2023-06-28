@@ -38,7 +38,6 @@
 #include <QGuiApplication>
 #include <QMenu>
 #include <QPixmap>
-#include <QtCharts/QChart>
 
 void ControlsChartView::keyPressEvent(QKeyEvent *event) {
   const auto ctrl = event->modifiers() & Qt::KeyboardModifier::ControlModifier;

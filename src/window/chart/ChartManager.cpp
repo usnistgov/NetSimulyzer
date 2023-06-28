@@ -38,10 +38,6 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QString>
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QLogValueAxis>
-#include <QtCharts/QScatterSeries>
-#include <QtCharts/QSplineSeries>
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>

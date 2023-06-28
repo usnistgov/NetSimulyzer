@@ -41,11 +41,6 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QString>
-#include <QtCharts/QAbstractAxis>
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
 #include <cstdint>
 #include <deque>
 #include <lib/QCustomPlot/qcustomplot.h>
