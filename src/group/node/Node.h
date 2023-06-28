@@ -38,6 +38,7 @@
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/TrailBuffer.h"
 #include "src/render/font/FontManager.h"
+#include "src/render/model/ModelCache.h"
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <model.h>
@@ -66,8 +67,11 @@ private:
   TransmitInfo transmitInfo;
   FontManager::FontBannerRenderInfo bannerRenderInfo;
 
+  void applyModelProperties();
+
 public:
-  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer, const FontManager::FontBannerRenderInfo &bannerRenderInfo);
+  Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
+       const FontManager::FontBannerRenderInfo &bannerRenderInfo);
   [[nodiscard]] const Model &getModel() const;
   [[nodiscard]] const parser::Node &getNs3Model() const;
   [[nodiscard]] bool visible() const;
@@ -81,12 +85,14 @@ public:
   void addWiredLink(WiredLink *link);
 
   undo::MoveEvent handle(const parser::MoveEvent &e);
+  undo::NodeModelChangeEvent handle(const parser::NodeModelChangeEvent &e, ModelCache &modelCache);
   undo::TransmitEvent handle(const parser::TransmitEvent &e);
   undo::TransmitEndEvent handle(const parser::TransmitEndEvent &e);
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
   undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
 
   void handle(const undo::MoveEvent &e);
+  void handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache);
   void handle(const undo::TransmitEvent &e);
   void handle(const undo::TransmitEndEvent &e);
   void handle(const undo::NodeOrientationChangeEvent &e);

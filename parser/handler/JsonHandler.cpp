@@ -264,6 +264,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
     auto type = object["type"].get<std::string>();
     if (type == "node-position")
       parseMoveEvent(object);
+    else if (type == "node-model-change")
+      parseNodeModelChangeEvent(object);
     else if (type == "node-orientation")
       parseNodeOrientationEvent(object);
     else if (type == "node-color")
@@ -595,6 +597,19 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
   event.targetPosition.z = object["z"].get<double>();
 
   updateLocationBounds(event.targetPosition);
+
+  updateEndTime(event.time);
+  processEndTransmits(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
+void JsonHandler::parseNodeModelChangeEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "nanoseconds", "model"});
+  parser::NodeModelChangeEvent event;
+
+  event.nodeId = object["id"].get<unsigned_int_type>();
+  event.time = object["nanoseconds"].get<int_type>();
+  event.model = object["model"].get<std::string>();
 
   updateEndTime(event.time);
   processEndTransmits(event.time);

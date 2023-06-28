@@ -88,13 +88,18 @@ void SceneWidget::handleEvents() {
     if (arg.time > simulationTime)
       return false;
 
-    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
+    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeModelChangeEvent> ||
+                  std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
                   std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
                   std::is_same_v<T, parser::TransmitEndEvent>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
-      undoEvents.emplace_back(node->second.handle(arg));
+
+      if constexpr (std::is_same_v<T, parser::NodeModelChangeEvent>)
+        undoEvents.emplace_back(node->second.handle(arg, models));
+      else
+        undoEvents.emplace_back(node->second.handle(arg));
 
       if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
         selectedNodeUpdated = true;
@@ -132,13 +137,17 @@ void SceneWidget::handleUndoEvents() {
     if (simulationTime > arg.event.time)
       return false;
 
-    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent> ||
-                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
-                  std::is_same_v<T, undo::NodeColorChangeEvent>) {
+    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeModelChangeEvent> ||
+                  std::is_same_v<T, undo::NodeOrientationChangeEvent> || std::is_same_v<T, undo::TransmitEvent> ||
+                  std::is_same_v<T, undo::TransmitEndEvent> || std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
         return false;
-      node->second.handle(arg);
+
+      if constexpr (std::is_same_v<T, undo::NodeModelChangeEvent>)
+        node->second.handle(arg, models);
+      else
+        node->second.handle(arg);
 
       events.emplace_front(arg.event);
       return true;

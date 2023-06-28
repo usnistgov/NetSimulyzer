@@ -40,40 +40,45 @@
 
 namespace netsimulyzer {
 
+void Node::applyModelProperties() {
+  model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
+  model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
+
+  model.setKeepRatio(ns3Node.keepRatio);
+
+  const auto bounds = model.getBounds();
+  if (ns3Node.height) {
+    const auto height = std::abs(bounds.max.y - bounds.min.y);
+    model.setTargetHeightScale(*ns3Node.height / height);
+  }
+
+  if (ns3Node.width) {
+    const auto width = std::abs(bounds.max.x - bounds.min.x);
+    model.setTargetWidthScale(*ns3Node.width / width);
+  }
+
+  if (ns3Node.depth) {
+    const auto depth = std::abs(bounds.max.z - bounds.min.z);
+    model.setTargetDepthScale(*ns3Node.depth / depth);
+  }
+
+  model.setScale(toRenderArray(ns3Node.scale));
+
+  if (ns3Node.baseColor)
+    model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
+  if (ns3Node.highlightColor)
+    model.setHighlightColor(toRenderColor(ns3Node.highlightColor.value()));
+}
+
 Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
            const FontManager::FontBannerRenderInfo &bannerRenderInfo)
     : model(model), ns3Node(std::move(ns3Node)),
       offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{
                                                                                                  bannerRenderInfo} {
-  this->model.setPosition(toRenderCoordinate(ns3Node.position) + offset);
-  this->model.setRotate(ns3Node.orientation[0], ns3Node.orientation[2], ns3Node.orientation[1]);
 
-  this->model.setKeepRatio(ns3Node.keepRatio);
+  applyModelProperties();
 
-  const auto bounds = model.getBounds();
-  if (ns3Node.height) {
-    const auto height = std::abs(bounds.max.y - bounds.min.y);
-    this->model.setTargetHeightScale(*ns3Node.height / height);
-  }
-
-  if (ns3Node.width) {
-    const auto width = std::abs(bounds.max.x - bounds.min.x);
-    this->model.setTargetWidthScale(*ns3Node.width / width);
-  }
-
-  if (ns3Node.depth) {
-    const auto depth = std::abs(bounds.max.z - bounds.min.z);
-    this->model.setTargetDepthScale(*ns3Node.depth / depth);
-  }
-
-  this->model.setScale(toRenderArray(ns3Node.scale));
-
-  if (ns3Node.baseColor)
-    this->model.setBaseColor(toRenderColor(ns3Node.baseColor.value()));
-  if (ns3Node.highlightColor)
-    this->model.setHighlightColor(toRenderColor(ns3Node.highlightColor.value()));
-
-  trailColor = toRenderColor(ns3Node.trailColor);
+  trailColor = toRenderColor(this->ns3Node.trailColor);
 }
 
 const Model &Node::getModel() const {
@@ -134,6 +139,24 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   return undo;
 }
 
+undo::NodeModelChangeEvent Node::handle(const parser::NodeModelChangeEvent &e, ModelCache &modelCache) {
+  undo::NodeModelChangeEvent undo;
+  undo.model = ns3Node.model;
+  undo.event = e;
+
+  ns3Node.model = e.model;
+
+  // Deconstruct & Reconstruct the model in place
+  // either the coolest trick ever, or the worst hack
+  model.~Model();
+  new (&model) Model(modelCache.load(e.model));
+
+  // re-apply model properties
+  applyModelProperties();
+
+  return undo;
+}
+
 undo::NodeOrientationChangeEvent Node::handle(const parser::NodeOrientationChangeEvent &e) {
   undo::NodeOrientationChangeEvent undo;
   undo.orientation = model.getRotate();
@@ -177,6 +200,18 @@ void Node::handle(const undo::MoveEvent &e) {
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
   }
+}
+
+void Node::handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache) {
+  // Deconstruct & Reconstruct the model in place
+  // either the coolest trick ever, or the worst hack
+  model.~Model();
+  new (&model) Model(modelCache.load(e.model));
+
+  ns3Node.model = e.model;
+
+  // re-apply model properties
+  applyModelProperties();
 }
 
 undo::TransmitEvent Node::handle(const parser::TransmitEvent &e) {
