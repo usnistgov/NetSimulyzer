@@ -376,12 +376,12 @@
         "allOf": [
           {
             "properties": {
-              "milliseconds": {
+              "nanoseconds": {
                 "type": "integer"
               }
             },
             "required": [
-              "milliseconds"
+              "nanoseconds"
             ]
           },
           {
