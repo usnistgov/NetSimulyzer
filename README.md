@@ -143,10 +143,10 @@ If you are not building for Linux, then skip this section.
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
 Ubuntu:
-* (22.04) `cmake pkg-config qtbase5-dev`
-* (20.04 and prior) `cmake pkg-config qt5-default`
+* (22.04) `build-essential cmake pkg-config qtbase5-dev libassimp-dev`
+* (20.04) `build-essential cmake pkg-config qt5-default libassimp-dev`
 
-Arch: `cmake pkgconf qt5-base`
+Arch: `base-devel cmake pkgconf qt5-base assimp`
 
 ## macOS Homebrew Packages
 If you are not building for macOS (or a distro that uses [Homebrew](https://brew.sh/))
@@ -194,6 +194,8 @@ To configure the build, any of the below may be passed to CMake with `-D` in the
 All of the following are optional
 
 * `ENABLE_DOXYGEN`: Default `False`, set to `True` to build the API docs to the `doxygen/` directory in the build directory
+* `USE_BUNDLED_ASSIMP`: Default `False`, set to `True` to use the bundled Assimp library to build, instead of the OS package.
+If the OS package is not found, then the bundled version is used anyway.
 
 #### Running CMake
 

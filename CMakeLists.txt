@@ -40,25 +40,41 @@ set(IS_DEV_VERSION TRUE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
+option(USE_BUNDLED_ASSIMP
+    "Build 'assimp' from the bundled sources, rather than searching the OS"
+    FALSE)
+
 set(CMAKE_CXX_STANDARD 17)
 
+
 # Assimp Settings
-option (ASSIMP_BUILD_TESTS "If the test suite for Assimp is built in addition to the library." ON)
-set(ASSIMP_BUILD_TESTS OFF)
+if (NOT USE_BUNDLED_ASSIMP)
+    find_package(assimp 5.0.0)
+endif ()
 
-option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." OFF)
-set(ASSIMP_NO_EXPORT ON)
+# Just in case they don't have Assimp installed.
+#
+# Make sure we've found the library, and the target
+# just in case we found some older version without
+# that target
+if (NOT assimp_FOUND OR NOT TARGET assimp::assimp)
+    option (ASSIMP_BUILD_TESTS "If the test suite for Assimp is built in addition to the library." ON)
+    set(ASSIMP_BUILD_TESTS OFF)
 
-option(BUILD_SHARED_LIBS "Build package with shared libraries." OFF)
-set(BUILD_SHARED_LIBS OFF)
+    option(ASSIMP_NO_EXPORT "Disable Assimp's export functionality." OFF)
+    set(ASSIMP_NO_EXPORT ON)
 
-# STEP Importer seems to cause issues building on Windows
-option(ASSIMP_BUILD_STEP_IMPORTER "" ON)
-set(ASSIMP_BUILD_STEP_IMPORTER OFF)
+    option(BUILD_SHARED_LIBS "Build package with shared libraries." OFF)
+    set(BUILD_SHARED_LIBS OFF)
 
-add_subdirectory(lib/assimp)
-# Suppress assimp warnings
-target_compile_options(assimp PRIVATE -w)
+    # STEP Importer seems to cause issues building on Windows
+    option(ASSIMP_BUILD_STEP_IMPORTER "" ON)
+    set(ASSIMP_BUILD_STEP_IMPORTER OFF)
+
+    add_subdirectory(lib/assimp)
+    # Suppress assimp warnings
+    target_compile_options(assimp PRIVATE -w)
+endif ()
 
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
