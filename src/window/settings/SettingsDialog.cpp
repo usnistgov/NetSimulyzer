@@ -1,6 +1,7 @@
 #include "SettingsDialog.h"
 #include "src/conversion.h"
 #include "src/settings/SettingsManager.h"
+#include "src/util/palette.h"
 #include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
 #include <QApplication>
@@ -101,10 +102,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboSamples->addItem("16", 16);
 
   ui.comboBackgroundColor->addItem("Black", static_cast<int>(SettingsManager::BackgroundColor::Black));
-  ui.comboBackgroundColor->setItemData(0, QColorConstants::Black, Qt::DecorationRole);
+  ui.comboBackgroundColor->setItemData(0, palette::Black, Qt::DecorationRole);
 
   ui.comboBackgroundColor->addItem("White", static_cast<int>(SettingsManager::BackgroundColor::White));
-  ui.comboBackgroundColor->setItemData(1, QColorConstants::White, Qt::DecorationRole);
+  ui.comboBackgroundColor->setItemData(1, palette::White, Qt::DecorationRole);
 
   ui.comboBackgroundColor->addItem("Custom", static_cast<int>(SettingsManager::BackgroundColor::Custom));
   ui.comboBackgroundColor->setItemData(2, customBackgroundColor, Qt::DecorationRole);
@@ -361,10 +362,10 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
       settings.set(Key::RenderBackgroundColor, backgroundColorMode);
       switch (backgroundColorMode) {
       case BackgroundColor::Black:
-        emit backgroundColorChanged(QColorConstants::Black);
+        emit backgroundColorChanged(palette::Black);
         break;
       case BackgroundColor::White:
-        emit backgroundColorChanged(QColorConstants::White);
+        emit backgroundColorChanged(palette::White);
         break;
       case BackgroundColor::Custom:
         // Ignored here

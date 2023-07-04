@@ -1,5 +1,6 @@
 #include "SettingsManager.h"
 #include "src/conversion.h"
+#include "src/util/palette.h"
 #include <QApplication>
 #include <QFile>
 #include <QMessageBox>
@@ -195,16 +196,16 @@ void SettingsManager::setTheme(SettingsManager::WindowTheme theme) {
 QColor SettingsManager::getRenderBackgroundColor() const {
   switch (get<BackgroundColor>(Key::RenderBackgroundColor).value()) {
   case BackgroundColor::Black:
-    return QColorConstants::Black;
+    return palette::Black;
   case BackgroundColor::White:
-    return QColorConstants::White;
+    return palette::White;
   case BackgroundColor::Custom:
     return get<QColor>(Key::RenderBackgroundColorCustom).value();
   }
 
   // Just in case
   std::cerr << "Error getting render background color\n";
-  return QColorConstants::Black;
+  return palette::Black;
 }
 
 } // namespace netsimulyzer

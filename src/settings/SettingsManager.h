@@ -1,6 +1,7 @@
 #pragma once
 
 #include "parser/model.h"
+#include "src/util/palette.h"
 #include <QColor>
 #include <QSettings>
 #include <QString>
@@ -201,7 +202,7 @@ private:
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
       {Key::RenderBackgroundColor, {"renderer/backgroundColor", "black"}},
-      {Key::RenderBackgroundColorCustom, {"renderer/backgroundColorCustom", QColorConstants::Black}},
+      {Key::RenderBackgroundColorCustom, {"renderer/backgroundColorCustom", palette::Black}},
       {Key::RenderLabels, {"renderer/showLabels", "enabledOnly"}},
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},

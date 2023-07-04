@@ -57,6 +57,7 @@ target_sources(netsimulyzer PRIVATE
         settings/SettingsManager.h settings/SettingsManager.cpp
         util/common-times.h
         util/netsimulyzer-time-literals.h
+        util/palette.h
         util/undo-events.h
         window/about/AboutDialog.cpp window/about/AboutDialog.h window/about/AboutDialog.ui
         window/LoadWorker.h window/LoadWorker.cpp
