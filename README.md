@@ -26,6 +26,7 @@ A flexible 3D visualizer for displaying, debugging, presenting, and understandin
     * [Running CMake](#running-cmake)
     * [Running](#running)
     * [Building the Documentation](#building-the-documentation)
+* [Academic Attribution](#academic-attribution) 
 
 
 # About
@@ -248,3 +249,24 @@ make
 ```
 
 The built documentation will now be found in `doc/build/[type]`.
+
+# Academic Attribution
+
+If you use it for research, please include the following reference in any resulting publication.
+
+```plain
+@inproceedings{blackNetSimulyzer3DNetwork2021,
+  title = {{{NetSimulyzer}}: A {{3D}} Network Simulation Analyzer for Ns-3},
+  shorttitle = {{{NetSimulyzer}}},
+  booktitle = {Proceedings of the {{Workshop}} on Ns-3},
+  author = {Black, Evan and Gamboa, Samantha and Rouil, Richard},
+  date = {2021-06-23},
+  pages = {65--72},
+  publisher = {{ACM}},
+  location = {{Virtual Event USA}},
+  url = {https://dl.acm.org/doi/10.1145/3460797.3460806},
+  eventtitle = {{{WNS3}} 2021: 2021 {{Workshop}} on Ns-3},
+  isbn = {978-1-4503-9034-7},
+  langid = {english}
+}
+```
