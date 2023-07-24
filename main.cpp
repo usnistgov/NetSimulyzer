@@ -154,15 +154,20 @@ std::optional<QFileInfo> autodetectResourceDir() {
   QDir dir{QCoreApplication::applicationDirPath(), "resources"};
   dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
 
-  if (dir.count() > 0u && validateResourceDir(dir[0])) {
-    return {QFileInfo{dir[0]}};
-  }
+  if (dir.count() > 0u && validateResourceDir(dir.absoluteFilePath(dir[0])))
+    return {QFileInfo{dir.absoluteFilePath(dir[0])}};
 
-  // Try both the application directory & the working directory
+  // Try both the application directory, the working directory,
+  // & one up from the working directory (just in case we're in `build/`)
   dir.setPath(QDir::currentPath());
 
-  if (dir.count() > 0u && validateResourceDir(dir[0]))
-    return {QFileInfo{dir[0]}};
+  if (dir.count() > 0u && validateResourceDir(dir.absoluteFilePath(dir[0])))
+    return {QFileInfo{dir.absoluteFilePath(dir[0])}};
+
+  dir.setPath(QDir::currentPath() + "/..");
+
+  if (dir.count() > 0u && validateResourceDir(dir.absoluteFilePath(dir[0])))
+    return {QFileInfo{dir.absoluteFilePath(dir[0])}};
 
   return {};
 }
