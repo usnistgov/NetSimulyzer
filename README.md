@@ -73,11 +73,17 @@ Some more exotic formats may undergo conversion at load time.
 Build in debug mode to check compatibility
 
 ## Resource Path
-When the NetSimulyzer is first launched it well search the directory the application is
-in and the current working directory for the `resources/` directory.
-If that fails, the NetSimulyzer will prompt for the location of the `resources/` directory.
+When the NetSimulyzer is first launched it will attempt to locate
+the directory where all the bundled assets are located, the `resources/` directory.
 
-By default the NetSimulyzer will search from the `resources/` directory the following:
+By default, the NetSimulyzer will search from the `resources/` directory the following locations:
+* The directory the application is in
+* One up from the directory the application is in
+* The current working directory
+* One up from the current working directory
+
+If the NetSimulyzer fails to locate this directory, a prompt will be given, and
+the user must specify where this directory is.
 
 Models should have the path to the model relative to the root of the resources directory
 (e.g. `models/smartphone.obj`)
