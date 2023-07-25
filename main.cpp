@@ -151,18 +151,35 @@ std::optional<QFileInfo> promptResourceDir() {
  * otherwise
  */
 std::optional<QFileInfo> autodetectResourceDir() {
-  QDir dir{QCoreApplication::applicationDirPath(), "resources"};
+  const auto addOneUp = [] (const QString &path) -> QString {
+    QDir d{path};
+    d.cdUp();
+    return d.absolutePath();
+  };
+
+  std::array<QString, 4> checkPaths{
+      QCoreApplication::applicationDirPath(),
+      addOneUp(QCoreApplication::applicationDirPath()),
+      QDir::currentPath(),
+      addOneUp(QDir::currentPath())
+  };
+
+  QDir dir{"", "resources"};
   dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
 
-  if (dir.count() > 0u && validateResourceDir(dir[0])) {
-    return {QFileInfo{dir[0]}};
+  for (const auto &path: checkPaths) {
+    // Make sure the path exists first
+    if (!dir.cd(path))
+      continue;
+
+    if (dir.count() == 0u)
+      continue;
+
+    dir.cd("resources");
+
+    if (validateResourceDir(dir.absolutePath()))
+      return {QFileInfo{dir.absolutePath()}};
   }
-
-  // Try both the application directory & the working directory
-  dir.setPath(QDir::currentPath());
-
-  if (dir.count() > 0u && validateResourceDir(dir[0]))
-    return {QFileInfo{dir[0]}};
 
   return {};
 }

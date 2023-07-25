@@ -1,9 +1,12 @@
 #include "SettingsDialog.h"
 #include "src/conversion.h"
 #include "src/settings/SettingsManager.h"
+#include "src/util/palette.h"
 #include "src/window/util/file-operations.h"
 #include "ui_SettingsDialog.h"
 #include <QApplication>
+#include <QColorDialog>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -36,6 +39,12 @@ void SettingsDialog::loadSettings() {
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
   ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
+
+  const auto backgroundColor = *settings.get<SettingsManager::BackgroundColor>(Key::RenderBackgroundColor);
+  ui.comboBackgroundColor->setCurrentIndex(static_cast<int>(backgroundColor));
+
+  customBackgroundColor = settings.get<QColor>(SettingsManager::Key::RenderBackgroundColorCustom).value();
+  ui.comboBackgroundColor->setItemData(2, customBackgroundColor, Qt::DecorationRole);
 
   const auto buildingMode = settings.get<SettingsManager::BuildingRenderMode>(Key::RenderBuildingMode).value();
   ui.comboBuildingRender->setCurrentIndex(ui.comboBuildingRender->findData(static_cast<int>(buildingMode)));
@@ -92,8 +101,26 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboSamples->addItem("8", 8);
   ui.comboSamples->addItem("16", 16);
 
+  ui.comboBackgroundColor->addItem("Black", static_cast<int>(SettingsManager::BackgroundColor::Black));
+  ui.comboBackgroundColor->setItemData(0, palette::Black, Qt::DecorationRole);
+
+  ui.comboBackgroundColor->addItem("White", static_cast<int>(SettingsManager::BackgroundColor::White));
+  ui.comboBackgroundColor->setItemData(1, palette::White, Qt::DecorationRole);
+
+  ui.comboBackgroundColor->addItem("Custom", static_cast<int>(SettingsManager::BackgroundColor::Custom));
+  ui.comboBackgroundColor->setItemData(2, customBackgroundColor, Qt::DecorationRole);
+
   ui.comboBuildingRender->addItem("Transparent", static_cast<int>(SettingsManager::BuildingRenderMode::Transparent));
   ui.comboBuildingRender->addItem("Opaque", static_cast<int>(SettingsManager::BuildingRenderMode::Opaque));
+
+  QObject::connect(ui.buttonSetCustomBackgroundColor, &QPushButton::clicked, [this]() {
+    const auto userColor = QColorDialog::getColor(customBackgroundColor, this, "Select a Background Color");
+    if (!userColor.isValid())
+      return;
+
+    customBackgroundColor = userColor;
+    ui.comboBackgroundColor->setItemData(2, customBackgroundColor, Qt::DecorationRole);
+  });
 
   using SortOrder = SettingsManager::ChartDropdownSortOrder;
   ui.comboSortOrder->addItem("Alphabetical", static_cast<int>(SortOrder::Alphabetical));
@@ -156,6 +183,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSortOrder, &QPushButton::clicked, this, &SettingsDialog::defaultChartSortOrder);
 
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
+  QObject::connect(ui.buttonResetBackgroundColor, &QPushButton::clicked, this, &SettingsDialog::defaultBackgroundColor);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
   QObject::connect(ui.buttonResetBuildingOutlines, &QPushButton::clicked, this,
@@ -217,6 +245,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSortOrder->click();
 
     ui.buttonResetSkybox->click();
+    ui.buttonResetBackgroundColor->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
     ui.buttonResetBuildingOutlines->click();
@@ -323,6 +352,32 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (enableSkybox != settings.get<bool>(Key::RenderSkybox)) {
       settings.set(Key::RenderSkybox, enableSkybox);
       emit renderSkyboxChanged(enableSkybox);
+    }
+
+    using BackgroundColor = SettingsManager::BackgroundColor;
+    const auto backgroundColorMode =
+        SettingsManager::BackgroundColorFromInt(ui.comboBackgroundColor->currentData().toInt());
+    // Handle basic modes
+    if (backgroundColorMode != settings.get<BackgroundColor>(Key::RenderBackgroundColor)) {
+      settings.set(Key::RenderBackgroundColor, backgroundColorMode);
+      switch (backgroundColorMode) {
+      case BackgroundColor::Black:
+        emit backgroundColorChanged(palette::Black);
+        break;
+      case BackgroundColor::White:
+        emit backgroundColorChanged(palette::White);
+        break;
+      case BackgroundColor::Custom:
+        // Ignored here
+        break;
+      }
+    }
+
+    // Handle custom color
+    if (backgroundColorMode == BackgroundColor::Custom &&
+        customBackgroundColor != settings.get<QColor>(Key::RenderBackgroundColorCustom).value()) {
+      settings.set(Key::RenderBackgroundColorCustom, customBackgroundColor);
+      emit backgroundColorChanged(customBackgroundColor);
     }
 
     auto buildingRenderMode = SettingsManager::BuildingRenderModeFromInt(ui.comboBuildingRender->currentData().toInt());
@@ -454,6 +509,12 @@ void SettingsDialog::defaultChartSortOrder() {
   const auto defaultValue = static_cast<int>(
       settings.getDefault<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder));
   ui.comboSortOrder->setCurrentIndex(ui.comboSortOrder->findData(defaultValue));
+}
+
+void SettingsDialog::defaultBackgroundColor() {
+  const auto defaultValue = static_cast<int>(
+      settings.getDefault<SettingsManager::BackgroundColor>(SettingsManager::Key::RenderBackgroundColor));
+  ui.comboBackgroundColor->setCurrentIndex(ui.comboBackgroundColor->findData(defaultValue));
 }
 
 void SettingsDialog::defaultSamples() {

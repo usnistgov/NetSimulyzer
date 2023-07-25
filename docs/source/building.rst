@@ -56,7 +56,7 @@ Run the installer and select 'Custom installation'
   :alt: Qt installer with 'Custom installation' selected
 
 
-Choose at least Qt 5.12 with Charts, MinGW, & CMake.
+Choose at least Qt 5.12 with MinGW, & CMake.
 
 .. image:: _static/qt-components.png
   :alt: Qt component selection
@@ -134,8 +134,6 @@ Installing Qt
 ^^^^^^^^^^^^^
 
 1)  Install QtCreator
-    QtChars is needed but not installed by default. You can add module by running the Qt Maintenance tool (located in the Qt installation directory).
-    Select "add/remove component", then expand the components for the Qt version installed on the system and add QtCharts.
 
 2)  Set the environment variable
     for example ```CMAKE_PREFIX_PATH=/Users/{Your Username}/Qt/5.15.0/clang_64/```.
@@ -164,9 +162,12 @@ Install Packages
 
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
-Ubuntu: ``cmake pkg-config qt5-default libqt5charts5-dev``
+Ubuntu:
+* (22.04) ``build-essential cmake pkg-config qtbase5-dev libassimp-dev``
+* (20.04) ``build-essential cmake pkg-config qt5-default libassimp-dev``
 
-Arch: ``cmake pkgconf qt5-base qt5-charts``
+
+Arch: ``base-devel cmake pkgconf qt5-base assimp``
 
 Setup Build Directory
 ^^^^^^^^^^^^^^^^^^^^^

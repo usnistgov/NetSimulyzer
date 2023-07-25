@@ -264,6 +264,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
     auto type = object["type"].get<std::string>();
     if (type == "node-position")
       parseMoveEvent(object);
+    else if (type == "node-model-change")
+      parseNodeModelChangeEvent(object);
     else if (type == "node-orientation")
       parseNodeOrientationEvent(object);
     else if (type == "node-color")
@@ -601,6 +603,19 @@ void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
   fileParser.sceneEvents.emplace_back(event);
 }
 
+void JsonHandler::parseNodeModelChangeEvent(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "nanoseconds", "model"});
+  parser::NodeModelChangeEvent event;
+
+  event.nodeId = object["id"].get<unsigned_int_type>();
+  event.time = object["nanoseconds"].get<int_type>();
+  event.model = object["model"].get<std::string>();
+
+  updateEndTime(event.time);
+  processEndTransmits(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
 void JsonHandler::parseTransmitEvent(const util::json::JsonObject &object) {
   // TODO: add "time" after 1.1.0
   requiredFields(object, {"id", "duration", "target-size"});
@@ -790,9 +805,11 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
     series.connection = parser::XYSeries::Connection::None;
   else if (connection == "line")
     series.connection = parser::XYSeries::Connection::Line;
-  else if (connection == "spline")
-    series.connection = parser::XYSeries::Connection::Spline;
-  else
+  else if (connection == "spline") {
+    std::clog << "Warning: 'spline' connection type no longer supported, using 'line' for series ID: " << series.id
+              << '\n';
+    series.connection = parser::XYSeries::Connection::Line;
+  } else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
   auto labelMode = object["labels"].get<std::string>();

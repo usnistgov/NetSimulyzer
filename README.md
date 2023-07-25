@@ -74,11 +74,17 @@ Some more exotic formats may undergo conversion at load time.
 Build in debug mode to check compatibility
 
 ## Resource Path
-When the NetSimulyzer is first launched it well search the directory the application is
-in and the current working directory for the `resources/` directory.
-If that fails, the NetSimulyzer will prompt for the location of the `resources/` directory.
+When the NetSimulyzer is first launched it will attempt to locate
+the directory where all the bundled assets are located, the `resources/` directory.
 
-By default the NetSimulyzer will search from the `resources/` directory the following:
+By default, the NetSimulyzer will search from the `resources/` directory the following locations:
+* The directory the application is in
+* One up from the directory the application is in
+* The current working directory
+* One up from the current working directory
+
+If the NetSimulyzer fails to locate this directory, a prompt will be given, and
+the user must specify where this directory is.
 
 Models should have the path to the model relative to the root of the resources directory
 (e.g. `models/smartphone.obj`)
@@ -144,10 +150,10 @@ If you are not building for Linux, then skip this section.
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
 Ubuntu:
-* (22.04) `cmake pkg-config qtbase5-dev libqt5charts5-dev`
-* (20.04 and prior) `cmake pkg-config qt5-default libqt5charts5-dev`
+* (22.04) `build-essential cmake pkg-config qtbase5-dev libassimp-dev`
+* (20.04) `build-essential cmake pkg-config qt5-default libassimp-dev`
 
-Arch: `cmake pkgconf qt5-base qt5-charts`
+Arch: `base-devel cmake pkgconf qt5-base assimp`
 
 ## macOS Homebrew Packages
 If you are not building for macOS (or a distro that uses [Homebrew](https://brew.sh/))
@@ -195,6 +201,8 @@ To configure the build, any of the below may be passed to CMake with `-D` in the
 All of the following are optional
 
 * `ENABLE_DOXYGEN`: Default `False`, set to `True` to build the API docs to the `doxygen/` directory in the build directory
+* `USE_BUNDLED_ASSIMP`: Default `False`, set to `True` to use the bundled Assimp library to build, instead of the OS package.
+If the OS package is not found, then the bundled version is used anyway.
 
 #### Running CMake
 

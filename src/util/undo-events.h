@@ -37,6 +37,7 @@
 #include <QVector>
 #include <array>
 #include <glm/vec3.hpp>
+#include <lib/QCustomPlot/qcustomplot.h>
 #include <model.h>
 #include <variant>
 
@@ -89,6 +90,21 @@ struct DecorationMoveEvent {
    * The event which generated this undo event
    */
   parser::DecorationMoveEvent event;
+};
+
+/**
+ * An event which undoes a `parser::NodeModelChangeEvent`
+ */
+struct NodeModelChangeEvent {
+  /**
+   * The original model of the Node before `event` was applied
+   */
+  std::string model;
+
+  /**
+   * The event which generated this undo event
+   */
+  parser::NodeModelChangeEvent event;
 };
 
 /**
@@ -149,6 +165,12 @@ struct XYSeriesAddValue {
    * The event which generated this undo event
    */
   parser::XYSeriesAddValue event;
+
+  /**
+   * The QCP `t` index to uniquely
+   * identify the added point
+   */
+  double pointIndex;
 };
 
 struct XYSeriesAddValues {
@@ -156,6 +178,12 @@ struct XYSeriesAddValues {
    * The event which generated this undo event
    */
   parser::XYSeriesAddValues event;
+
+  /**
+   * The range [low, high] of QCP `t`
+   * indexes to remove from the plot
+   */
+  std::pair<double, double> tIndexRange;
 };
 
 struct XYSeriesClear {
@@ -167,7 +195,7 @@ struct XYSeriesClear {
   /**
    * The list of points on the chart before it was cleared
    */
-  QVector<QPointF> points;
+  QSharedPointer<QCPCurveDataContainer> oldData;
 };
 
 /**
@@ -178,6 +206,12 @@ struct CategorySeriesAddValue {
    * The event which generated this undo event
    */
   parser::CategorySeriesAddValue event;
+
+  /**
+   * The QCP `t` index to uniquely
+   * identify the added point
+   */
+  double pointIndex;
 };
 
 struct StreamAppendEvent {
@@ -198,9 +232,9 @@ struct StreamAppendEvent {
   parser::StreamAppendEvent event;
 };
 
-using SceneUndoEvent =
-    std::variant<MoveEvent, TransmitEvent, TransmitEndEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
-                 NodeColorChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue, StreamAppendEvent>;
+using SceneUndoEvent = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent,
+                                    DecorationMoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent,
+                                    DecorationOrientationChangeEvent, XYSeriesAddValue, StreamAppendEvent>;
 
 using ChartUndoEvent = std::variant<XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, CategorySeriesAddValue>;
 

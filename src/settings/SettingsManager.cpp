@@ -1,5 +1,6 @@
 #include "SettingsManager.h"
 #include "src/conversion.h"
+#include "src/util/palette.h"
 #include <QApplication>
 #include <QFile>
 #include <QMessageBox>
@@ -112,6 +113,27 @@ SettingsManager::WindowTheme SettingsManager::WindowThemeFromInt(int value) {
   return WindowTheme::Dark;
 }
 
+SettingsManager::BackgroundColor SettingsManager::BackgroundColorFromInt(int value) {
+  using BackgroundColor = SettingsManager::BackgroundColor;
+
+  switch (value) {
+  case static_cast<int>(BackgroundColor::Black):
+    return BackgroundColor::Black;
+  case static_cast<int>(BackgroundColor::White):
+    return BackgroundColor::White;
+  case static_cast<int>(BackgroundColor::Custom):
+    return BackgroundColor::Custom;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'BackgroundColor'!",
+                          "An unrecognised value for 'BackgroundColor': " + QString::number(value) + " was provided");
+    QApplication::exit(1);
+    break;
+  }
+
+  // Should never happen, but just in case
+  return BackgroundColor::Black;
+}
+
 const SettingsManager::SettingValue &SettingsManager::getQtKey(SettingsManager::Key key) const {
   auto iterator = SettingsManager::qtKeyMap.find(key);
   if (iterator == SettingsManager::qtKeyMap.end()) {
@@ -169,6 +191,21 @@ void SettingsManager::setTheme(SettingsManager::WindowTheme theme) {
     application->setStyleSheet("");
     return;
   }
+}
+
+QColor SettingsManager::getRenderBackgroundColor() const {
+  switch (get<BackgroundColor>(Key::RenderBackgroundColor).value()) {
+  case BackgroundColor::Black:
+    return palette::Black;
+  case BackgroundColor::White:
+    return palette::White;
+  case BackgroundColor::Custom:
+    return get<QColor>(Key::RenderBackgroundColorCustom).value();
+  }
+
+  // Just in case
+  std::cerr << "Error getting render background color\n";
+  return palette::Black;
 }
 
 } // namespace netsimulyzer

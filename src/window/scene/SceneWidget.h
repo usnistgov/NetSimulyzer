@@ -64,6 +64,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
 #include <QTimer>
+#include <array>
 #include <deque>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -99,6 +100,11 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
   SettingsManager::MotionTrailRenderMode renderMotionTrails =
       settings.get<SettingsManager::MotionTrailRenderMode>(SettingsManager::Key::RenderMotionTrails).value();
+  QColor clearColor = settings.getRenderBackgroundColor();
+  // Store the converted form of the clear color,
+  // that OpenGL can accept
+  std::array<float, 3> clearColorGl{static_cast<float>(clearColor.redF()), static_cast<float>(clearColor.greenF()),
+                                    static_cast<float>(clearColor.blueF())};
 
   std::unique_ptr<PickingFramebuffer> pickingFbo;
 
@@ -232,6 +238,14 @@ public:
    * if false, no skybox is rendered
    */
   void setSkyboxRenderState(bool enable);
+
+  /**
+   *
+   * @param value
+   * The value to use when clearing the scene.
+   * Only visible when the skybox is off
+   */
+  void setClearColor(const QColor &value);
 
   /**
    * Sets the building render behavior

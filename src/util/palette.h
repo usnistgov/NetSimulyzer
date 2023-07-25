@@ -32,51 +32,42 @@
  */
 
 #pragma once
+#include <QColor>
 
-#include <lib/QCustomPlot/qcustomplot.h>
+namespace netsimulyzer::palette {
 
-// Pre-declared so we don't have a circular include
-namespace netsimulyzer {
-class ChartWidget;
-}
+[[maybe_unused]] const QColor Red{245, 61, 0};
+[[maybe_unused]] const QColor DarkRed{204, 51, 0};
 
-// Unfortunately I can't have this in the
-// visualizer namespace and use it with
-// the Qt Creator designer
+[[maybe_unused]] const QColor Green{9, 232, 94};
+[[maybe_unused]] const QColor DarkGreen{6, 177, 72};
 
-/**
- * ChartView with mouse/keyboard controls
- * to zoom & move about the graph
- */
-class ControlsChartView : public QCustomPlot {
-  /**
-   * The amount to scale the graph when zooming
-   * \see QCPAxisRect::mRangeZoomFactorHorz
-   */
-  const double zoomFactor = 0.85;
+[[maybe_unused]] const QColor Blue{37, 137, 189};
+[[maybe_unused]] const QColor DarkBlue{27, 98, 136};
 
-  /**
-   * The amount to move the chart scrolling
-   */
-  const double scrollMagnitude = 1.0;
+[[maybe_unused]] const QColor Orange{255, 167, 51};
+[[maybe_unused]] const QColor DarkOrange{245, 139, 0};
 
-  netsimulyzer::ChartWidget *chartWidget{nullptr};
+[[maybe_unused]] const QColor Yellow{255, 227, 71};
+[[maybe_unused]] const QColor DarkYellow{255, 218, 10};
 
-protected:
-  void keyPressEvent(QKeyEvent *event) override;
-  void wheelEvent(QWheelEvent *event) override;
-  void contextMenuEvent(QContextMenuEvent *event) override;
+[[maybe_unused]] const QColor Purple{120, 41, 163};
+[[maybe_unused]] const QColor DarkPurple{84, 29, 114};
 
-public:
-  /**
-   * Default Qt Widget constructor
-   *
-   * @param parent
-   * The widget that contains this one
-   */
-  ControlsChartView(QWidget *parent);
+[[maybe_unused]] const QColor Pink{255, 92, 176};
+[[maybe_unused]] const QColor DarkPink{255, 51, 156};
 
-  void setChartWidget(netsimulyzer::ChartWidget *value);
+[[maybe_unused]] const QColor Black{7, 6, 0};
+[[maybe_unused]] const QColor White{255, 255, 255};
 
-  std::unique_ptr<QCPTextElement> title;
-};
+[[maybe_unused]] const QColor Gray90{26, 26, 26};
+[[maybe_unused]] const QColor Gray80{51, 51, 51};
+[[maybe_unused]] const QColor Gray70{77, 77, 77};
+[[maybe_unused]] const QColor Gray60{102, 102, 102};
+[[maybe_unused]] const QColor Gray50{128, 128, 128};
+[[maybe_unused]] const QColor Gray40{153, 153, 153};
+[[maybe_unused]] const QColor Gray30{179, 179, 179};
+[[maybe_unused]] const QColor Gray20{204, 204, 204};
+[[maybe_unused]] const QColor Gray10{230, 230, 230};
+
+} // namespace netsimulyzer::palette

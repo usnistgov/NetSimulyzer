@@ -159,7 +159,7 @@ struct CategoryAxis {
 };
 
 struct XYSeries {
-  enum class Connection { None, Line, Spline };
+  enum class Connection { None, Line };
   enum class LabelMode { Hidden, Shown };
 
   unsigned int id = 0u;
@@ -302,6 +302,27 @@ struct DecorationMoveEvent {
    * The position in the scene to move the Decoration to.
    */
   Ns3Coordinate targetPosition;
+};
+
+/**
+ * Event that changes the model of the indicated node
+ */
+struct NodeModelChangeEvent {
+  /**
+   * The simulation time
+   * for when the event should be run
+   */
+  nanoseconds time = 0LL;
+
+  /**
+   * The target Node of the event
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * The path to the model to use
+   */
+  std::string model;
 };
 
 /**
@@ -502,15 +523,16 @@ struct StreamAppendEvent {
 /**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent, TransmitEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
-                           DecorationOrientationChangeEvent, XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear,
-                           StreamAppendEvent>;
+using Event = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, DecorationMoveEvent,
+                           NodeOrientationChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
+                           XYSeriesAddValues, XYSeriesClear, StreamAppendEvent>;
 
 /**
  * Events which affect the rendered scene
  */
-using SceneEvent = std::variant<MoveEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
-                                NodeColorChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
+using SceneEvent =
+    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
+                 NodeColorChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
 
 /**
  * Event types specific to the charts model

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "parser/model.h"
+#include "src/util/palette.h"
+#include <QColor>
 #include <QSettings>
 #include <QString>
 #include <Qt>
@@ -52,6 +54,8 @@ public:
     RenderMotionTrailLength,
     RenderLabels,
     RenderSkybox,
+    RenderBackgroundColor,
+    RenderBackgroundColorCustom,
     ChartDropdownSortOrder,
     WindowTheme
   };
@@ -62,6 +66,7 @@ public:
   enum class MotionTrailRenderMode : int { Always, EnabledOnly, Never };
   enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
   enum class WindowTheme : int { Dark, Light, Native };
+  enum class BackgroundColor : int { Black, White, Custom };
 
   /**
    * Convert an int to a `BuildingRenderMode` enum value.
@@ -136,6 +141,18 @@ public:
   static WindowTheme WindowThemeFromInt(int value);
 
   /**
+   * Convert an int to a `BackgroundColor` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static BackgroundColor BackgroundColorFromInt(int value);
+
+  /**
    * Defines when retrieving a value fails,
    * should it's default value be provided in the return
    * instead of an empty std::optional
@@ -184,6 +201,8 @@ private:
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
       {Key::RenderSkybox, {"renderer/enableSkybox", true}},
+      {Key::RenderBackgroundColor, {"renderer/backgroundColor", "black"}},
+      {Key::RenderBackgroundColorCustom, {"renderer/backgroundColorCustom", palette::Black}},
       {Key::RenderLabels, {"renderer/showLabels", "enabledOnly"}},
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
@@ -349,6 +368,9 @@ public:
    * The theme to load into the application.
    */
   void setTheme(WindowTheme theme);
+
+  [[nodiscard]]
+  QColor getRenderBackgroundColor() const;
 };
 
 // Specialize so we don't have to convert to/from QString all the time
@@ -450,6 +472,18 @@ template <>
 }
 
 template <>
+[[nodiscard]] inline SettingsManager::BackgroundColor SettingsManager::getDefault(SettingsManager::Key key) const {
+  const auto &settingKey = getQtKey(key);
+  if (!settingKey.defaultValue.isValid()) {
+    std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
+    std::abort();
+  }
+
+  // TODO: Use the map value
+  return SettingsManager::BackgroundColor::Black;
+}
+
+template <>
 [[nodiscard]] inline std::optional<SettingsManager::BuildingRenderMode> SettingsManager::get(Key key,
                                                                                              RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
@@ -479,7 +513,8 @@ template <>
 }
 
 template <>
-[[nodiscard]] inline std::optional<SettingsManager::LabelRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
+[[nodiscard]]
+inline std::optional<SettingsManager::LabelRenderMode> SettingsManager::get(Key key, RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
   const auto qtSetting = qtSettings.value(settingKey.key);
 
@@ -602,8 +637,8 @@ SettingsManager::get(Key key, RetrieveMode mode) const {
 }
 
 template <>
-[[nodiscard]] inline std::optional<SettingsManager::WindowTheme>
-SettingsManager::get(Key key, RetrieveMode mode) const {
+[[nodiscard]]
+inline std::optional<SettingsManager::WindowTheme> SettingsManager::get(Key key, RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
   const auto qtSetting = qtSettings.value(settingKey.key);
 
@@ -628,6 +663,37 @@ SettingsManager::get(Key key, RetrieveMode mode) const {
   // Final catch if the provided string value is invalid
   if (mode == RetrieveMode::AllowDefault)
     return getDefault<WindowTheme>(Key::WindowTheme);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::BackgroundColor> SettingsManager::get(Key key,
+                                                                                          RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "black")
+    return {BackgroundColor::Black};
+  else if (stringMode == "white")
+    return {BackgroundColor::White};
+  else if (stringMode == "custom")
+    return {BackgroundColor::Custom};
+  else
+    std::cerr << "Unrecognised 'BackgroundColor' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<BackgroundColor>(Key::RenderBackgroundColor);
 
   return {};
 }
@@ -743,6 +809,25 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'WindowTheme': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::BackgroundColor &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case BackgroundColor::Black:
+    qtSettings.setValue(settingKey.key, "black");
+    break;
+  case BackgroundColor::White:
+    qtSettings.setValue(settingKey.key, "white");
+    break;
+  case BackgroundColor::Custom:
+    qtSettings.setValue(settingKey.key, "custom");
+    break;
+  default:
+    std::cerr << "Unrecognised 'BackgroundColor': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 

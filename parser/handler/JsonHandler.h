@@ -203,6 +203,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseMoveEvent(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a Node Model Change event
+   *
+   * @param object
+   * The object from the 'events' section with the 'node-model-change' type
+   */
+  void parseNodeModelChangeEvent(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a transmit event
    *
    * @param object

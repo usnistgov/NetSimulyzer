@@ -88,13 +88,18 @@ void SceneWidget::handleEvents() {
     if (arg.time > simulationTime)
       return false;
 
-    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
+    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeModelChangeEvent> ||
+                  std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
                   std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
                   std::is_same_v<T, parser::TransmitEndEvent>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
-      undoEvents.emplace_back(node->second.handle(arg));
+
+      if constexpr (std::is_same_v<T, parser::NodeModelChangeEvent>)
+        undoEvents.emplace_back(node->second.handle(arg, models));
+      else
+        undoEvents.emplace_back(node->second.handle(arg));
 
       if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
         selectedNodeUpdated = true;
@@ -132,13 +137,17 @@ void SceneWidget::handleUndoEvents() {
     if (simulationTime > arg.event.time)
       return false;
 
-    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeOrientationChangeEvent> ||
-                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
-                  std::is_same_v<T, undo::NodeColorChangeEvent>) {
+    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeModelChangeEvent> ||
+                  std::is_same_v<T, undo::NodeOrientationChangeEvent> || std::is_same_v<T, undo::TransmitEvent> ||
+                  std::is_same_v<T, undo::TransmitEndEvent> || std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
         return false;
-      node->second.handle(arg);
+
+      if constexpr (std::is_same_v<T, undo::NodeModelChangeEvent>)
+        node->second.handle(arg, models);
+      else
+        node->second.handle(arg);
 
       events.emplace_front(arg.event);
       return true;
@@ -261,7 +270,7 @@ void SceneWidget::paintGL() {
   camera.move(static_cast<float>(frameTimer.elapsed()));
   renderer.use(camera);
 
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClearColor(clearColorGl[0], clearColorGl[1], clearColorGl[2], 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (renderSkybox)
     renderer.render(*skyBox);
@@ -721,6 +730,14 @@ QSize SceneWidget::sizeHint() const {
 
 void SceneWidget::setSkyboxRenderState(bool enable) {
   renderSkybox = enable;
+}
+
+void SceneWidget::setClearColor(const QColor &value) {
+  clearColor = value;
+
+  clearColorGl[0] = static_cast<float>(clearColor.redF());
+  clearColorGl[1] = static_cast<float>(clearColor.greenF());
+  clearColorGl[2] = static_cast<float>(clearColor.blueF());
 }
 
 void SceneWidget::setBuildingRenderMode(SettingsManager::BuildingRenderMode mode) {

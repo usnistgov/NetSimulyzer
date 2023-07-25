@@ -39,14 +39,11 @@
 #include <QLayout>
 #include <QMainWindow>
 #include <QObject>
+#include <QSharedPointer>
 #include <QString>
-#include <QtCharts/QAbstractAxis>
-#include <QtCharts/QCategoryAxis>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
 #include <cstdint>
 #include <deque>
+#include <lib/QCustomPlot/qcustomplot.h>
 #include <model.h>
 #include <optional>
 #include <src/settings/SettingsManager.h>
@@ -65,22 +62,27 @@ public:
 
   struct SeriesCollectionTie {
     parser::SeriesCollection model;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QAbstractAxis *yAxis;
+    QCPRange XRange;
+    QCPRange YRange;
   };
 
   struct XYSeriesTie {
     parser::XYSeries model;
-    QtCharts::QXYSeries *qtSeries;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QAbstractAxis *yAxis;
+    QPen pen;
+    QCPScatterStyle scatterStyle;
+    QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
+    QCPRange XRange;
+    QCPRange YRange;
   };
 
   struct CategoryValueTie {
     parser::CategoryValueSeries model;
-    QtCharts::QXYSeries *qtSeries;
-    QtCharts::QAbstractAxis *xAxis;
-    QtCharts::QCategoryAxis *yAxis;
+    QSharedPointer<QCPAxisTickerText> labelTicker{new QCPAxisTickerText{}};
+
+    QPen pen;
+    QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
+    QCPRange XRange;
+    QCPRange YRange; // Fixed range containing the category IDs
     parser::nanoseconds lastUpdatedTime;
   };
 
@@ -108,7 +110,7 @@ private:
   XYSeriesTie makeTie(const parser::XYSeries &model);
   SeriesCollectionTie makeTie(const parser::SeriesCollection &model);
   CategoryValueTie makeTie(const parser::CategoryValueSeries &model);
-  void updateCollectionRanges(uint32_t seriesId, double x, double y);
+  void updateCollectionRanges(unsigned int seriesId, double x, double y);
   void setChildrenSeries(const std::vector<DropdownValue> &values);
 
   /**
@@ -123,17 +125,11 @@ private:
    */
   std::vector<unsigned int> inCollections(unsigned int id);
 
-  /**
-   * Clear the series identified by `id` from
-   * all widgets except for `except`
-   *
-   * @param except
-   * The widget to ignore when clearing selections
-   *
-   * @param id
-   * The ID of the series to clear selections of
-   */
-  void clearSeries(const ChartWidget *except, unsigned int id);
+  void updateRange(QCPRange &range, double point);
+
+  void notifyDataChanged(const XYSeriesTie &tie);
+  void notifyDataChanged(const SeriesCollectionTie &tie);
+  void notifyDataChanged(const CategoryValueTie &tie);
 
   void timeAdvanced(parser::nanoseconds time);
   void timeRewound(parser::nanoseconds time);
@@ -164,8 +160,8 @@ public:
                  const std::vector<parser::SeriesCollection> &collections,
                  const std::vector<parser::CategoryValueSeries> &categoryValueSeries);
   TieVariant &getSeries(uint32_t seriesId);
+  XYSeriesTie &getXySeries(unsigned int seriesId);
 
-  void seriesSelected(const ChartWidget *widget, unsigned int selected);
   void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
