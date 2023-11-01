@@ -148,6 +148,16 @@ void ControlsChartView::contextMenuEvent(QContextMenuEvent *event) {
   menu.exec(event->globalPos());
 }
 
+void ControlsChartView::setPlotPlotVisibility(ControlsChartView::PlotVisibility mode) {
+  const auto isVisible = mode == PlotVisibility::Shown;
+
+  for (auto rc = 0; rc < plotLayout()->rowCount(); rc++) {
+    plotLayout()->elementAt(rc)->setVisible(isVisible);
+  }
+
+  replot();
+}
+
 ControlsChartView::ControlsChartView(QWidget *parent)
     : QCustomPlot(parent), title(std::make_unique<QCPTextElement>(this, "")) {
 
@@ -157,8 +167,16 @@ ControlsChartView::ControlsChartView(QWidget *parent)
 
   plotLayout()->insertRow(0);
   plotLayout()->addElement(0, 0, title.get());
+
+  const auto legendRow = plotLayout()->rowCount();
+  plotLayout()->insertRow(legendRow);
+  plotLayout()->addElement(legendRow, 0, legend);
+  plotLayout()->setRowStretchFactor(legendRow, 0.001);
+
+  setPlotPlotVisibility(PlotVisibility::Hidden);
 }
 
 void ControlsChartView::setChartWidget(netsimulyzer::ChartWidget *value) {
   chartWidget = value;
 }
+

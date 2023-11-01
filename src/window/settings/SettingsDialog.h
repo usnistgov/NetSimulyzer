@@ -145,6 +145,12 @@ class SettingsDialog : public QDialog {
   void defaultEnableSkybox();
 
   /**
+   * Set the Floor checkbox to the default value
+   */
+  void defaultEnableFloor();
+
+
+  /**
    * Sets the building render mode to the default value
    */
   void defaultBuildingEffect();
@@ -343,6 +349,15 @@ signals:
    * Indicator for the skybox to be rendered or not.
    */
   void renderSkyboxChanged(bool enable);
+
+  /**
+   * Signal emitted when the user changes the
+   * Floor render state
+   *
+   * @param enable
+   * Indicator for the floor to be rendered or not.
+   */
+  void renderFloorChanged(bool enable);
 
   /**
    * Signal emitted when the user changes the background color.

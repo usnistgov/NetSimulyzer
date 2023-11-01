@@ -76,6 +76,13 @@ public:
    */
   ControlsChartView(QWidget *parent);
 
+  enum class PlotVisibility {
+    Shown,
+    Hidden
+  };
+
+  void setPlotPlotVisibility(PlotVisibility mode);
+
   void setChartWidget(netsimulyzer::ChartWidget *value);
 
   std::unique_ptr<QCPTextElement> title;

@@ -123,6 +123,7 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
   ui.chartView->title->setText(name);
   setWindowTitle(name);
 
+  ui.chartView->setPlotPlotVisibility(ControlsChartView::PlotVisibility::Shown);
   ui.chartView->replot();
 }
 
@@ -191,6 +192,7 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
   setWindowTitle(name);
   ui.chartView->title->setText(name);
 
+  ui.chartView->setPlotPlotVisibility(ControlsChartView::PlotVisibility::Shown);
   ui.chartView->replot();
 }
 
@@ -233,6 +235,7 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
   ui.chartView->title->setText(name);
   setWindowTitle(name);
 
+  ui.chartView->setPlotPlotVisibility(ControlsChartView::PlotVisibility::Shown);
   ui.chartView->replot();
 }
 
@@ -258,6 +261,7 @@ void ChartWidget::clearChart() {
   ui.chartView->title->setText(QString{});
   ui.chartView->clearPlottables();
   ui.chartView->replot();
+  ui.chartView->setPlotPlotVisibility(ControlsChartView::PlotVisibility::Hidden);
 }
 
 void ChartWidget::closeEvent(QCloseEvent *event) {

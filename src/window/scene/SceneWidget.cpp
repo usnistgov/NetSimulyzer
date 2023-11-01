@@ -292,7 +292,9 @@ void SceneWidget::paintGL() {
   for (auto &[key, decoration] : decorations) {
     renderer.render(decoration.getModel());
   }
-  renderer.render(*floor);
+
+  if (renderFloor)
+    renderer.render(*floor);
 
   renderer.render(areas);
 
@@ -730,6 +732,10 @@ QSize SceneWidget::sizeHint() const {
 
 void SceneWidget::setSkyboxRenderState(bool enable) {
   renderSkybox = enable;
+}
+
+void SceneWidget::setFloorRenderState(bool enable) {
+  renderFloor = enable;
 }
 
 void SceneWidget::setClearColor(const QColor &value) {

@@ -42,8 +42,12 @@ add_library(QCustomPlot
 # Suppress library warnings
 target_compile_options(QCustomPlot PRIVATE -w)
 
-# Compile needed definitions
-target_compile_definitions(QCustomPlot PUBLIC QCUSTOMPLOT_USE_LIBRARY)
+get_target_property(qcustomplot-library-type QCustomPlot TYPE)
+
+if (NOT ${qcustomplot-library-type} STREQUAL "STATIC_LIBRARY")
+  target_compile_definitions(QCustomPlot PUBLIC QCUSTOMPLOT_USE_LIBRARY)
+  target_compile_definitions(QCustomPlot PUBLIC QCUSTOMPLOT_COMPILE_LIBRARY)
+endif ()
 
 target_include_directories(QCustomPlot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

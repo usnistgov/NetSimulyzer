@@ -214,6 +214,8 @@ MainWindow::MainWindow() : QMainWindow() {
     scene.setSkyboxRenderState(enable);
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::renderFloorChanged, &scene, &SceneWidget::setFloorRenderState);
+
   QObject::connect(&settingsDialog, &SettingsDialog::backgroundColorChanged, &scene, &SceneWidget::setClearColor);
 
   QObject::connect(&settingsDialog, &SettingsDialog::buildingRenderModeChanged, [this](int mode) {

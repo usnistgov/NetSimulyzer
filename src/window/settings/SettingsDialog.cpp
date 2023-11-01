@@ -39,6 +39,7 @@ void SettingsDialog::loadSettings() {
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
   ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
+  ui.checkBoxFloor->setChecked(settings.get<bool>(Key::RenderFloor).value());
 
   const auto backgroundColor = *settings.get<SettingsManager::BackgroundColor>(Key::RenderBackgroundColor);
   ui.comboBackgroundColor->setCurrentIndex(static_cast<int>(backgroundColor));
@@ -183,6 +184,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSortOrder, &QPushButton::clicked, this, &SettingsDialog::defaultChartSortOrder);
 
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
+  QObject::connect(ui.buttonResetFloor, &QPushButton::clicked, this, &SettingsDialog::defaultEnableFloor);
   QObject::connect(ui.buttonResetBackgroundColor, &QPushButton::clicked, this, &SettingsDialog::defaultBackgroundColor);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
@@ -245,6 +247,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSortOrder->click();
 
     ui.buttonResetSkybox->click();
+    ui.buttonResetFloor->click();
     ui.buttonResetBackgroundColor->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
@@ -352,6 +355,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (enableSkybox != settings.get<bool>(Key::RenderSkybox)) {
       settings.set(Key::RenderSkybox, enableSkybox);
       emit renderSkyboxChanged(enableSkybox);
+    }
+
+    const auto enableFloor = ui.checkBoxFloor->isChecked();
+    if (enableFloor != settings.get<bool>(Key::RenderFloor)) {
+      settings.set(Key::RenderFloor, enableFloor);
+      emit renderFloorChanged(enableFloor);
     }
 
     using BackgroundColor = SettingsManager::BackgroundColor;
@@ -524,6 +533,10 @@ void SettingsDialog::defaultSamples() {
 
 void SettingsDialog::defaultEnableSkybox() {
   ui.checkBoxSkybox->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderSkybox));
+}
+
+void SettingsDialog::defaultEnableFloor() {
+  ui.checkBoxFloor->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderFloor));
 }
 
 void SettingsDialog::defaultBuildingEffect() {

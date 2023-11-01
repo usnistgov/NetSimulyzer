@@ -96,6 +96,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
       settings.get<SettingsManager::LabelRenderMode>(SettingsManager::Key::RenderLabels).value();
   float labelScale = settings.get<float>(SettingsManager::Key::RenderLabelScale).value();
   bool renderSkybox = settings.get<bool>(SettingsManager::Key::RenderSkybox).value();
+  bool renderFloor = settings.get<bool>(SettingsManager::Key::RenderFloor).value();
   bool renderGrid = settings.get<bool>(SettingsManager::Key::RenderGrid).value();
   bool renderBuildingOutlines = settings.get<bool>(SettingsManager::Key::RenderBuildingOutlines).value();
   SettingsManager::MotionTrailRenderMode renderMotionTrails =
@@ -238,6 +239,14 @@ public:
    * if false, no skybox is rendered
    */
   void setSkyboxRenderState(bool enable);
+
+  /**
+   *
+   * @param enable
+   * If true, then the floor is rendered,
+   * if false, no floor is rendered
+   */
+  void setFloorRenderState(bool enable);
 
   /**
    *
