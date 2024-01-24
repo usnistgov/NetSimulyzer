@@ -100,7 +100,9 @@ add_executable(netsimulyzer
         netsimulyzer.rc
         lib/QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc
         lib/QDarkStyleSheet/qdarkstyle/light/lightstyle.qrc
-        resources.qrc)
+        resources.qrc
+    src/group/link/LogicalLink.cpp
+    src/group/link/LogicalLink.h)
 
 target_compile_features(netsimulyzer PRIVATE cxx_std_17)
 

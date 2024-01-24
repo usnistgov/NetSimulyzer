@@ -749,6 +749,21 @@ void Renderer::render(const std::vector<WiredLink> &wiredLinks) {
 
   glDisable(GL_LINE_SMOOTH);
 }
+void Renderer::render(const std::vector<LogicalLink> &logicalLinks) {
+  glEnable(GL_LINE_SMOOTH);
+
+  buildingShader.bind();
+
+  for (const auto &link : logicalLinks) {
+    const auto &info = link.getRenderInfo();
+    buildingShader.uniform("color", info.color);
+    glBindVertexArray(info.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, info.vbo);
+    glDrawArrays(GL_LINES, 0, info.size);
+  }
+
+  glDisable(GL_LINE_SMOOTH);
+}
 
 void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
   auto &model = modelCache.get(m.getModelId());

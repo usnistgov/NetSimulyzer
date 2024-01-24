@@ -50,7 +50,19 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   /**
    * The possible section in the document
    */
-  enum class Section { None, Areas, Buildings, Configuration, Decorations, Events, Links, Nodes, Series, Streams };
+  enum class Section {
+    None,
+    Areas,
+    Buildings,
+    Configuration,
+    Decorations,
+    Events,
+    Links,
+    LogicalLinks,
+    Nodes,
+    Series,
+    Streams
+  };
 
   parser::FileParser &fileParser;
   std::unordered_map<unsigned int, std::optional<parser::TransmitEvent>> transmittingNodes;
@@ -193,6 +205,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * The object from the 'links' section with type 'point-to-point'
    */
   void parseP2PLink(const util::json::JsonObject &object);
+
+  /**
+   * Parse and emplace a logical link
+   *
+   * @param object
+   * The object from the 'logical-links' section with type 'logical'
+   */
+  void parseLogicalLink(const util::json::JsonObject &object);
 
   /**
    * Parse and emplace a move event

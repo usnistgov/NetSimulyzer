@@ -35,6 +35,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -133,6 +134,11 @@ struct Area {
 
 struct WiredLink {
   std::vector<unsigned int> nodes;
+};
+
+struct LogicalLink {
+  std::pair<unsigned int, unsigned int> nodes;
+  Ns3Color3 color;
 };
 
 // ----- Chart Models -----

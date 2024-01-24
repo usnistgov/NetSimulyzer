@@ -72,9 +72,8 @@ void Node::applyModelProperties() {
 
 Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
            const FontManager::FontBannerRenderInfo &bannerRenderInfo)
-    : model(model), ns3Node(std::move(ns3Node)),
-      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{
-                                                                                                 bannerRenderInfo} {
+    : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)),
+      trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{bannerRenderInfo} {
 
   applyModelProperties();
 
@@ -116,6 +115,11 @@ void Node::addWiredLink(WiredLink *link) {
   link->notifyNodeMoved(ns3Node.id, getCenter());
 }
 
+void Node::addLogicalLink(LogicalLink *link) {
+  logicalLinks.emplace_back(link);
+  link->notifyNodeMoved(ns3Node.id, getCenter());
+}
+
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
   undo::MoveEvent undo;
   undo.position = model.getPosition();
@@ -136,6 +140,10 @@ undo::MoveEvent Node::handle(const parser::MoveEvent &e) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
   }
 
+  for (auto link : logicalLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
+
   return undo;
 }
 
@@ -153,6 +161,15 @@ undo::NodeModelChangeEvent Node::handle(const parser::NodeModelChangeEvent &e, M
 
   // re-apply model properties
   applyModelProperties();
+
+  // Redraw links, since center may have changed
+  for (auto link : wiredLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
+
+  for (auto link : logicalLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
 
   return undo;
 }
@@ -200,6 +217,10 @@ void Node::handle(const undo::MoveEvent &e) {
   for (auto link : wiredLinks) {
     link->notifyNodeMoved(ns3Node.id, getCenter());
   }
+
+  for (auto link : logicalLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
 }
 
 void Node::handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache) {
@@ -212,6 +233,15 @@ void Node::handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache) {
 
   // re-apply model properties
   applyModelProperties();
+
+  // Redraw links, since center may have changed
+  for (auto link : wiredLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
+
+  for (auto link : logicalLinks) {
+    link->notifyNodeMoved(ns3Node.id, getCenter());
+  }
 }
 
 undo::TransmitEvent Node::handle(const parser::TransmitEvent &e) {

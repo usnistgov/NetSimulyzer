@@ -236,6 +236,8 @@ constexpr JsonHandler::Section JsonHandler::isSection(std::string_view key) {
     return Section::Events;
   else if (key == "links")
     return Section::Links;
+  else if (key == "logical-links")
+    return Section::LogicalLinks;
   else if (key == "nodes")
     return Section::Nodes;
   else if (key == "series")
@@ -291,6 +293,9 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
   } break;
   case Section::Links:
     parseP2PLink(object);
+    break;
+  case Section::LogicalLinks:
+    parseLogicalLink(object);
     break;
   case Section::Nodes:
     parseNode(object);
@@ -583,6 +588,22 @@ void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
   }
 
   fileParser.wiredLinks.emplace_back(link);
+}
+
+void JsonHandler::parseLogicalLink(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "color", "node-ids"});
+  parser::LogicalLink link;
+
+  link.color = colorFromObject(object["color"].object());
+
+  const auto &nodes = object["node-ids"].array();
+  if (nodes.size() != 2ul) {
+    std::cerr << "Error: Logical Link must have exactly 2 nodes, got: " << nodes.size() << " Ignoring.\n";
+    return;
+  }
+
+  link.nodes = std::make_pair(nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>());
+  fileParser.logicalLinks.emplace_back(link);
 }
 
 void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {

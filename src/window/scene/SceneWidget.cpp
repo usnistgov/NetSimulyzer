@@ -312,6 +312,7 @@ void SceneWidget::paintGL() {
   }
 
   renderer.render(wiredLinks);
+  renderer.render(logicalLinks);
 
   // Keep this next to `startTransparent()`
   // has it's own transparency implementation
@@ -544,7 +545,8 @@ void SceneWidget::reset() {
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
                       const std::vector<parser::Decoration> &decorationModels,
-                      const std::vector<parser::WiredLink> &links, const std::vector<parser::Node> &nodeModels) {
+                      const std::vector<parser::WiredLink> &wLinks, const std::vector<parser::LogicalLink> &lLinks,
+                      const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
@@ -572,8 +574,8 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
                       renderer.allocateTrailBuffer(functions, trailLength), fontManager.allocate(node.name));
   }
 
-  wiredLinks.reserve(links.size());
-  for (const auto &link : links) {
+  wiredLinks.reserve(wLinks.size());
+  for (const auto &link : wLinks) {
     auto &newLink = wiredLinks.emplace_back(renderer.allocate(link), link);
 
     // Flag to ignore links with non-configured nodes
@@ -593,6 +595,26 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
 
     if (ignoreLink)
       wiredLinks.erase(wiredLinks.end() - 1);
+  }
+
+  logicalLinks.reserve(lLinks.size());
+  for (const auto &link : lLinks) {
+    // Bail out if either of the two Nodes are invalid
+    auto firstNode = nodes.find(link.nodes.first);
+    if (firstNode == nodes.end()) {
+      std::cerr << "A logical link references an unknown Node with ID: " << link.nodes.first << " ignoring link\n";
+      continue;
+    }
+
+    auto secondNode = nodes.find(link.nodes.second);
+    if (secondNode == nodes.end()) {
+      std::cerr << "A logical link references an unknown Node with ID: " << link.nodes.second << " ignoring link\n";
+      continue;
+    }
+
+    auto &newLink = logicalLinks.emplace_back(link, functions);
+    firstNode->second.addLogicalLink(&newLink);
+    secondNode->second.addLogicalLink(&newLink);
   }
 
   doneCurrent();

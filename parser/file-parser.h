@@ -114,6 +114,14 @@ public:
   [[nodiscard]] const std::vector<WiredLink> &getLinks() const;
 
   /**
+   *  Gets the collection of links from the parsed file
+   * `parse()` should be called first
+   *
+   * @return The logical links specified by the parsed file
+   */
+  [[nodiscard]] const std::vector<LogicalLink> &getLogicalLinks() const;
+
+  /**
    * Gets the collection of events for the Scene from the parsed file
    * `parse()` should be called first.
    *
@@ -206,6 +214,11 @@ private:
    * The areas defined by the 'areas' JSON collection
    */
   std::vector<Area> areas;
+
+  /**
+   * The logical links defined by the 'logical-links' JSON collection
+   */
+  std::vector<LogicalLink> logicalLinks;
 
   /**
    * The wired links defined by the 'links' JSON collection
