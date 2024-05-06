@@ -124,8 +124,13 @@ void SceneWidget::handleEvents() {
 }
 
 void SceneWidget::handleUndoEvents() {
+  // Flag to indicate the selected Node has been updated
+  // Use a flag instead of emitting a signal from the
+  // handler, just in case the Node is updated several times
+  // this event period
+  bool selectedNodeUpdated = false;
 
-  auto handleUndoEvent = [this](auto &&arg) -> bool {
+  auto handleUndoEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -149,6 +154,9 @@ void SceneWidget::handleUndoEvents() {
       else
         node->second.handle(arg);
 
+      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
+        selectedNodeUpdated = true;
+
       events.emplace_front(arg.event);
       return true;
     }
@@ -170,6 +178,9 @@ void SceneWidget::handleUndoEvents() {
   while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
     undoEvents.pop_back();
   }
+
+  if (selectedNodeUpdated)
+    emit selectedItemUpdated();
 }
 
 void SceneWidget::initializeGL() {
