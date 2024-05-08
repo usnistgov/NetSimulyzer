@@ -38,6 +38,9 @@ void SettingsDialog::loadSettings() {
   const auto samples = *settings.get<int>(Key::NumberSamples);
   ui.comboSamples->setCurrentIndex(ui.comboSamples->findData(samples));
 
+  const auto cameraType = settings.get<SettingsManager::CameraType>(Key::RenderCameraType).value();
+  ui.comboCameraType->setCurrentIndex(ui.comboCameraType->findData(static_cast<int>(cameraType)));
+
   ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
   ui.checkBoxFloor->setChecked(settings.get<bool>(Key::RenderFloor).value());
 
@@ -101,6 +104,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   ui.comboSamples->addItem("4", 4);
   ui.comboSamples->addItem("8", 8);
   ui.comboSamples->addItem("16", 16);
+
+  ui.comboCameraType->addItem("First Person", static_cast<int>(SettingsManager::CameraType::FirstPerson));
+  ui.comboCameraType->addItem("Arc Ball", static_cast<int>(SettingsManager::CameraType::ArcBall));
 
   ui.comboBackgroundColor->addItem("Black", static_cast<int>(SettingsManager::BackgroundColor::Black));
   ui.comboBackgroundColor->setItemData(0, palette::Black, Qt::DecorationRole);
@@ -185,6 +191,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetFloor, &QPushButton::clicked, this, &SettingsDialog::defaultEnableFloor);
+  QObject::connect(ui.buttonResetCameraType, &QPushButton::clicked, this, &SettingsDialog::defaultCameraType);
   QObject::connect(ui.buttonResetBackgroundColor, &QPushButton::clicked, this, &SettingsDialog::defaultBackgroundColor);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
@@ -248,6 +255,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
 
     ui.buttonResetSkybox->click();
     ui.buttonResetFloor->click();
+    ui.buttonResetCameraType->click();
     ui.buttonResetBackgroundColor->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
@@ -272,6 +280,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     }
 
     // Camera
+    const auto cameraType = SettingsManager::CameraTypeFromInt(ui.comboCameraType->currentData().toInt());
+    if (cameraType != settings.get<SettingsManager::CameraType>(Key::RenderCameraType).value()) {
+      settings.set(Key::RenderCameraType, cameraType);
+      emit cameraTypeChanged(static_cast<int>(cameraType));
+    }
+
     const auto moveSpeed = static_cast<float>(ui.sliderMoveSpeed->value()) / moveSpeedScale;
     settings.set(Key::MoveSpeed, moveSpeed);
     emit moveSpeedChanged(moveSpeed);
@@ -533,6 +547,11 @@ void SettingsDialog::defaultSamples() {
 
 void SettingsDialog::defaultEnableSkybox() {
   ui.checkBoxSkybox->setChecked(settings.getDefault<bool>(SettingsManager::Key::RenderSkybox));
+}
+void SettingsDialog::defaultCameraType() {
+  const auto defaultCameraType =
+      settings.getDefault<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType);
+  ui.comboCameraType->setCurrentIndex(ui.comboCameraType->findData(static_cast<int>(defaultCameraType)));
 }
 
 void SettingsDialog::defaultEnableFloor() {

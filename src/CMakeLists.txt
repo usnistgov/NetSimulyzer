@@ -36,6 +36,7 @@ target_sources(netsimulyzer PRIVATE
         group/link/WiredLink.h group/link/WiredLink.cpp
         group/node/Node.h group/node/Node.cpp
         group/node/TrailBuffer.h group/node/TrailBuffer.cpp
+        render/camera/ArcCamera.h render/camera/ArcCamera.cpp
         render/camera/Camera.h render/camera/Camera.cpp
         render/font/character.h
         render/font/undefined-medium-font.h

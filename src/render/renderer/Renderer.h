@@ -45,6 +45,7 @@
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/Node.h"
 #include "src/group/node/TrailBuffer.h"
+#include "src/render/camera/ArcCamera.h"
 #include "src/render/font/FontManager.h"
 #include "src/render/font/character.h"
 #include "src/render/helper/CoordinateGrid.h"
@@ -110,6 +111,7 @@ public:
   void renderPickingNode(unsigned int nodeId, const Model &m);
 
   void use(const Camera &cam);
+  void use(const ArcCamera &cam);
   void render(const DirectionalLight &light);
   void render(const PointLight &light);
   void render(const SpotLight &light);

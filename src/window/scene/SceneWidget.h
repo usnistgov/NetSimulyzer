@@ -49,6 +49,7 @@
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
 #include "src/group/link/WiredLink.h"
+#include "src/render/camera/ArcCamera.h"
 #include "src/render/font/FontManager.h"
 #include "src/render/framebuffer/PickingFramebuffer.h"
 #include "src/render/helper/CoordinateGrid.h"
@@ -82,6 +83,9 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   QOpenGLFunctions_3_3_Core openGl;
   SettingsManager settings;
   Camera camera{glm::vec3{0.0f, 2.0f, 0.0f}};
+  ArcCamera arcCamera{};
+  SettingsManager::CameraType cameraType =
+      settings.get<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType).value();
   QPoint initialCursorPosition{width() / 2, height() / 2};
   QPoint lastCursorPosition{width() / 2, height() / 2};
   bool mousePressed = false;
@@ -126,7 +130,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   parser::nanoseconds timeStep =
       settings.get<parser::nanoseconds>(SettingsManager::Key::PlaybackTimeStepPreference).value();
 
-  parser::nanoseconds simulationTime;
+  parser::nanoseconds simulationTime{};
 
   std::vector<Area> areas;
   std::vector<Building> buildings;
@@ -155,6 +159,7 @@ protected:
   void keyReleaseEvent(QKeyEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
+  void wheelEvent(QWheelEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void contextMenuEvent(QContextMenuEvent *event) override;
 
@@ -211,6 +216,14 @@ public:
   [[nodiscard]] Camera &getCamera();
 
   /**
+   * Gets the user controlled Arc camera
+   *
+   * @return
+   * The arc camera
+   */
+  [[nodiscard]] ArcCamera &getArcCamera();
+
+  /**
    * Update the projection matrix
    * for when the FOV or window size changes
    */
@@ -231,6 +244,12 @@ public:
   void setTime(parser::nanoseconds value);
   void setTimeStep(parser::nanoseconds value);
   QSize sizeHint() const override;
+
+  /**
+   * @param value
+   * The type of camrea to use for rendering
+   */
+  void setCameraType(SettingsManager::CameraType value);
 
   /**
    *

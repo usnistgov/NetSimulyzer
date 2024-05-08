@@ -97,6 +97,28 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
   ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
+  firstPersonCameraAction.setCheckable(true);
+  arcBallCameraAction.setCheckable(true);
+
+  const auto cameraMode = settings.get<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType).value();
+  firstPersonCameraAction.setChecked(cameraMode == SettingsManager::CameraType::FirstPerson);
+  arcBallCameraAction.setChecked(cameraMode == SettingsManager::CameraType::ArcBall);
+
+  cameraGroup.addAction(&firstPersonCameraAction);
+  cameraGroup.addAction(&arcBallCameraAction);
+  ui.menuCamera->addAction(&firstPersonCameraAction);
+  ui.menuCamera->addAction(&arcBallCameraAction);
+
+  QObject::connect(&cameraGroup, &QActionGroup::triggered, [this](const QAction *action) {
+    SettingsManager::CameraType type;
+    if (action == &firstPersonCameraAction)
+      type = SettingsManager::CameraType::FirstPerson;
+    else
+      type = SettingsManager::CameraType::ArcBall;
+    scene.setCameraType(type);
+    settings.set(SettingsManager::Key::RenderCameraType, type);
+  });
+
   // For somewhat permanent messages (a message with no timeout)
   // We need to use a widget in the status bar.
   // Note: This message can still be temporarily overwritten,
@@ -154,56 +176,69 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(ui.actionSettings, &QAction::triggered, [this]() {
     scene.pause();
+    settingsDialog.loadSettings();
     settingsDialog.show();
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [this](float value) {
     scene.getCamera().setMoveSpeed(value);
+    scene.getArcCamera().moveSpeed = value;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged, [this](float value) {
     scene.getCamera().setTurnSpeed(value);
+    scene.getArcCamera().keyboardTurnSpeed = value;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::mouseTurnSpeedChanged, [this](float value) {
     scene.getCamera().setMouseTurnSpeed(value);
+    scene.getArcCamera().mouseTurnSpeed = value;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::fieldOfViewChanged, [this](float value) {
     scene.getCamera().setFieldOfView(value);
+    scene.getArcCamera().fieldOfView = value;
     scene.updatePerspective();
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::forwardKeyChanged, [this](int key) {
     scene.getCamera().setKeyForward(key);
+    scene.getArcCamera().keyForward = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::backwardKeyChanged, [this](int key) {
     scene.getCamera().setKeyBackward(key);
+    scene.getArcCamera().keyBackward = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::leftKeyChanged, [this](int key) {
     scene.getCamera().setKeyLeft(key);
+    scene.getArcCamera().keyLeft = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::rightKeyChanged, [this](int key) {
     scene.getCamera().setKeyRight(key);
+    scene.getArcCamera().keyRight = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::turnLeftKeyChanged, [this](int key) {
     scene.getCamera().setKeyTurnLeft(key);
+    scene.getArcCamera().keyTurnLeft = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::turnRightKeyChanged, [this](int key) {
     scene.getCamera().setKeyTurnRight(key);
+    scene.getArcCamera().keyTurnRight = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::upKeyChanged, [this](int key) {
     scene.getCamera().setKeyUp(key);
+    scene.getArcCamera().keyUp = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::downKeyChanged, [this](int key) {
     scene.getCamera().setKeyDown(key);
+    scene.getArcCamera().keyDown = key;
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::chartSortOrderChanged, [this](int value) {
@@ -212,6 +247,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&settingsDialog, &SettingsDialog::renderSkyboxChanged, [this](bool enable) {
     scene.setSkyboxRenderState(enable);
+  });
+
+  QObject::connect(&settingsDialog, &SettingsDialog::cameraTypeChanged, [this](const int value) {
+    scene.setCameraType(SettingsManager::CameraTypeFromInt(value));
   });
 
   QObject::connect(&settingsDialog, &SettingsDialog::renderFloorChanged, &scene, &SceneWidget::setFloorRenderState);

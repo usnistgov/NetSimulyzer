@@ -47,6 +47,7 @@ public:
     PlaybackTimeStepUnit,
     RenderBuildingMode,
     RenderBuildingOutlines,
+    RenderCameraType,
     RenderGrid,
     RenderGridStep,
     RenderLabelScale,
@@ -68,6 +69,7 @@ public:
   enum class TimeUnit : int { Milliseconds, Microseconds, Nanoseconds };
   enum class WindowTheme : int { Dark, Light, Native };
   enum class BackgroundColor : int { Black, White, Custom };
+  enum class CameraType : int { FirstPerson, ArcBall };
 
   /**
    * Convert an int to a `BuildingRenderMode` enum value.
@@ -154,6 +156,18 @@ public:
   static BackgroundColor BackgroundColorFromInt(int value);
 
   /**
+   * Convert an int to a `CameraType` enum value.
+   * Necessary since Qt will only allow sending registered types with signals/slots.
+   *
+   * @param value
+   * An integer that corresponds to an enum value
+   *
+   * @return
+   * The enum value corresponding to `value`
+   */
+  static CameraType CameraTypeFromInt(int value);
+
+  /**
    * Defines when retrieving a value fails,
    * should it's default value be provided in the return
    * instead of an empty std::optional
@@ -198,6 +212,7 @@ private:
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
       {Key::RenderBuildingMode, {"renderer/buildingRenderMode", "transparent"}},
       {Key::RenderBuildingOutlines, {"renderer/showBuildingOutlines", true}},
+      {Key::RenderCameraType, {"renderer/cameraType", "firstPerson"}},
       {Key::RenderLabelScale, {"renderer/labelScale", 0.1f}},
       {Key::RenderGrid, {"renderer/showGrid", true}},
       {Key::RenderGridStep, {"renderer/gridStepSize", 1}},
@@ -422,6 +437,20 @@ template <>
   return SettingsManager::BuildingRenderMode::Transparent;
 }
 
+// Specialization for CameraType enum
+// so each widget does not need to convert to/from the settings representation
+template <>
+[[nodiscard]] inline SettingsManager::CameraType SettingsManager::getDefault(SettingsManager::Key key) const {
+  const auto &settingKey = getQtKey(key);
+  if (!settingKey.defaultValue.isValid()) {
+    std::cerr << "Requested default for key: " << settingKey.key.toStdString() << " which has no default\n";
+    std::abort();
+  }
+
+  // TODO: Use the map value
+  return CameraType::FirstPerson;
+}
+
 // Specialization for LabelRenderMode enum
 // so each widget does not need to convert to/from the settings representation
 template <>
@@ -510,6 +539,35 @@ template <>
   // Final catch if the provided string value is invalid
   if (mode == RetrieveMode::AllowDefault)
     return getDefault<BuildingRenderMode>(Key::RenderBuildingMode);
+
+  return {};
+}
+
+template <>
+[[nodiscard]] inline std::optional<SettingsManager::CameraType> SettingsManager::get(Key key,
+                                                                                             RetrieveMode mode) const {
+  const auto &settingKey = getQtKey(key);
+  const auto qtSetting = qtSettings.value(settingKey.key);
+
+  QString stringMode;
+
+  if (qtSetting.isValid() && !qtSetting.isNull() && qtSetting.template canConvert<QString>())
+    stringMode = qtSetting.toString();
+  else if (mode == RetrieveMode::AllowDefault)
+    stringMode = settingKey.defaultValue.toString();
+  else
+    return {};
+
+  if (stringMode == "firstPerson")
+    return {SettingsManager::CameraType::FirstPerson};
+  else if (stringMode == "arcBall")
+    return {SettingsManager::CameraType::ArcBall};
+  else
+    std::cerr << "Unrecognised 'CameraType' provided '" << stringMode.toStdString() << "' value ignored!\n";
+
+  // Final catch if the provided string value is invalid
+  if (mode == RetrieveMode::AllowDefault)
+    return getDefault<CameraType>(Key::RenderCameraType);
 
   return {};
 }
@@ -713,6 +771,22 @@ inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager
     break;
   default:
     std::cerr << "Unrecognised 'BuildingRenderMode': " << static_cast<int>(value) << " value not saved!\n";
+  }
+}
+
+template <>
+inline void SettingsManager::set(SettingsManager::Key key, const SettingsManager::CameraType &value) {
+  const auto &settingKey = getQtKey(key);
+
+  switch (value) {
+  case SettingsManager::CameraType::FirstPerson:
+    qtSettings.setValue(settingKey.key, "firstPerson");
+    break;
+  case SettingsManager::CameraType::ArcBall:
+    qtSettings.setValue(settingKey.key, "arcBall");
+    break;
+  default:
+    std::cerr << "Unrecognised 'CameraType': " << static_cast<int>(value) << " value not saved!\n";
   }
 }
 
