@@ -437,9 +437,8 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   }
 
   if (cameraType == SettingsManager::CameraType::FirstPerson) {
-    if (!camera.mouseControlsEnabled())
-      return;
     mousePressed = true;
+    camera.setMobility(Camera::move_state::mobile);
   } else /* ArcBall */ {
     if (event->buttons() & Qt::LeftButton) {
       arcCamera.mousePressed = true;
@@ -447,13 +446,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   }
 
   setCursor(Qt::BlankCursor);
-
-  // Keep this position since we're about to move it
   initialCursorPosition = {event->x(), event->y()};
-
-  isInitialMove = true;
-  QCursor::setPos(mapToGlobal({width() / 2, height() / 2}));
-  camera.setMobility(Camera::move_state::mobile);
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
@@ -461,8 +454,6 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
 
   if (!(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
-      if (!camera.mouseControlsEnabled())
-        return;
       mousePressed = false;
       camera.setMobility(Camera::move_state::frozen);
     } else /* Arcball */ {
@@ -476,7 +467,6 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   unsetCursor();
   // Put the cursor back where it was when we started
   QCursor::setPos(mapToGlobal(initialCursorPosition));
-  isInitialMove = true;
 }
 
 void SceneWidget::wheelEvent(QWheelEvent *event) {
@@ -504,20 +494,11 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   if (cameraType == SettingsManager::CameraType::ArcBall && !arcCamera.mousePressed)
     return;
 
-  if (cameraType == SettingsManager::CameraType::FirstPerson && (!mousePressed || !camera.mouseControlsEnabled()))
+  if (cameraType == SettingsManager::CameraType::FirstPerson && !mousePressed)
     return;
-
-  const QPoint widgetCenter{width() / 2, height() / 2};
-
-  if (isInitialMove) {
-    isInitialMove = false;
-    lastCursorPosition = widgetCenter;
-    return;
-  }
-
-  auto dx = event->x() - lastCursorPosition.x();
+  auto dx = event->x() - initialCursorPosition.x();
   // Prevent inverting the camera
-  auto dy = lastCursorPosition.y() - event->y();
+  auto dy = initialCursorPosition.y() - event->y();
 
   if (cameraType == SettingsManager::CameraType::FirstPerson) {
     camera.mouse_move(dx, dy);
@@ -525,8 +506,7 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
     arcCamera.mouseMove(dx, dy);
   }
 
-  lastCursorPosition = widgetCenter;
-  QCursor::setPos(mapToGlobal(widgetCenter));
+  QCursor::setPos(mapToGlobal(initialCursorPosition));
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {

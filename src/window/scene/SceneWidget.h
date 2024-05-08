@@ -87,9 +87,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   SettingsManager::CameraType cameraType =
       settings.get<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType).value();
   QPoint initialCursorPosition{width() / 2, height() / 2};
-  QPoint lastCursorPosition{width() / 2, height() / 2};
   bool mousePressed = false;
-  bool isInitialMove = true;
   TextureCache textures;
   ModelCache models{textures};
   FontManager fontManager{textures};
