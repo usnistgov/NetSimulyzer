@@ -57,7 +57,7 @@ void ChartWidget::seriesSelected(int index) {
   // Only show the legend when we're actually showing something
   ui.chartView->legend->setVisible(true);
 
-  const auto &s = manager.getSeries(selectedSeriesId);
+  auto &s = manager.getSeries(selectedSeriesId);
 
   if (std::holds_alternative<ChartManager::XYSeriesTie>(s))
     showSeries(std::get<ChartManager::XYSeriesTie>(s));
@@ -67,16 +67,16 @@ void ChartWidget::seriesSelected(int index) {
     showSeries(std::get<ChartManager::CategoryValueTie>(s));
 }
 
-void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
+void ChartWidget::showSeries(ChartManager::XYSeriesTie &tie) {
   clearChart();
 
   // This is linked to the plot through the X Axis
   // and is deleted by `clearItems()`
-  auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+  tie.curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
 
-  curve->setScatterStyle(tie.scatterStyle);
+  tie.curve->setScatterStyle(tie.scatterStyle);
   if (tie.model.connection == parser::XYSeries::Connection::None)
-    curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+    tie.curve->setLineStyle(QCPCurve::LineStyle::lsNone);
 
   // Linear/Log Scale
   // X Axis
@@ -114,12 +114,12 @@ void ChartWidget::showSeries(const ChartManager::XYSeriesTie &tie) {
     generateLabels(tie.data.get());
 
   // Color
-  curve->setPen(tie.pen);
+  tie.curve->setPen(tie.pen);
 
   const auto name = QString::fromStdString(tie.model.name);
 
-  curve->setData(tie.data);
-  curve->setName(QString::fromStdString(tie.model.legend));
+  tie.curve->setData(tie.data);
+  tie.curve->setName(QString::fromStdString(tie.model.legend));
   ui.chartView->title->setText(name);
   setWindowTitle(name);
 
@@ -131,25 +131,25 @@ void ChartWidget::showSeries(const ChartManager::SeriesCollectionTie &tie) {
   clearChart();
 
   for (auto seriesId : tie.model.series) {
-    const auto &seriesTie = manager.getSeries(seriesId);
+    auto &seriesTie = manager.getSeries(seriesId);
 
     if (!std::holds_alternative<ChartManager::XYSeriesTie>(seriesTie)) {
       std::cerr << "Tried to add non-XYSeries to collection, skipping!\n";
       continue;
     }
 
-    const auto series = std::get<ChartManager::XYSeriesTie>(seriesTie);
+    auto &series = std::get<ChartManager::XYSeriesTie>(seriesTie);
 
-    auto curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
-    curve->setScatterStyle(series.scatterStyle);
+    series.curve = new QCPCurve(ui.chartView->xAxis, ui.chartView->yAxis);
+    series.curve->setScatterStyle(series.scatterStyle);
     if (series.model.connection == parser::XYSeries::Connection::None)
-      curve->setLineStyle(QCPCurve::LineStyle::lsNone);
+      series.curve->setLineStyle(QCPCurve::LineStyle::lsNone);
 
     // Color
-    curve->setPen(series.pen);
+    series.curve->setPen(series.pen);
 
-    curve->setData(series.data);
-    curve->setName(QString::fromStdString(series.model.legend));
+    series.curve->setData(series.data);
+    series.curve->setName(QString::fromStdString(series.model.legend));
 
     // Point Labels
     if (series.model.labelMode == parser::XYSeries::LabelMode::Shown)
@@ -241,8 +241,8 @@ void ChartWidget::showSeries(const ChartManager::CategoryValueTie &tie) {
 
 void ChartWidget::clearChart() {
   ui.chartView->clearItems();
-  ui.chartView->clearPlottables();
-  pointLabels.clear(); // cleared by `clearItems`
+  ui.chartView->clearPlottables(); // Clears *curve
+  pointLabels.clear();             // cleared by `clearItems`
 
   // Clear tickers
   auto xTicker = QSharedPointer<QCPAxisTickerFixed>::create();
@@ -418,7 +418,10 @@ void ChartWidget::dataChanged(const ChartManager::XYSeriesTie &tie) const {
     generateLabels(tie.data.get());
   }
 
-  ui.chartView->xAxis->ticker()->setTickCount(5);
+  // Handle clear events
+  if (tie.curve->data() != tie.data)
+    tie.curve->setData(tie.data);
+
   ui.chartView->xAxis->ticker()->setTickCount(5);
   ui.chartView->yAxis->ticker()->setTickCount(5);
 
@@ -448,7 +451,11 @@ void ChartWidget::dataChanged(const ChartManager::SeriesCollectionTie &tie) cons
 
   for (const auto seriesId : tie.model.series) {
     // Only XY Series allowed in collections
-    const auto childSeries = manager.getXySeries(seriesId);
+    auto &childSeries = manager.getXySeries(seriesId);
+
+    // Handle clear events
+    if (childSeries.curve->data() != childSeries.data)
+      childSeries.curve->setData(childSeries.data);
 
     clearLabels();
     if (childSeries.model.labelMode == parser::XYSeries::LabelMode::Shown)

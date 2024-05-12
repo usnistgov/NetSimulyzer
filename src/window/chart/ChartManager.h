@@ -73,6 +73,7 @@ public:
     QSharedPointer<QCPCurveDataContainer> data{new QCPCurveDataContainer{}};
     QCPRange XRange;
     QCPRange YRange;
+    QCPCurve *curve; // Only used when on the plot
   };
 
   struct CategoryValueTie {
