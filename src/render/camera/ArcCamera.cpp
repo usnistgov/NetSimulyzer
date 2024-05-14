@@ -109,12 +109,6 @@ void ArcCamera::move(const float deltaTime) {
     target += right * velocity;
   }
 
-  if (turnRightPressed) {
-    rotate(velocity, 0.0f);
-  } else if (turnLeftPressed) {
-    rotate(-velocity, 0.0f);
-  }
-
   if (upPressed) {
     target += up * velocity;
   } else if (downPressed) {
@@ -127,6 +121,13 @@ void ArcCamera::move(const float deltaTime) {
     zoom(zoomSpeed);
 
   position = target + distance * cameraDirection;
+
+  // Rotate overwrites position
+  if (turnRightPressed) {
+    rotate(velocity, 0.0f);
+  } else if (turnLeftPressed) {
+    rotate(-velocity, 0.0f);
+  }
 }
 
 void ArcCamera::reset() {
