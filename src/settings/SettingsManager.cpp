@@ -134,6 +134,25 @@ SettingsManager::BackgroundColor SettingsManager::BackgroundColorFromInt(int val
   return BackgroundColor::Black;
 }
 
+SettingsManager::CameraType SettingsManager::CameraTypeFromInt(int value) {
+  using CameraType = SettingsManager::CameraType;
+
+  switch (value) {
+  case static_cast<int>(CameraType::FirstPerson):
+    return CameraType::FirstPerson;
+  case static_cast<int>(CameraType::ArcBall):
+    return CameraType::ArcBall;
+  default:
+    QMessageBox::critical(nullptr, "Invalid value provided for 'CameraType'!",
+                          "An unrecognised value for 'CameraType': " + QString::number(value) + " was provided");
+    QApplication::exit(1);
+    break;
+  }
+
+  // Should never happen, but just in case
+  return CameraType::FirstPerson;
+}
+
 const SettingsManager::SettingValue &SettingsManager::getQtKey(SettingsManager::Key key) const {
   auto iterator = SettingsManager::qtKeyMap.find(key);
   if (iterator == SettingsManager::qtKeyMap.end()) {

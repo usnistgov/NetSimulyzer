@@ -145,10 +145,14 @@ class SettingsDialog : public QDialog {
   void defaultEnableSkybox();
 
   /**
+   * Set the Camera Type combobox to the default value
+   */
+  void defaultCameraType();
+
+  /**
    * Set the Floor checkbox to the default value
    */
   void defaultEnableFloor();
-
 
   /**
    * Sets the building render mode to the default value
@@ -208,13 +212,13 @@ class SettingsDialog : public QDialog {
    */
   void selectResourcePath();
 
+public:
+  explicit SettingsDialog(QWidget *parent = nullptr);
+
   /**
    * Load the saved settings into each input
    */
   void loadSettings();
-
-public:
-  explicit SettingsDialog(QWidget *parent = nullptr);
 
   /**
    * Sets the time step spinner to `value`.
@@ -349,6 +353,17 @@ signals:
    * Indicator for the skybox to be rendered or not.
    */
   void renderSkyboxChanged(bool enable);
+
+  /**
+   * Signal emitted when the user changes the camera type.
+   *
+   * @param value
+   * A value from `SettingsManager::CameraType` converted to
+   * an `int` for messaging.
+   *
+   * @see SettingsManager::CameraTypeFromInt
+   */
+  void cameraTypeChanged(int value);
 
   /**
    * Signal emitted when the user changes the

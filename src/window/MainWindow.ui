@@ -31,7 +31,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -56,6 +56,7 @@
      <string>&amp;Camera</string>
     </property>
     <addaction name="actionResetCameraPosition"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuPlayback">
     <property name="title">
@@ -89,7 +90,7 @@
     </size>
    </property>
    <property name="allowedAreas">
-    <set>Qt::AllDockWidgetAreas</set>
+    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Nodes</string>
@@ -120,7 +121,7 @@
   </widget>
   <widget class="QDockWidget" name="playbackDock">
    <property name="allowedAreas">
-    <set>Qt::TopDockWidgetArea</set>
+    <set>Qt::DockWidgetArea::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Playback</string>
@@ -132,7 +133,7 @@
   </widget>
   <widget class="QDockWidget" name="nodeDetailsDock">
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+    <set>Qt::DockWidgetArea::LeftDockWidgetArea|Qt::DockWidgetArea::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Detail</string>

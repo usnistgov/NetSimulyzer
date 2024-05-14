@@ -32,68 +32,75 @@
  */
 
 #pragma once
-
-#include "../settings/SettingsManager.h"
-#include "LoadWorker.h"
-#include "chart/ChartManager.h"
-#include "log/ScenarioLogWidget.h"
-#include "node/NodeWidget.h"
-#include "playback/PlaybackWidget.h"
-#include "scene/SceneWidget.h"
-#include "settings/SettingsDialog.h"
-#include "src/window/detail/DetailWidget.h"
-#include "ui_MainWindow.h"
-#include <QLabel>
-#include <QMainWindow>
-#include <QThread>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace netsimulyzer {
-class MainWindow : public QMainWindow {
-  Q_OBJECT
-
+/**
+ * 'Trackball' style camera that orbits around `target`
+ */
+class ArcCamera {
 public:
-  MainWindow();
-  ~MainWindow() override;
+  /**
+   * The point the camera is circling
+   */
+  glm::vec3 target{0.0f};
+  /**
+   * The position of the camera in orbit
+   */
+  glm::vec3 position;
 
-public slots:
-  void finishLoading(const QString &fileName, unsigned long long milliseconds);
-  void errorLoading(const QString &message, unsigned long long offset);
-
-signals:
-  void startLoading(const QString &fileName);
-
-private:
-  const int stateVersion = 4;
-  SettingsManager settings;
-  SettingsDialog settingsDialog{this};
-
-  ChartManager charts{this};
-  NodeWidget nodeWidget{this};
-  DetailWidget detailWidget{this};
-  ScenarioLogWidget logWidget{this};
-  SceneWidget scene{this};
-  PlaybackWidget playbackWidget{this};
-  Ui::MainWindow ui{};
-
-  QActionGroup cameraGroup{this};
-  QAction firstPersonCameraAction{"&First Person", this};
-  QAction arcBallCameraAction{"&Arc Ball", this};
+  static constexpr float defaultDistance{10.0f};
 
   /**
-   * Label inside the Status Bar. Used for 'Normal' Messages
-   *
-   * @see: https://doc.qt.io/qt-5/qstatusbar.html
+   * The distance from the view of the camera
+   * to `target`
    */
-  QLabel statusLabel{"Load Scenario", this};
+  float distance{defaultDistance};
+  bool mousePressed{false};
+  bool zoomIn{false};
+  bool zoomOut{false};
+  const glm::vec3 world_up{0.0f, 1.0f, 0.0f};
+  float mouseTurnSpeed;
+  float moveSpeed;
+  float keyboardTurnSpeed;
+  float fieldOfView;
+  float zoomSpeed{0.5f}; // TODO: Make configurable
 
-  bool loading = false;
-  LoadWorker loadWorker;
-  QThread loadThread;
+  int keyForward;
+  int keyBackward;
+  int keyLeft;
+  int keyRight;
+  int keyTurnLeft;
+  int keyTurnRight;
+  int keyUp;
+  int keyDown;
 
-  void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
-  void load();
+  explicit ArcCamera(const glm::vec3 &target = {0, 0, -10});
 
-protected:
-  void closeEvent(QCloseEvent *event) override;
+  void mouseMove(float dx, float dy);
+  void rotate(float yaw, float pitch);
+
+  void handleKeyPress(int key);
+  void handleKeyRelease(int key);
+  void move(float deltaTime);
+  void reset();
+  void wheel(int delta);
+  void zoom(float delta);
+
+  [[nodiscard]] glm::mat4 viewMatrix() const;
+
+private:
+  bool forwardPressed{false};
+  bool backwardPressed{false};
+  bool leftPressed{false};
+  bool rightPressed{false};
+  bool turnLeftPressed{false};
+  bool turnRightPressed{false};
+  bool upPressed{false};
+  bool downPressed{false};
+
+  void updatePosition();
 };
 } // namespace netsimulyzer

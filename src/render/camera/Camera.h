@@ -77,8 +77,6 @@ private:
 
   float move_speed{0.05f};
   float turnSpeed{0.1};
-
-  bool enableMouseControls = true;
   float mouseTurnSpeed{0.5f};
 
   active_directions active;
@@ -101,9 +99,6 @@ public:
 
   [[nodiscard]] float getTurnSpeed() const;
   void setTurnSpeed(float value);
-
-  [[nodiscard]] bool mouseControlsEnabled() const;
-  void useMouseControls(bool value);
 
   [[nodiscard]] float getMouseTurnSpeed() const;
   void setMouseTurnSpeed(float value);

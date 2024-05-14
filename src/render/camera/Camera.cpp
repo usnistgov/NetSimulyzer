@@ -126,14 +126,6 @@ void Camera::setTurnSpeed(float value) {
   turnSpeed = value;
 }
 
-bool Camera::mouseControlsEnabled() const {
-  return enableMouseControls;
-}
-
-void Camera::useMouseControls(bool value) {
-  enableMouseControls = value;
-}
-
 float Camera::getMouseTurnSpeed() const {
   return mouseTurnSpeed;
 }
@@ -182,7 +174,7 @@ void Camera::move(float delta_time) {
 }
 
 void Camera::mouse_move(float delta_x, float delta_y) {
-  if (!enableMouseControls || mobility == move_state::frozen)
+  if (mobility == move_state::frozen)
     return;
 
   delta_x *= mouseTurnSpeed;

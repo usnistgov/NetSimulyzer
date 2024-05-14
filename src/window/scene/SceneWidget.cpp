@@ -124,8 +124,13 @@ void SceneWidget::handleEvents() {
 }
 
 void SceneWidget::handleUndoEvents() {
+  // Flag to indicate the selected Node has been updated
+  // Use a flag instead of emitting a signal from the
+  // handler, just in case the Node is updated several times
+  // this event period
+  bool selectedNodeUpdated = false;
 
-  auto handleUndoEvent = [this](auto &&arg) -> bool {
+  auto handleUndoEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -149,6 +154,9 @@ void SceneWidget::handleUndoEvents() {
       else
         node->second.handle(arg);
 
+      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
+        selectedNodeUpdated = true;
+
       events.emplace_front(arg.event);
       return true;
     }
@@ -170,6 +178,9 @@ void SceneWidget::handleUndoEvents() {
   while (!undoEvents.empty() && std::visit(handleUndoEvent, undoEvents.back())) {
     undoEvents.pop_back();
   }
+
+  if (selectedNodeUpdated)
+    emit selectedItemUpdated();
 }
 
 void SceneWidget::initializeGL() {
@@ -267,8 +278,16 @@ void SceneWidget::paintGL() {
   glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
   // end Picking
 
-  camera.move(static_cast<float>(frameTimer.elapsed()));
-  renderer.use(camera);
+  switch (cameraType) {
+  case SettingsManager::CameraType::FirstPerson:
+    camera.move(static_cast<float>(frameTimer.elapsed()));
+    renderer.use(camera);
+    break;
+  case SettingsManager::CameraType::ArcBall:
+    arcCamera.move(static_cast<float>(frameTimer.elapsed()));
+    renderer.use(arcCamera);
+    break;
+  }
 
   glClearColor(clearColorGl[0], clearColorGl[1], clearColorGl[2], 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -390,11 +409,13 @@ void SceneWidget::resizeGL(int w, int h) {
 void SceneWidget::keyPressEvent(QKeyEvent *event) {
   QWidget::keyPressEvent(event);
   camera.handle_keypress(event->key());
+  arcCamera.handleKeyPress(event->key());
 }
 
 void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
   QWidget::keyReleaseEvent(event);
   camera.handle_keyrelease(event->key());
+  arcCamera.handleKeyRelease(event->key());
 }
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
@@ -415,61 +436,77 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
     return;
   }
 
-  if (!camera.mouseControlsEnabled())
-    return;
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    mousePressed = true;
+    camera.setMobility(Camera::move_state::mobile);
+  } else /* ArcBall */ {
+    if (event->buttons() & Qt::LeftButton) {
+      arcCamera.mousePressed = true;
+    }
+  }
 
-  if (!(event->buttons() & Qt::LeftButton))
-    return;
-
-  mousePressed = true;
   setCursor(Qt::BlankCursor);
-
-  // Keep this position since we're about to move it
   initialCursorPosition = {event->x(), event->y()};
-
-  isInitialMove = true;
-  QCursor::setPos(mapToGlobal({width() / 2, height() / 2}));
-  camera.setMobility(Camera::move_state::mobile);
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   QWidget::mouseReleaseEvent(event);
-  if (!camera.mouseControlsEnabled())
+
+  if (!(event->buttons() & Qt::LeftButton)) {
+    if (cameraType == SettingsManager::CameraType::FirstPerson) {
+      mousePressed = false;
+      camera.setMobility(Camera::move_state::frozen);
+    } else /* Arcball */ {
+      arcCamera.mousePressed = false;
+    }
+  }
+
+  if (mousePressed || arcCamera.mousePressed)
     return;
 
-  if (event->buttons() & Qt::LeftButton || !mousePressed)
-    return;
-
-  mousePressed = false;
   unsetCursor();
-  camera.setMobility(Camera::move_state::frozen);
-
   // Put the cursor back where it was when we started
   QCursor::setPos(mapToGlobal(initialCursorPosition));
-  isInitialMove = true;
+}
+
+void SceneWidget::wheelEvent(QWheelEvent *event) {
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    QOpenGLWidget::wheelEvent(event);
+    return;
+  }
+
+  int delta{};
+  const auto numPixels = event->pixelDelta();
+  const auto numDegrees = event->angleDelta() / 8;
+
+  if (!numPixels.isNull())
+    delta = numPixels.y();
+  else if (!numDegrees.isNull())
+    delta = numDegrees.y();
+
+  arcCamera.wheel(delta);
+  QOpenGLWidget::wheelEvent(event);
 }
 
 void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
-  if (!mousePressed || !camera.mouseControlsEnabled())
+
+  if (cameraType == SettingsManager::CameraType::ArcBall && !arcCamera.mousePressed)
     return;
 
-  const QPoint widgetCenter{width() / 2, height() / 2};
-
-  if (isInitialMove) {
-    isInitialMove = false;
-    lastCursorPosition = widgetCenter;
+  if (cameraType == SettingsManager::CameraType::FirstPerson && !mousePressed)
     return;
+  auto dx = event->x() - initialCursorPosition.x();
+  // Prevent inverting the camera
+  auto dy = initialCursorPosition.y() - event->y();
+
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    camera.mouse_move(dx, dy);
+  } else /* ArcBall */ {
+    arcCamera.mouseMove(dx, dy);
   }
 
-  auto dx = event->x() - lastCursorPosition.x();
-  // Prevent inverting the camera
-  auto dy = lastCursorPosition.y() - event->y();
-
-  camera.mouse_move(dx, dy);
-
-  lastCursorPosition = widgetCenter;
-  QCursor::setPos(mapToGlobal(widgetCenter));
+  QCursor::setPos(mapToGlobal(initialCursorPosition));
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
@@ -658,8 +695,12 @@ void SceneWidget::focusNode(uint32_t nodeId) {
   // the model bounds
   position.y += ns3Model.height.value_or(bounds.max.y - bounds.min.y) * ns3Model.scale[2] / 2.0f;
 
-  camera.setPosition(position);
-  camera.resetRotation();
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    camera.setPosition(position);
+    camera.resetRotation();
+  } else {
+    arcCamera.target = node.getModel().getPosition();
+  }
 }
 
 const Node &SceneWidget::getNode(unsigned int nodeId) {
@@ -678,17 +719,32 @@ void SceneWidget::enqueueEvents(const std::vector<parser::SceneEvent> &e) {
 }
 
 void SceneWidget::resetCamera() {
-  camera.setPosition({0.0f, 0.0f, 0.0f});
-  camera.resetRotation();
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    camera.setPosition({0.0f, 0.0f, 0.0f});
+    camera.resetRotation();
+  } else {
+    arcCamera.reset();
+  }
 }
 
 Camera &SceneWidget::getCamera() {
   return camera;
 }
 
+ArcCamera &SceneWidget::getArcCamera() {
+  return arcCamera;
+}
+
 void SceneWidget::updatePerspective() {
-  renderer.setPerspective(glm::perspective(glm::radians(camera.getFieldOfView()),
-                                           static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
+  float fov;
+
+  if (cameraType == SettingsManager::CameraType::FirstPerson)
+    fov = camera.getFieldOfView();
+  else
+    fov = arcCamera.fieldOfView;
+
+  renderer.setPerspective(
+      glm::perspective(glm::radians(fov), static_cast<float>(width()) / static_cast<float>(height()), 0.1f, 1000.0f));
 }
 
 void SceneWidget::setResourcePath(const QString &value) {
@@ -728,6 +784,10 @@ void SceneWidget::setTimeStep(parser::nanoseconds value) {
 
 QSize SceneWidget::sizeHint() const {
   return {640, 480};
+}
+
+void SceneWidget::setCameraType(const SettingsManager::CameraType value) {
+  cameraType = value;
 }
 
 void SceneWidget::setSkyboxRenderState(bool enable) {

@@ -56,7 +56,7 @@ class ChartWidget : public QDockWidget {
 
   mutable std::vector<QCPItemText *> pointLabels;
   void seriesSelected(int index);
-  void showSeries(const ChartManager::XYSeriesTie &tie);
+  void showSeries(ChartManager::XYSeriesTie &tie);
   void showSeries(const ChartManager::SeriesCollectionTie &tie);
   void showSeries(const ChartManager::CategoryValueTie &tie);
 

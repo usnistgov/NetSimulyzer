@@ -564,6 +564,32 @@ void Renderer::use(const Camera &cam) {
   fontBackgroundShader.uniform("view", cam.view_matrix());
 }
 
+void Renderer::use(const ArcCamera &cam) {
+  areaShader.uniform("view", cam.viewMatrix());
+
+  modelShader.uniform("view", cam.viewMatrix());
+  modelShader.uniform("eye_position", cam.position);
+
+  buildingShader.uniform("view", cam.viewMatrix());
+
+  gridShader.uniform("view", cam.viewMatrix());
+  gridShader.uniform("eye_position", cam.position);
+
+  // Drop the translation so we cannot move out of the sky box
+  auto noTranslationView = cam.viewMatrix();
+  noTranslationView[3] = {0.0f, 0.0f, 0.0f, 1.0f};
+  skyBoxShader.uniform("view", noTranslationView);
+
+  pickingShader.uniform("view", cam.viewMatrix());
+
+  // Convert to 3x3 since that's the rotation section of the model matrix (the top left 3x3)
+  // then invert that.
+  cameraRotateInverse = glm::inverse(glm::mat3x3(cam.viewMatrix()));
+
+  fontShader.uniform("view", cam.viewMatrix());
+  fontBackgroundShader.uniform("view", cam.viewMatrix());
+}
+
 void Renderer::render(const DirectionalLight &light) {
   modelShader.uniform("directional_light.base.color", light.color);
   modelShader.uniform("directional_light.base.ambient_intensity", light.ambientIntensity);
