@@ -33,6 +33,7 @@ target_sources(netsimulyzer PRIVATE
         group/area/Area.h group/area/Area.cpp
         group/building/Building.h group/building/Building.cpp
         group/decoration/Decoration.h group/decoration/Decoration.cpp
+        group/link/LogicalLink.h group/link/LogicalLink.cpp
         group/link/WiredLink.h group/link/WiredLink.cpp
         group/node/Node.h group/node/Node.cpp
         group/node/TrailBuffer.h group/node/TrailBuffer.cpp

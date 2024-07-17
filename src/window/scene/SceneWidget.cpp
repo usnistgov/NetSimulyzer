@@ -36,6 +36,7 @@
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
 #include "src/conversion.h"
+#include "src/util/palette.h"
 #include <QByteArray>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -112,7 +113,20 @@ void SceneWidget::handleEvents() {
         return false;
       undoEvents.emplace_back(decoration->second.handle(arg));
       return true;
+    } else if constexpr (std::is_same_v<T, parser::LogicalLinkCreate>) {
+      logicalLinks.insert_or_assign(arg.model.id, LogicalLink{arg.model, linkCylinderInfo});
+      undoEvents.emplace_back(undo::LogicalLinkCreate{arg});
+      return true;
+    } else if constexpr (std::is_same_v<T, parser::LogicalLinkUpdate>) {
+      auto link = logicalLinks.find(arg.id);
+      if (link == logicalLinks.end())
+        return false;
+
+      undoEvents.emplace_back(link->second.handle(arg));
+      return true;
     }
+
+    return false;
   };
 
   while (!events.empty() && std::visit(handleEvent, events.front())) {
@@ -172,6 +186,21 @@ void SceneWidget::handleUndoEvents() {
       return true;
     }
 
+    if constexpr (std::is_same_v<T, undo::LogicalLinkCreate>) {
+      logicalLinks.erase(arg.event.model.id);
+      events.emplace_front(arg.event);
+      return true;
+    }
+    if constexpr (std::is_same_v<T, undo::LogicalLinkUpdate>) {
+      auto link = logicalLinks.find(arg.event.id);
+      if (link == logicalLinks.end())
+        return false;
+
+      link->second.handle(arg);
+      events.emplace_front(arg.event);
+      return true;
+    }
+
     return false;
   };
 
@@ -213,6 +242,7 @@ void SceneWidget::initializeGL() {
   renderer.init();
 
   transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
+  linkCylinderInfo = models.load("models/link-cylinder.obj");
 
   TextureCache::CubeMap cubeMap;
   cubeMap.right = QImage{":/texture/resources/textures/skybox/right.png"};
@@ -306,6 +336,30 @@ void SceneWidget::paintGL() {
     if (renderMotionTrails == MotionTrailRenderMode::Always ||
         (renderMotionTrails == MotionTrailRenderMode::EnabledOnly && node.getNs3Model().trailEnabled))
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
+  }
+
+  for (auto &[_, logicalLink] : logicalLinks) {
+    const auto &model = logicalLink.getModel();
+
+    if (!model.active)
+      continue;
+
+    const auto &node1It = nodes.find(model.nodes.first);
+    if (node1It == nodes.end()) {
+      std::cerr << "Node: " << model.nodes.first << " not found when rendering Logical Link: " << model.id
+                << " skipping!\n";
+      continue;
+    }
+
+    const auto &node2It = nodes.find(model.nodes.second);
+    if (node2It == nodes.end()) {
+      std::cerr << "Node: " << model.nodes.second << " not found when rendering Logical Link: " << model.id
+                << " skipping!\n";
+      continue;
+    }
+
+    logicalLink.update(node1It->second.getCenter(), node2It->second.getCenter());
+    renderer.render(logicalLink);
   }
 
   for (auto &[key, decoration] : decorations) {
@@ -572,6 +626,7 @@ void SceneWidget::reset() {
   nodes.clear();
   decorations.clear();
   wiredLinks.clear();
+  logicalLinks.clear();
   events.clear();
   undoEvents.clear();
   selectedNode.reset();
@@ -581,7 +636,9 @@ void SceneWidget::reset() {
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
                       const std::vector<parser::Decoration> &decorationModels,
-                      const std::vector<parser::WiredLink> &links, const std::vector<parser::Node> &nodeModels) {
+                      const std::vector<parser::WiredLink> &links,
+                      const std::vector<parser::LogicalLink> &parserLogicalLinks,
+                      const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
@@ -630,6 +687,21 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
 
     if (ignoreLink)
       wiredLinks.erase(wiredLinks.end() - 1);
+  }
+
+  logicalLinks.reserve(parserLogicalLinks.size());
+  for (const auto &parsedLink : parserLogicalLinks) {
+    if (nodes.find(parsedLink.nodes.first) == nodes.end()) {
+      std::cerr << "Node ID: " << parsedLink.nodes.first << " not found, ignoring link: " << parsedLink.id << '\n';
+      continue;
+    }
+
+    if (nodes.find(parsedLink.nodes.second) == nodes.end()) {
+      std::cerr << "Node ID: " << parsedLink.nodes.second << " not found, ignoring link: " << parsedLink.id << '\n';
+      continue;
+    }
+
+    logicalLinks.insert_or_assign(parsedLink.id, LogicalLink{parsedLink, linkCylinderInfo});
   }
 
   doneCurrent();

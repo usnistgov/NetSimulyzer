@@ -193,6 +193,10 @@ bool ModelRenderInfo::hasTransparentMeshes() const {
 }
 
 void ModelRenderInfo::render(Shader &s, const Model &model) {
+  render(s,  model.getBaseColor(), model.getHighlightColor());
+}
+
+void ModelRenderInfo::render(Shader &s, const std::optional<glm::vec3> &baseColor, const std::optional<glm::vec3> &highlightColor) {
   for (auto &m : meshes) {
     // Operator [] for unordered map is not const...
     const auto &material = m.getMaterial();
@@ -205,10 +209,10 @@ void ModelRenderInfo::render(Shader &s, const Model &model) {
 
       switch (material.materialType) {
       case Material::MaterialType::Base:
-        s.uniform("material_color", model.getBaseColor().value_or(color));
+        s.uniform("material_color", baseColor.value_or(color));
         break;
       case Material::MaterialType::Highlight:
-        s.uniform("material_color", model.getHighlightColor().value_or(color));
+        s.uniform("material_color", highlightColor.value_or(color));
         break;
       case Material::MaterialType::Unclassified:
         [[fallthrough]];

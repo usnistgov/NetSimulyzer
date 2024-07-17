@@ -42,6 +42,7 @@
 #include "../model/ModelCache.h"
 #include "../shader/Shader.h"
 #include "../texture/TextureCache.h"
+#include "src/group/link/LogicalLink.h"
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/Node.h"
 #include "src/group/node/TrailBuffer.h"
@@ -126,6 +127,7 @@ public:
   void render(SkyBox &skyBox);
   void render(CoordinateGrid &coordinateGrid);
   void render(const std::vector<WiredLink> &wiredLinks);
+  void render(const LogicalLink &link);
   void renderFont(const FontManager::FontBannerRenderInfo &info, const glm::vec3 &location, float scale);
 };
 

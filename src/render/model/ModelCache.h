@@ -91,6 +91,7 @@ public:
   [[nodiscard]] bool hasTransparentMeshes() const;
 
   void render(Shader &s, const Model &model);
+  void render(Shader &s, const std::optional<glm::vec3> &baseColor, const std::optional<glm::vec3> &highlightColor);
   void renderTransparent(Shader &s, const Model &model);
   std::vector<Mesh> &getMeshes();
   std::vector<Mesh> &getTransparentMeshes();

@@ -195,6 +195,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseP2PLink(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a logical link
+   *
+   * @param object
+   * The object from the 'links' section with type 'logical'
+   */
+  void parseLogicalLink(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a move event
    *
    * @param object
@@ -320,6 +328,22 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
    * The object from the 'events' section with the 'stream-append' type
    */
   void parseStreamAppend(const util::json::JsonObject &object);
+
+  /**
+   * Parse and emplace a Logical Link Create event
+   *
+   * @param object
+   * The object from the 'events' section with the 'logical-link-create' type
+   */
+  void parseLogicalLinkCreate(const util::json::JsonObject &object);
+
+  /**
+   * Parse and emplace a Logical Link Update event
+   *
+   * @param object
+   * The object from the 'events' section with the 'logical-link-update' type
+   */
+  void parseLogicalLinkUpdate(const util::json::JsonObject &object);
 
   /**
    * Check the min/max bounds against `coordinate` and update accordingly

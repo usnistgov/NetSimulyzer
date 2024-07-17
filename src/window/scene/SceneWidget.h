@@ -48,6 +48,7 @@
 #include "../../render/texture/TextureCache.h"
 #include "../../settings/SettingsManager.h"
 #include "../../util/undo-events.h"
+#include "src/group/link/LogicalLink.h"
 #include "src/group/link/WiredLink.h"
 #include "src/render/camera/ArcCamera.h"
 #include "src/render/font/FontManager.h"
@@ -118,6 +119,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   SettingsManager::BuildingRenderMode buildingRenderMode =
       settings.get<SettingsManager::BuildingRenderMode>(SettingsManager::Key::RenderBuildingMode).value();
   std::unique_ptr<Model> transmissionSphere;
+  Model::ModelLoadInfo linkCylinderInfo;
 
   parser::GlobalConfiguration config;
 
@@ -135,6 +137,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::unordered_map<unsigned int, Node> nodes;
   std::unordered_map<unsigned int, Decoration> decorations;
   std::vector<WiredLink> wiredLinks;
+  std::unordered_map<parser::LogicalLink::LinkId, LogicalLink> logicalLinks;
 
   std::optional<unsigned int> selectedNode;
 
@@ -168,7 +171,7 @@ public:
   void reset();
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
            const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::WiredLink> &links,
-           const std::vector<parser::Node> &nodeModels);
+           const std::vector<parser::LogicalLink> &parserLogicalLinks, const std::vector<parser::Node> &nodeModels);
 
   /**
    * Load an individual model specified by `modelPath`
