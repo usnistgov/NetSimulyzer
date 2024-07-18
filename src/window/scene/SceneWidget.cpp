@@ -119,8 +119,11 @@ void SceneWidget::handleEvents() {
       return true;
     } else if constexpr (std::is_same_v<T, parser::LogicalLinkUpdate>) {
       auto link = logicalLinks.find(arg.id);
-      if (link == logicalLinks.end())
-        return false;
+      if (link == logicalLinks.end()) {
+        std::cerr << "Logical link update event references Logical Link which does not exist: ID [" << arg.id
+                  << "] discarding event\n";
+        return true;
+      }
 
       undoEvents.emplace_back(link->second.handle(arg));
       return true;
@@ -193,8 +196,11 @@ void SceneWidget::handleUndoEvents() {
     }
     if constexpr (std::is_same_v<T, undo::LogicalLinkUpdate>) {
       auto link = logicalLinks.find(arg.event.id);
-      if (link == logicalLinks.end())
-        return false;
+      if (link == logicalLinks.end()) {
+        std::cerr << "Logical link update undo event references Logical Link which does not exist: ID [" << arg.event.id
+                  << "] discarding event\n";
+        return true;
+      }
 
       link->second.handle(arg);
       events.emplace_front(arg.event);
