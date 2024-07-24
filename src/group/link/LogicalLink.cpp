@@ -133,6 +133,8 @@ undo::LogicalLinkUpdate LogicalLink::handle(const parser::LogicalLinkUpdate &e) 
   model.active = e.active;
   model.color = e.color;
 
+  color = toRenderColor(model.color);
+
   return undo;
 }
 
@@ -140,6 +142,8 @@ void LogicalLink::handle(const undo::LogicalLinkUpdate &e) {
   model.nodes = e.nodes;
   model.active = e.active;
   model.color = e.color;
+
+  color = toRenderColor(model.color);
 }
 
 } // namespace netsimulyzer
