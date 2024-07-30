@@ -229,6 +229,27 @@ glm::vec3 Model::getTop() const {
 
   return result;
 }
+float Model::getLinkOffset() const {
+  // Pull the final scale from the
+  // built scale matrix
+  // [x 0 0 0]
+  // [0 y 0 0]
+  // [0 0 z 0]
+  // [0 0 0 1]
+  const auto xScale = scaleMatrix[0].x;
+  const auto yScale = scaleMatrix[1].y;
+  const auto zScale = scaleMatrix[2].z;
+
+
+  return std::max({
+    std::abs(max.x * xScale),
+    std::abs(min.x * xScale),
+    std::abs(max.y * yScale),
+    std::abs(min.y * yScale),
+    std::abs(max.z * zScale),
+    std::abs(min.z * zScale),
+  });
+}
 
 glm::vec3 Model::getScale() const {
   return scale;

@@ -83,21 +83,23 @@ const parser::LogicalLink &LogicalLink::getModel() const {
   return model;
 }
 
-void LogicalLink::update(const glm::vec3 node1Position, const glm::vec3 node2Position) {
+void LogicalLink::update(const glm::vec3 node1Position, const glm::vec3 node2Position, const float offset) {
 
   // TODO: move to event processing
-  if (node1Position == oldPositions.first && node2Position == oldPositions.second)
+  if (node1Position == oldPositions.first && node2Position == oldPositions.second && offset == oldOffset)
     return;
   oldPositions = {node1Position, node2Position};
-  updateModelMatrix(node1Position, node2Position);
+  oldOffset = offset;
+  updateModelMatrix(node1Position, node2Position, offset);
 }
 
 void LogicalLink::update() {
-  updateModelMatrix(oldPositions.first, oldPositions.second);
+  updateModelMatrix(oldPositions.first, oldPositions.second, oldOffset);
 }
 
-void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::vec3 node2Position) {
-  const auto direction = node1Position - node2Position;
+void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::vec3 node2Position,
+                                    const float offset) {
+  const auto direction = node2Position - node1Position;
 
   // Find the rotation between the front of the object (+X) and the desired direction
   const auto rot1 = rotationBetweenVectors({1.0f, 0.0f, 0.0f}, direction);
@@ -120,7 +122,7 @@ void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::ve
 
   const auto distance = std::hypot(std::hypot(node1Position.x - node2Position.x, node1Position.y - node2Position.y),
                                    node1Position.z - node2Position.z);
-  const auto lengthScale = distance / modelWidth;
+  const auto lengthScale = (distance - std::abs(offset)) / modelWidth;
   const auto diameterScale = model.diameter / modelHeight;
 
   modelMatrix = glm::translate(modelMatrix, position);

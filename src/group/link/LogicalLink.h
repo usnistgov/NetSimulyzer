@@ -51,19 +51,20 @@ class LogicalLink {
   glm::vec3 color;
   glm::mat4 modelMatrix{1.0f};
   std::pair<glm::vec3, glm::vec3> oldPositions{};
+  float oldOffset{};
 
 public:
   explicit LogicalLink(parser::LogicalLink model, const Model::ModelLoadInfo &linkCylinder);
 
   [[nodiscard]] const parser::LogicalLink &getModel() const;
 
-  void update(glm::vec3 node1Position, glm::vec3 node2Position);
+  void update(glm::vec3 node1Position, glm::vec3 node2Position, float offset);
   /**
    * Update using cached positions
    */
   void update();
 
-  void updateModelMatrix(glm::vec3 node1Position, glm::vec3 node2Position);
+  void updateModelMatrix(glm::vec3 node1Position, glm::vec3 node2Position, float offset);
 
   undo::LogicalLinkUpdate handle(const parser::LogicalLinkUpdate &e);
 

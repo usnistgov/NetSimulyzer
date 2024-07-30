@@ -363,8 +363,14 @@ void SceneWidget::paintGL() {
                 << " skipping!\n";
       continue;
     }
+    const auto &node1 = node1It->second;
+    const auto &node2 = node2It->second;
 
-    logicalLink.update(node1It->second.getCenter(), node2It->second.getCenter());
+    // TODO: find a way to make a component-wise offset
+    // TODO: Cache offset and calculate on location/scale change
+    const auto offset = std::max(node1.getModel().getLinkOffset(), node2.getModel().getLinkOffset());
+
+    logicalLink.update(node1It->second.getCenter(), node2It->second.getCenter(), offset);
     renderer.render(logicalLink);
   }
 
