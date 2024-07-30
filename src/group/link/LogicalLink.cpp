@@ -76,7 +76,7 @@ namespace netsimulyzer {
 
 LogicalLink::LogicalLink(parser::LogicalLink model, const Model::ModelLoadInfo &linkCylinder)
     : model{std::move(model)}, linkCylinder{linkCylinder}, modelWidth{linkCylinder.max.x - linkCylinder.min.x},
-      modelHeight{linkCylinder.max.y - linkCylinder.min.y}, color{toRenderColor(model.color)} {
+      modelHeight{linkCylinder.max.y - linkCylinder.min.y}, color{toRenderColor(this->model.color)} {
 }
 
 const parser::LogicalLink &LogicalLink::getModel() const {
@@ -89,7 +89,14 @@ void LogicalLink::update(const glm::vec3 node1Position, const glm::vec3 node2Pos
   if (node1Position == oldPositions.first && node2Position == oldPositions.second)
     return;
   oldPositions = {node1Position, node2Position};
+  updateModelMatrix(node1Position, node2Position);
+}
 
+void LogicalLink::update() {
+  updateModelMatrix(oldPositions.first, oldPositions.second);
+}
+
+void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::vec3 node2Position) {
   const auto direction = node1Position - node2Position;
 
   // Find the rotation between the front of the object (+X) and the desired direction
@@ -114,7 +121,7 @@ void LogicalLink::update(const glm::vec3 node1Position, const glm::vec3 node2Pos
   const auto distance = std::hypot(std::hypot(node1Position.x - node2Position.x, node1Position.y - node2Position.y),
                                    node1Position.z - node2Position.z);
   const auto lengthScale = distance / modelWidth;
-  const auto diameterScale = diameter / modelHeight;
+  const auto diameterScale = model.diameter / modelHeight;
 
   modelMatrix = glm::translate(modelMatrix, position);
   // Rotate
@@ -128,22 +135,40 @@ undo::LogicalLinkUpdate LogicalLink::handle(const parser::LogicalLinkUpdate &e) 
   undo.nodes = model.nodes;
   undo.active = model.active;
   undo.color = model.color;
+  undo.diameter = model.diameter;
 
   model.nodes = e.nodes;
   model.active = e.active;
   model.color = e.color;
+  model.diameter = e.diameter;
 
   color = toRenderColor(model.color);
+
+  // If the nodes match, then we can
+  // update using the old positions,
+  // if not, then the `update()` call
+  // in the `SceneWidget` with the
+  // positions will update this
+  if (undo.nodes == model.nodes)
+    update();
 
   return undo;
 }
 
 void LogicalLink::handle(const undo::LogicalLinkUpdate &e) {
+  bool doUpdate = model.nodes == e.nodes;
+
   model.nodes = e.nodes;
   model.active = e.active;
   model.color = e.color;
+  model.diameter = e.diameter;
 
   color = toRenderColor(model.color);
+
+  // Same deal as `handle` for the
+  // non-undo version of this event
+  if (doUpdate)
+    update();
 }
 
 } // namespace netsimulyzer

@@ -142,6 +142,7 @@ struct LogicalLink {
   std::pair<unsigned int, unsigned int> nodes;
   Ns3Color3 color;
   bool active;
+  float diameter;
 };
 
 // ----- Chart Models -----
@@ -453,6 +454,11 @@ struct LogicalLinkUpdate {
    * The Color to use for the link
    */
   Ns3Color3 color;
+
+  /**
+   * The size of the link in ns-3 units
+   */
+  float diameter;
 };
 
 /**

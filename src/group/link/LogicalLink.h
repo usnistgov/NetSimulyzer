@@ -47,7 +47,6 @@ class LogicalLink {
   float modelWidth;
   /// Cached model max.y - min.y
   float modelHeight;
-  float diameter{0.75f}; // TODO: Make configurable
   glm::quat rotate{};
   glm::vec3 color;
   glm::mat4 modelMatrix{1.0f};
@@ -59,6 +58,12 @@ public:
   [[nodiscard]] const parser::LogicalLink &getModel() const;
 
   void update(glm::vec3 node1Position, glm::vec3 node2Position);
+  /**
+   * Update using cached positions
+   */
+  void update();
+
+  void updateModelMatrix(glm::vec3 node1Position, glm::vec3 node2Position);
 
   undo::LogicalLinkUpdate handle(const parser::LogicalLinkUpdate &e);
 

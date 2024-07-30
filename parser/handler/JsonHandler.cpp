@@ -595,12 +595,13 @@ void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseLogicalLink(const util::json::JsonObject &object) {
-  requiredFields(object, {"id", "color", "active", "nodes"});
+  requiredFields(object, {"id", "color", "active", "nodes", "diameter"});
   parser::LogicalLink link;
 
   link.id = object["id"].get<unsigned_int_type>();
   link.color = colorFromObject(object["color"].object());
   link.active = object["active"].get<bool>();
+  link.diameter = object["diameter"].get<float>();
 
   const auto &nodes = object["nodes"].array();
   if (nodes.size() != 2u) {
@@ -929,7 +930,7 @@ void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
 }
 
 void JsonHandler::parseLogicalLinkCreate(const util::json::JsonObject &object) {
-  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color"});
+  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color", "diameter"});
   parser::LogicalLinkCreate event;
   event.time = object["nanoseconds"].get<int_type>();
   event.model.id = object["link-id"].get<unsigned_int_type>();
@@ -944,13 +945,14 @@ void JsonHandler::parseLogicalLinkCreate(const util::json::JsonObject &object) {
 
   event.model.active = object["active"].get<bool>();
   event.model.color = colorFromObject(object["color"].object());
+  event.model.diameter = object["diameter"].get<float>();
 
   updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::parseLogicalLinkUpdate(const util::json::JsonObject &object) {
-  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color"});
+  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color", "diameter"});
   parser::LogicalLinkUpdate event;
   event.time = object["nanoseconds"].get<int_type>();
   event.id = object["link-id"].get<unsigned_int_type>();
@@ -965,6 +967,7 @@ void JsonHandler::parseLogicalLinkUpdate(const util::json::JsonObject &object) {
 
   event.active = object["active"].get<bool>();
   event.color = colorFromObject(object["color"].object());
+  event.diameter = object["diameter"].get<float>();
 
   updateEndTime(event.time);
   fileParser.sceneEvents.emplace_back(event);

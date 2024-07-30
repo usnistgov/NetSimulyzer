@@ -190,6 +190,11 @@ struct LogicalLinkUpdate {
    * The Color used before `event`
    */
   parser::Ns3Color3 color;
+
+  /**
+   * The diameter before `event`
+   */
+  float diameter;
 };
 
 /**
