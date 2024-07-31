@@ -378,10 +378,13 @@
             "properties": {
               "nanoseconds": {
                 "type": "integer"
+              },
+              "type": {
+                "type": "string"
               }
             },
             "required": [
-              "nanoseconds"
+              "nanoseconds", "type"
             ]
           },
           {
@@ -714,6 +717,128 @@
               "required": [
                 "stream-id",
                 "data"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "logical-link-create"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "link-id": {
+                  "type": "integer"
+                },
+                "nodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                },
+                "diameter" : {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "link-id",
+                "nodes",
+                "active",
+                "color",
+                "diameter"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "logical-link-update"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "link-id": {
+                  "type": "integer"
+                },
+                "nodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                },
+                "diameter" : {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "link-id",
+                "nodes",
+                "active",
+                "color",
+                "diameter"
               ]
             }
           }
@@ -1372,6 +1497,104 @@
           "visible"
         ]
       }
+    },
+    "links" : {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "point-to-point"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "node-ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "required": [
+                "node-ids"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "logical"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "color": {
+                  "type": "object",
+                  "properties": {
+                    "red": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "green": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "blue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  },
+                  "required": [
+                    "red",
+                    "green",
+                    "blue"
+                  ]
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "diameter": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "nodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "required": [
+                "id", "color", "active", "diameter", "nodes"
+              ]
+            }
+          }
+        ]
+      }
     }
   },
   "required": [
@@ -1382,6 +1605,7 @@
     "events",
     "nodes",
     "series",
-    "streams"
+    "streams",
+    "links"
   ]
 }
