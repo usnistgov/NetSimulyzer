@@ -122,7 +122,13 @@ void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::ve
 
   const auto distance = std::hypot(std::hypot(node1Position.x - node2Position.x, node1Position.y - node2Position.y),
                                    node1Position.z - node2Position.z);
-  const auto lengthScale = (distance - std::abs(offset)) / modelWidth;
+
+  // Don't allow the link to cross over itself when scaling
+  auto lengthScaleNumerator = distance - std::abs(offset);
+  if (lengthScaleNumerator < 0.0f)
+    lengthScaleNumerator = 0.0;
+
+  const auto lengthScale = lengthScaleNumerator / modelWidth;
   const auto diameterScale = model.diameter / modelHeight;
 
   modelMatrix = glm::translate(modelMatrix, position);
