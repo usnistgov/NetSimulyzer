@@ -286,11 +286,20 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
       parseCategorySeriesAppend(object);
     else if (type == "stream-append")
       parseStreamAppend(object);
+    else if (type == "logical-link-create")
+      parseLogicalLinkCreate(object);
+    else if (type == "logical-link-update")
+      parseLogicalLinkUpdate(object);
     else
       std::cerr << "Unhandled Event type: " << type << '\n';
   } break;
   case Section::Links:
-    parseP2PLink(object);
+    if (object["type"].get<std::string>() == "point-to-point")
+      parseP2PLink(object);
+    else if (object["type"].get<std::string>() == "logical")
+      parseLogicalLink(object);
+    else
+      std::cerr << "Unknown link type '" << object["type"].get<std::string>() << "' Ignoring\n";
     break;
   case Section::Nodes:
     parseNode(object);
@@ -583,6 +592,26 @@ void JsonHandler::parseP2PLink(const util::json::JsonObject &object) {
   }
 
   fileParser.wiredLinks.emplace_back(link);
+}
+
+void JsonHandler::parseLogicalLink(const util::json::JsonObject &object) {
+  requiredFields(object, {"id", "color", "active", "nodes", "diameter"});
+  parser::LogicalLink link;
+
+  link.id = object["id"].get<unsigned_int_type>();
+  link.color = colorFromObject(object["color"].object());
+  link.active = object["active"].get<bool>();
+  link.diameter = object["diameter"].get<float>();
+
+  const auto &nodes = object["nodes"].array();
+  if (nodes.size() != 2u) {
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
+              << " Ignoring.\n";
+    return;
+  }
+  link.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};
+
+  fileParser.logicalLinks.emplace_back(link);
 }
 
 void JsonHandler::parseMoveEvent(const util::json::JsonObject &object) {
@@ -898,6 +927,50 @@ void JsonHandler::parseStreamAppend(const util::json::JsonObject &object) {
 
   updateEndTime(event.time);
   fileParser.logEvents.emplace_back(event);
+}
+
+void JsonHandler::parseLogicalLinkCreate(const util::json::JsonObject &object) {
+  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color", "diameter"});
+  parser::LogicalLinkCreate event;
+  event.time = object["nanoseconds"].get<int_type>();
+  event.model.id = object["link-id"].get<unsigned_int_type>();
+
+  const auto &nodes = object["nodes"].array();
+  if (nodes.size() != 2u) {
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
+              << " Ignoring.\n";
+    return;
+  }
+  event.model.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};
+
+  event.model.active = object["active"].get<bool>();
+  event.model.color = colorFromObject(object["color"].object());
+  event.model.diameter = object["diameter"].get<float>();
+
+  updateEndTime(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
+void JsonHandler::parseLogicalLinkUpdate(const util::json::JsonObject &object) {
+  requiredFields(object, {"nanoseconds", "link-id", "nodes", "active", "color", "diameter"});
+  parser::LogicalLinkUpdate event;
+  event.time = object["nanoseconds"].get<int_type>();
+  event.id = object["link-id"].get<unsigned_int_type>();
+
+  const auto &nodes = object["nodes"].array();
+  if (nodes.size() != 2u) {
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
+              << " Ignoring.\n";
+    return;
+  }
+  event.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};
+
+  event.active = object["active"].get<bool>();
+  event.color = colorFromObject(object["color"].object());
+  event.diameter = object["diameter"].get<float>();
+
+  updateEndTime(event.time);
+  fileParser.sceneEvents.emplace_back(event);
 }
 
 void JsonHandler::updateLocationBounds(const parser::Ns3Coordinate &coordinate) {

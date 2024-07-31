@@ -153,6 +153,8 @@ void FileParser::reset() {
   xySeries.clear();
   categoryValueSeries.clear();
   seriesCollections.clear();
+  wiredLinks.clear();
+  logicalLinks.clear();
 }
 
 const GlobalConfiguration &FileParser::getConfiguration() const {
@@ -177,6 +179,9 @@ const std::vector<Decoration> &FileParser::getDecorations() const {
 
 const std::vector<WiredLink> &FileParser::getLinks() const {
   return wiredLinks;
+}
+const std::vector<LogicalLink> &FileParser::getLogicalLinks() const {
+  return logicalLinks;
 }
 
 const std::vector<SceneEvent> &FileParser::getSceneEvents() const {

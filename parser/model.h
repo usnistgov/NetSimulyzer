@@ -135,6 +135,16 @@ struct WiredLink {
   std::vector<unsigned int> nodes;
 };
 
+struct LogicalLink {
+  using LinkId = std::size_t; // From std::vector on the module end
+
+  LinkId id;
+  std::pair<unsigned int, unsigned int> nodes;
+  Ns3Color3 color;
+  bool active;
+  float diameter;
+};
+
 // ----- Chart Models -----
 
 struct ValueAxis {
@@ -402,6 +412,55 @@ struct NodeColorChangeEvent {
   std::optional<Ns3Color3> targetColor;
 };
 
+struct LogicalLinkCreate {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  nanoseconds time;
+
+  /**
+   * The model used to create a logical link
+   */
+  LogicalLink model;
+};
+
+/**
+ * Event which changes an existing Logical Link
+ */
+struct LogicalLinkUpdate {
+  /**
+   * The simulation time (in milliseconds)
+   * for when the event should be run
+   */
+  nanoseconds time;
+
+  /**
+   * The ID of the Link to change
+   */
+  LogicalLink::LinkId id;
+
+  /**
+   * The Nodes to link
+   */
+  std::pair<unsigned int, unsigned int> nodes;
+
+  /**
+   * If the link is active or not
+   */
+  bool active;
+
+  /**
+   * The Color to use for the link
+   */
+  Ns3Color3 color;
+
+  /**
+   * The size of the link in ns-3 units
+   */
+  float diameter;
+};
+
 /**
  * Convenience struct for packaging points.
  * Does not correspond to anything in the ns-3 module
@@ -525,14 +584,14 @@ struct StreamAppendEvent {
  */
 using Event = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, DecorationMoveEvent,
                            NodeOrientationChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
-                           XYSeriesAddValues, XYSeriesClear, StreamAppendEvent>;
+                           XYSeriesAddValues, XYSeriesClear, StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Events which affect the rendered scene
  */
-using SceneEvent =
-    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
-                 NodeColorChangeEvent, DecorationMoveEvent, DecorationOrientationChangeEvent>;
+using SceneEvent = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent,
+                                NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationMoveEvent,
+                                DecorationOrientationChangeEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Event types specific to the charts model

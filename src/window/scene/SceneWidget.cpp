@@ -36,6 +36,7 @@
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
 #include "src/conversion.h"
+#include "src/util/palette.h"
 #include <QByteArray>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -64,6 +65,10 @@
 static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
   std::clog << message.message().toStdString() << '\n';
 }
+#endif
+
+#ifdef Q_OS_MAC
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 namespace netsimulyzer {
@@ -112,7 +117,23 @@ void SceneWidget::handleEvents() {
         return false;
       undoEvents.emplace_back(decoration->second.handle(arg));
       return true;
+    } else if constexpr (std::is_same_v<T, parser::LogicalLinkCreate>) {
+      logicalLinks.insert_or_assign(arg.model.id, LogicalLink{arg.model, linkCylinderInfo});
+      undoEvents.emplace_back(undo::LogicalLinkCreate{arg});
+      return true;
+    } else if constexpr (std::is_same_v<T, parser::LogicalLinkUpdate>) {
+      auto link = logicalLinks.find(arg.id);
+      if (link == logicalLinks.end()) {
+        std::cerr << "Logical link update event references Logical Link which does not exist: ID [" << arg.id
+                  << "] discarding event\n";
+        return true;
+      }
+
+      undoEvents.emplace_back(link->second.handle(arg));
+      return true;
     }
+
+    return false;
   };
 
   while (!events.empty() && std::visit(handleEvent, events.front())) {
@@ -172,6 +193,24 @@ void SceneWidget::handleUndoEvents() {
       return true;
     }
 
+    if constexpr (std::is_same_v<T, undo::LogicalLinkCreate>) {
+      logicalLinks.erase(arg.event.model.id);
+      events.emplace_front(arg.event);
+      return true;
+    }
+    if constexpr (std::is_same_v<T, undo::LogicalLinkUpdate>) {
+      auto link = logicalLinks.find(arg.event.id);
+      if (link == logicalLinks.end()) {
+        std::cerr << "Logical link update undo event references Logical Link which does not exist: ID [" << arg.event.id
+                  << "] discarding event\n";
+        return true;
+      }
+
+      link->second.handle(arg);
+      events.emplace_front(arg.event);
+      return true;
+    }
+
     return false;
   };
 
@@ -213,6 +252,7 @@ void SceneWidget::initializeGL() {
   renderer.init();
 
   transmissionSphere = std::make_unique<Model>(models.load("models/transmission_sphere.obj"));
+  linkCylinderInfo = models.load("models/link-cylinder.obj");
 
   TextureCache::CubeMap cubeMap;
   cubeMap.right = QImage{":/texture/resources/textures/skybox/right.png"};
@@ -306,6 +346,36 @@ void SceneWidget::paintGL() {
     if (renderMotionTrails == MotionTrailRenderMode::Always ||
         (renderMotionTrails == MotionTrailRenderMode::EnabledOnly && node.getNs3Model().trailEnabled))
       renderer.renderTrail(node.getTrailBuffer(), node.getTrailColor());
+  }
+
+  for (auto &[_, logicalLink] : logicalLinks) {
+    const auto &model = logicalLink.getModel();
+
+    if (!model.active)
+      continue;
+
+    const auto &node1It = nodes.find(model.nodes.first);
+    if (node1It == nodes.end()) {
+      std::cerr << "Node: " << model.nodes.first << " not found when rendering Logical Link: " << model.id
+                << " skipping!\n";
+      continue;
+    }
+
+    const auto &node2It = nodes.find(model.nodes.second);
+    if (node2It == nodes.end()) {
+      std::cerr << "Node: " << model.nodes.second << " not found when rendering Logical Link: " << model.id
+                << " skipping!\n";
+      continue;
+    }
+    const auto &node1 = node1It->second;
+    const auto &node2 = node2It->second;
+
+    // TODO: find a way to make a component-wise offset
+    // TODO: Cache offset and calculate on location/scale change
+    const auto offset = std::max(node1.getModel().getLinkOffset(), node2.getModel().getLinkOffset());
+
+    logicalLink.update(node1It->second.getCenter(), node2It->second.getCenter(), offset);
+    renderer.render(logicalLink);
   }
 
   for (auto &[key, decoration] : decorations) {
@@ -445,6 +515,26 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
     }
   }
 
+  // If we're on macOS, in order to move the cursor,
+  // we have to be allowed to in the Accessibility Options
+  // so, check, and if we don't have it, prompt the user
+  // if we don't have such a permission, then camera movement
+  // with the mouse is pretty much impossible...
+#ifdef Q_OS_MAC
+  // Thanks, StackOverflow!
+  // https://stackoverflow.com/a/60243598
+  CFStringRef keys[] = { kAXTrustedCheckOptionPrompt };
+  CFTypeRef values[] = { kCFBooleanTrue };
+  CFDictionaryRef options = CFDictionaryCreate(NULL,
+                                               (const void **)&keys,
+                                               (const void **)&values,
+                                               sizeof(keys) / sizeof(keys[0]),
+                                               &kCFTypeDictionaryKeyCallBacks,
+                                               &kCFTypeDictionaryValueCallBacks);
+  AXIsProcessTrustedWithOptions(options);
+  CFRelease(options);
+#endif
+
   setCursor(Qt::BlankCursor);
   initialCursorPosition = {event->x(), event->y()};
 }
@@ -454,8 +544,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
 
   if (!(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
-      mousePressed = false;
-      camera.setMobility(Camera::move_state::frozen);
+      mousePressed = false;      camera.setMobility(Camera::move_state::frozen);
     } else /* Arcball */ {
       arcCamera.mousePressed = false;
     }
@@ -572,6 +661,7 @@ void SceneWidget::reset() {
   nodes.clear();
   decorations.clear();
   wiredLinks.clear();
+  logicalLinks.clear();
   events.clear();
   undoEvents.clear();
   selectedNode.reset();
@@ -581,7 +671,9 @@ void SceneWidget::reset() {
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
                       const std::vector<parser::Decoration> &decorationModels,
-                      const std::vector<parser::WiredLink> &links, const std::vector<parser::Node> &nodeModels) {
+                      const std::vector<parser::WiredLink> &links,
+                      const std::vector<parser::LogicalLink> &parserLogicalLinks,
+                      const std::vector<parser::Node> &nodeModels) {
 
   // We need a current context for the initial construction of most models
   makeCurrent();
@@ -630,6 +722,21 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
 
     if (ignoreLink)
       wiredLinks.erase(wiredLinks.end() - 1);
+  }
+
+  logicalLinks.reserve(parserLogicalLinks.size());
+  for (const auto &parsedLink : parserLogicalLinks) {
+    if (nodes.find(parsedLink.nodes.first) == nodes.end()) {
+      std::cerr << "Node ID: " << parsedLink.nodes.first << " not found, ignoring link: " << parsedLink.id << '\n';
+      continue;
+    }
+
+    if (nodes.find(parsedLink.nodes.second) == nodes.end()) {
+      std::cerr << "Node ID: " << parsedLink.nodes.second << " not found, ignoring link: " << parsedLink.id << '\n';
+      continue;
+    }
+
+    logicalLinks.insert_or_assign(parsedLink.id, LogicalLink{parsedLink, linkCylinderInfo});
   }
 
   doneCurrent();

@@ -158,6 +158,46 @@ struct NodeColorChangeEvent {
 };
 
 /**
+ * An event which undoes a `parser::LogicalLinkCreate`
+ */
+struct LogicalLinkCreate {
+  /**
+   * The event which generated this undo event
+   */
+  parser::LogicalLinkCreate event;
+};
+
+/**
+ * An event which undoes a `parser::LogicalLinkUpdate`
+ */
+struct LogicalLinkUpdate {
+  /**
+   * The event which generated this undo event
+   */
+  parser::LogicalLinkUpdate event;
+
+  /**
+   * The Nodes linked before `event`
+   */
+  std::pair<unsigned int, unsigned int> nodes;
+
+  /**
+   * If the link is active before `event`
+   */
+  bool active;
+
+  /**
+   * The Color used before `event`
+   */
+  parser::Ns3Color3 color;
+
+  /**
+   * The diameter before `event`
+   */
+  float diameter;
+};
+
+/**
  * An event which undoes a `parser::XYSeriesAddValue`
  */
 struct XYSeriesAddValue {
@@ -232,9 +272,10 @@ struct StreamAppendEvent {
   parser::StreamAppendEvent event;
 };
 
-using SceneUndoEvent = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent,
-                                    DecorationMoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent,
-                                    DecorationOrientationChangeEvent, XYSeriesAddValue, StreamAppendEvent>;
+using SceneUndoEvent =
+    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, DecorationMoveEvent,
+                 NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
+                 StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 using ChartUndoEvent = std::variant<XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, CategorySeriesAddValue>;
 

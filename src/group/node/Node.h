@@ -35,6 +35,7 @@
 
 #include "../../render/model/Model.h"
 #include "../../util/undo-events.h"
+#include "src/group/link/LogicalLink.h"
 #include "src/group/link/WiredLink.h"
 #include "src/group/node/TrailBuffer.h"
 #include "src/render/font/FontManager.h"
@@ -64,6 +65,7 @@ private:
   TrailBuffer trailBuffer;
   glm::vec3 trailColor;
   std::vector<WiredLink *> wiredLinks;
+  std::vector<LogicalLink *> activeLogicalLinks;
   TransmitInfo transmitInfo;
   FontManager::FontBannerRenderInfo bannerRenderInfo;
 
@@ -83,6 +85,8 @@ public:
   [[nodiscard]] const FontManager::FontBannerRenderInfo &getBannerRenderInfo() const;
 
   void addWiredLink(WiredLink *link);
+  void updateLogicalLink(LogicalLink *link);
+  [[nodiscard]] const std::vector<LogicalLink *>& getActiveLogicalLinks() const;
 
   undo::MoveEvent handle(const parser::MoveEvent &e);
   undo::NodeModelChangeEvent handle(const parser::NodeModelChangeEvent &e, ModelCache &modelCache);

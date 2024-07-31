@@ -776,6 +776,15 @@ void Renderer::render(const std::vector<WiredLink> &wiredLinks) {
   glDisable(GL_LINE_SMOOTH);
 }
 
+void Renderer::render(const LogicalLink &link) {
+  modelShader.bind();
+  modelShader.uniform("is_selected", false);
+  modelShader.uniform("model", link.modelMatrix);
+  modelShader.uniform("useLighting", false);
+  // TODO: Cache this
+  modelCache.get(link.linkCylinder.id).render(modelShader, std::optional{link.color}, {});
+}
+
 void Renderer::renderPickingNode(unsigned int nodeId, const Model &m) {
   auto &model = modelCache.get(m.getModelId());
 

@@ -34,6 +34,7 @@
 #include "Node.h"
 #include "../../conversion.h"
 #include "../../util/undo-events.h"
+#include <algorithm>
 #include <cmath>
 #include <glm/glm.hpp>
 #include <utility>
@@ -72,9 +73,8 @@ void Node::applyModelProperties() {
 
 Node::Node(const Model &model, parser::Node ns3Node, TrailBuffer &&trailBuffer,
            const FontManager::FontBannerRenderInfo &bannerRenderInfo)
-    : model(model), ns3Node(std::move(ns3Node)),
-      offset(toRenderCoordinate(this->ns3Node.offset)), trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{
-                                                                                                 bannerRenderInfo} {
+    : model(model), ns3Node(std::move(ns3Node)), offset(toRenderCoordinate(this->ns3Node.offset)),
+      trailBuffer{std::move(trailBuffer)}, bannerRenderInfo{bannerRenderInfo} {
 
   applyModelProperties();
 
@@ -114,6 +114,22 @@ const Node::TransmitInfo &Node::getTransmitInfo() const {
 void Node::addWiredLink(WiredLink *link) {
   wiredLinks.emplace_back(link);
   link->notifyNodeMoved(ns3Node.id, getCenter());
+}
+
+void Node::updateLogicalLink(LogicalLink *link) {
+  const auto &linkModel = link->getModel();
+  // only store links where we're the first Node
+  // so we don't get duplication
+  if (linkModel.nodes.first != ns3Node.id || !linkModel.active) {
+    activeLogicalLinks.erase(std::remove(activeLogicalLinks.begin(), activeLogicalLinks.end(), link),
+                             activeLogicalLinks.end());
+    return;
+  }
+  activeLogicalLinks.emplace_back(link);
+}
+
+const std::vector<LogicalLink *> &Node::getActiveLogicalLinks() const {
+  return activeLogicalLinks;
 }
 
 undo::MoveEvent Node::handle(const parser::MoveEvent &e) {

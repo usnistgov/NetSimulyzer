@@ -38,6 +38,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <glm/gtc/quaternion.hpp>
 
 namespace netsimulyzer {
 
@@ -71,6 +72,7 @@ private:
   std::optional<float> targetDepthScale;
   glm::vec3 scale{1.0f};
   std::array<float, 3> rotate{0.0f};
+  glm::quat rotateQuat{};
   std::optional<glm::vec3> baseColor;
   std::optional<glm::vec3> highlightColor;
 
@@ -100,6 +102,8 @@ public:
 
   [[nodiscard]] glm::vec3 getCenter() const;
   [[nodiscard]] glm::vec3 getTop() const;
+
+  [[nodiscard]] float getLinkOffset() const;
 
   void setKeepRatio(bool value);
   [[nodiscard]] bool getKeepRatio() const;
@@ -134,6 +138,8 @@ public:
   [[nodiscard]] const std::optional<glm::vec3> &getHighlightColor() const;
 
   void rebuildModelMatrix();
+
+  void face(glm::vec3 front, glm::vec3 direction, glm::vec3 up);
 };
 
 } // namespace netsimulyzer

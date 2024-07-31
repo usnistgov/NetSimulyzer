@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 project(NetSimulyzer
-        VERSION 1.0.10
+        VERSION 1.0.11
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
@@ -117,6 +117,11 @@ target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
 target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
+
+# For allowing cursor control on modern macOS
+if (${APPLE})
+    target_link_libraries(netsimulyzer PRIVATE "-framework ApplicationServices")
+endif ()
 
 add_subdirectory(src)
 
