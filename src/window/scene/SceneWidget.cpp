@@ -67,6 +67,10 @@ static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
 }
 #endif
 
+#ifdef Q_OS_MAC
+#include <ApplicationServices/ApplicationServices.h>
+#endif
+
 namespace netsimulyzer {
 
 void SceneWidget::handleEvents() {
@@ -511,6 +515,26 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
     }
   }
 
+  // If we're on macOS, in order to move the cursor,
+  // we have to be allowed to in the Accessibility Options
+  // so, check, and if we don't have it, prompt the user
+  // if we don't have such a permission, then camera movement
+  // with the mouse is pretty much impossible...
+#ifdef Q_OS_MAC
+  // Thanks, StackOverflow!
+  // https://stackoverflow.com/a/60243598
+  CFStringRef keys[] = { kAXTrustedCheckOptionPrompt };
+  CFTypeRef values[] = { kCFBooleanTrue };
+  CFDictionaryRef options = CFDictionaryCreate(NULL,
+                                               (const void **)&keys,
+                                               (const void **)&values,
+                                               sizeof(keys) / sizeof(keys[0]),
+                                               &kCFTypeDictionaryKeyCallBacks,
+                                               &kCFTypeDictionaryValueCallBacks);
+  AXIsProcessTrustedWithOptions(options);
+  CFRelease(options);
+#endif
+
   setCursor(Qt::BlankCursor);
   initialCursorPosition = {event->x(), event->y()};
 }
@@ -520,8 +544,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
 
   if (!(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
-      mousePressed = false;
-      camera.setMobility(Camera::move_state::frozen);
+      mousePressed = false;      camera.setMobility(Camera::move_state::frozen);
     } else /* Arcball */ {
       arcCamera.mousePressed = false;
     }

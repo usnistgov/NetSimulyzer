@@ -118,6 +118,11 @@ target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
 target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
+# For allowing cursor control on modern macOS
+if (${APPLE})
+    target_link_libraries(netsimulyzer PRIVATE "-framework ApplicationServices")
+endif ()
+
 add_subdirectory(src)
 
 if(ENABLE_DOXYGEN)
