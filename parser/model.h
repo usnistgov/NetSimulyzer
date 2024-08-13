@@ -171,6 +171,23 @@ struct CategoryAxis {
 struct XYSeries {
   enum class Connection { None, Line, StepFloor, StepCeiling };
   enum class LabelMode { Hidden, Shown };
+  enum class PointMode {
+    None,
+    Dot,
+    Cross,
+    Plus,
+    Circle,
+    Disk,
+    Square,
+    Diamond,
+    Star,
+    Triangle,
+    TriangleInverted,
+    CrossSquare,
+    PlusSquare,
+    CrossCircle,
+    PlusCircle
+  };
 
   unsigned int id = 0u;
   bool visible;
@@ -178,7 +195,9 @@ struct XYSeries {
   std::string legend;
   Connection connection = Connection::Line;
   LabelMode labelMode = LabelMode::Shown;
+  PointMode pointMode = PointMode::None;
   Ns3Color3 color;
+  Ns3Color3 pointColor;
   ValueAxis xAxis;
   ValueAxis yAxis;
 };

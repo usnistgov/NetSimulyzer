@@ -605,8 +605,7 @@ void JsonHandler::parseLogicalLink(const util::json::JsonObject &object) {
 
   const auto &nodes = object["nodes"].array();
   if (nodes.size() != 2u) {
-    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
-              << " Ignoring.\n";
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size() << " Ignoring.\n";
     return;
   }
   link.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};
@@ -818,6 +817,7 @@ void JsonHandler::parseCategorySeriesAppend(const util::json::JsonObject &object
 }
 
 void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
+  // TODO: add "point-color", & "point-mode" after 1.1.0
   requiredFields(object, {"id", "name", "legend", "visible", "color", "connection", "labels", "x-axis", "y-axis"});
   parser::XYSeries series;
 
@@ -829,7 +829,7 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
 
   series.color = colorFromObject(object["color"].object());
 
-  auto connection = object["connection"].get<std::string>();
+  const auto connection = object["connection"].get<std::string>();
   if (connection == "none")
     series.connection = parser::XYSeries::Connection::None;
   else if (connection == "line")
@@ -845,13 +845,56 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
   else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
-  auto labelMode = object["labels"].get<std::string>();
+  const auto labelMode = object["labels"].get<std::string>();
   if (labelMode == "hidden")
     series.labelMode = parser::XYSeries::LabelMode::Hidden;
   else if (labelMode == "shown")
     series.labelMode = parser::XYSeries::LabelMode::Shown;
   else
     std::cerr << "Unrecognized labels type: " << labelMode << '\n';
+
+  using PointMode = parser::XYSeries::PointMode;
+  // TODO: compatibility with 1.0.0, remove for 1.1.0
+  if (object.contains("point-mode")) {
+    const auto pointMode = object["point-mode"].get<std::string>();
+    if (pointMode == "none")
+      series.pointMode = PointMode::None;
+    else if (pointMode == "dot")
+      series.pointMode = PointMode::Dot;
+    else if (pointMode == "cross")
+      series.pointMode = PointMode::Cross;
+    else if (pointMode == "circle")
+      series.pointMode = PointMode::Circle;
+    else if (pointMode == "disk")
+      series.pointMode = PointMode::Disk;
+    else if (pointMode == "square")
+      series.pointMode = PointMode::Square;
+    else if (pointMode == "diamond")
+      series.pointMode = PointMode::Diamond;
+    else if (pointMode == "star")
+      series.pointMode = PointMode::Star;
+    else if (pointMode == "triangle")
+      series.pointMode = PointMode::Triangle;
+    else if (pointMode == "triangle-inverted")
+      series.pointMode = PointMode::TriangleInverted;
+    else if (pointMode == "cross-circle")
+      series.pointMode = PointMode::CrossCircle;
+    else if (pointMode == "plus-circle")
+      series.pointMode = PointMode::PlusCircle;
+    else {
+      std::clog << "Unrecognized point-mode: " << pointMode << " on series id: " << series.id << " using 'disk'"
+                << '\n';
+    }
+
+  } else if (series.connection == parser::XYSeries::Connection::None)
+    series.pointMode = PointMode::Disk;
+  else
+    series.pointMode = PointMode::None;
+
+  if (object.contains("point-color"))
+    series.pointColor = colorFromObject(object["point-color"].object());
+  else
+    series.pointColor = series.color;
 
   series.xAxis = valueAxisFromObject(object["x-axis"].object());
   series.yAxis = valueAxisFromObject(object["y-axis"].object());
@@ -941,8 +984,7 @@ void JsonHandler::parseLogicalLinkCreate(const util::json::JsonObject &object) {
 
   const auto &nodes = object["nodes"].array();
   if (nodes.size() != 2u) {
-    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
-              << " Ignoring.\n";
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size() << " Ignoring.\n";
     return;
   }
   event.model.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};
@@ -963,8 +1005,7 @@ void JsonHandler::parseLogicalLinkUpdate(const util::json::JsonObject &object) {
 
   const auto &nodes = object["nodes"].array();
   if (nodes.size() != 2u) {
-    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size()
-              << " Ignoring.\n";
+    std::cerr << "Error: Links of type 'logical' must have exactly 2 nodes, got: " << nodes.size() << " Ignoring.\n";
     return;
   }
   event.nodes = {nodes[0].get<unsigned_int_type>(), nodes[1].get<unsigned_int_type>()};

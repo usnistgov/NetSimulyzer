@@ -51,15 +51,6 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   ChartManager::XYSeriesTie tie;
   tie.model = model;
 
-  // It seems there's some difficulty with this setting on macOS,
-  // so disable it
-#ifndef __APPLE__
-  // Note, this will only work with line/spline/scatter plots
-  // if we add more plot types, this will have to be disabled
-  // See: https://doc.qt.io/qt-5/qabstractseries.html#useOpenGL-prop
-//  tie.qtSeries->setUseOpenGL(true);
-#endif
-
   tie.pen.setColor(QColor::fromRgb(model.color.red, model.color.green, model.color.blue));
 
   // X Axis
@@ -70,22 +61,57 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
   tie.YRange.upper = model.yAxis.max;
   tie.YRange.lower = model.yAxis.min;
 
-  switch (model.connection) {
-  case parser::XYSeries::Connection::None: {
-    tie.scatterStyle.setShape(QCPScatterStyle::ssDisc);
-    tie.scatterStyle.setPen(tie.pen);
-
-    // TODO: user setting for scatter shape size
-  } break;
-  case parser::XYSeries::Connection::Line:
-    [[fallthrough]];
-  case parser::XYSeries::Connection::StepFloor:
-    [[fallthrough]];
-  case parser::XYSeries::Connection::StepCeiling:
+  switch (model.pointMode) {
+  case parser::XYSeries::PointMode::None:
     tie.scatterStyle.setShape(QCPScatterStyle::ssNone);
+    break;
+  case parser::XYSeries::PointMode::Dot:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssDot);
+    break;
+  case parser::XYSeries::PointMode::Cross:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssCross);
+    break;
+  case parser::XYSeries::PointMode::Plus:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssPlus);
+    break;
+  case parser::XYSeries::PointMode::Circle:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssCircle);
+    break;
+  default:
+    [[fallthrough]];
+  case parser::XYSeries::PointMode::Disk:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssDisc);
+    break;
+  case parser::XYSeries::PointMode::Square:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssSquare);
+    break;
+  case parser::XYSeries::PointMode::Diamond:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssDiamond);
+    break;
+  case parser::XYSeries::PointMode::Star:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssStar);
+    break;
+  case parser::XYSeries::PointMode::Triangle:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssTriangle);
+    break;
+  case parser::XYSeries::PointMode::TriangleInverted:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssTriangleInverted);
+    break;
+  case parser::XYSeries::PointMode::CrossSquare:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssCrossSquare);
+    break;
+  case parser::XYSeries::PointMode::PlusSquare:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssPlusSquare);
+    break;
+  case parser::XYSeries::PointMode::CrossCircle:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssCrossCircle);
+    break;
+  case parser::XYSeries::PointMode::PlusCircle:
+    tie.scatterStyle.setShape(QCPScatterStyle::ssPlusCircle);
     break;
   }
 
+  tie.scatterStyle.setPen(QColor::fromRgb(model.pointColor.red, model.pointColor.green, model.pointColor.blue));
   return tie;
 }
 
