@@ -169,7 +169,7 @@ struct CategoryAxis {
 };
 
 struct XYSeries {
-  enum class Connection { None, Line };
+  enum class Connection { None, Line, StepFloor, StepCeiling };
   enum class LabelMode { Hidden, Shown };
 
   unsigned int id = 0u;

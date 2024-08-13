@@ -838,7 +838,11 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
     std::clog << "Warning: 'spline' connection type no longer supported, using 'line' for series ID: " << series.id
               << '\n';
     series.connection = parser::XYSeries::Connection::Line;
-  } else
+  } else if (connection == "step-floor")
+    series.connection = parser::XYSeries::Connection::StepFloor;
+  else if (connection == "step-ceiling")
+    series.connection = parser::XYSeries::Connection::StepCeiling;
+  else
     std::cerr << "Unrecognized connection type: " << connection << '\n';
 
   auto labelMode = object["labels"].get<std::string>();

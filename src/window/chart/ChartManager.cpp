@@ -78,6 +78,10 @@ ChartManager::XYSeriesTie ChartManager::makeTie(const parser::XYSeries &model) {
     // TODO: user setting for scatter shape size
   } break;
   case parser::XYSeries::Connection::Line:
+    [[fallthrough]];
+  case parser::XYSeries::Connection::StepFloor:
+    [[fallthrough]];
+  case parser::XYSeries::Connection::StepCeiling:
     tie.scatterStyle.setShape(QCPScatterStyle::ssNone);
     break;
   }
@@ -191,6 +195,7 @@ void ChartManager::notifyDataChanged(const ChartManager::CategoryValueTie &tie) 
 
 void ChartManager::timeAdvanced(parser::nanoseconds time) {
   using BoundMode = parser::ValueAxis::BoundMode;
+  using XYConnection = parser::XYSeries::Connection;
   std::unordered_set<uint32_t> changedSeries;
 
   auto handleEvent = [time, &changedSeries, this](auto &&e) {
@@ -213,30 +218,58 @@ void ChartManager::timeAdvanced(parser::nanoseconds time) {
 
       updateCollectionRanges(e.seriesId, e.point.x, e.point.y);
 
-      const auto pointIndex = static_cast<double>(s.data->size());
-      s.data->add({pointIndex, e.point.x, e.point.y});
+      unsigned int pointCount{0u};
+      const auto &connection = s.model.connection;
+      if (s.data->size() > 0 && (connection == XYConnection::StepFloor || connection == XYConnection::StepCeiling)) {
+        const auto &previous = *(s.data->end() - 1);
+
+        if (connection == XYConnection::StepFloor)
+          s.data->add(QCPCurveData{static_cast<double>(s.data->size()), e.point.x, previous.value});
+        else // StepCeiling
+          s.data->add(QCPCurveData{static_cast<double>(s.data->size()), previous.key, e.point.y});
+
+        pointCount++;
+      }
+
+      // Re-pull the size,
+      // just in case we added a
+      // fake point above
+      s.data->add(QCPCurveData{static_cast<double>(s.data->size()), e.point.x, e.point.y});
+      pointCount++;
 
       changedSeries.insert(e.seriesId);
       const auto collections = inCollections(e.seriesId);
       changedSeries.insert(collections.begin(), collections.end());
 
-      undoEvents.emplace_back(undo::XYSeriesAddValue{e, pointIndex});
+      undoEvents.emplace_back(undo::XYSeriesAddValue{e, pointCount});
       events.pop_front();
       return true;
     }
 
     if constexpr (std::is_same_v<T, parser::XYSeriesAddValues>) {
+      using XYConnection = parser::XYSeries::Connection;
       auto &s = std::get<XYSeriesTie>(series[e.seriesId]);
 
       std::pair<double, double> range;
       range.first = static_cast<double>(s.data->size());
 
+      const auto &connection = s.model.connection;
+      const auto isFloorOrCeiling = connection == XYConnection::StepFloor || connection == XYConnection::StepCeiling;
       for (const auto &point : e.points) {
         if (s.model.xAxis.boundMode == BoundMode::HighestValue) {
           updateRange(s.XRange, point.x);
         }
         if (s.model.yAxis.boundMode == BoundMode::HighestValue) {
           updateRange(s.YRange, point.y);
+        }
+
+        if (s.data->size() > 0 && isFloorOrCeiling) {
+          const auto &previous = *(s.data->end() - 1);
+
+          if (connection == XYConnection::StepFloor)
+            s.data->add(QCPCurveData{static_cast<double>(s.data->size()), point.x, previous.value});
+          else // StepCeiling
+            s.data->add(QCPCurveData{static_cast<double>(s.data->size()), previous.key, point.y});
         }
 
         updateCollectionRanges(e.seriesId, point.x, point.y);
@@ -365,7 +398,9 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
     if constexpr (std::is_same_v<T, undo::XYSeriesAddValue>) {
       auto &s = std::get<XYSeriesTie>(series[e.event.seriesId]);
 
-      s.data->remove(e.pointIndex);
+      for (auto i = 0u; i < e.pointCount; i++) {
+        s.data->remove((s.data->end() - 1)->t);
+      }
 
       changedSeries.insert(e.event.seriesId);
       const auto collections = inCollections(e.event.seriesId);

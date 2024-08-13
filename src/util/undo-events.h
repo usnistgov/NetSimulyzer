@@ -207,10 +207,11 @@ struct XYSeriesAddValue {
   parser::XYSeriesAddValue event;
 
   /**
-   * The QCP `t` index to uniquely
-   * identify the added point
+   * Number of points added by this event.
+   * Used to account for dummy points in
+   * `StepFloor` & `StepCeiling` connection types
    */
-  double pointIndex;
+  unsigned int pointCount;
 };
 
 struct XYSeriesAddValues {
