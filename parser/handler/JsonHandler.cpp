@@ -863,6 +863,8 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
       series.pointMode = PointMode::Dot;
     else if (pointMode == "cross")
       series.pointMode = PointMode::Cross;
+    else if (pointMode == "plus")
+      series.pointMode = PointMode::Plus;
     else if (pointMode == "circle")
       series.pointMode = PointMode::Circle;
     else if (pointMode == "disk")
@@ -877,6 +879,10 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
       series.pointMode = PointMode::Triangle;
     else if (pointMode == "triangle-inverted")
       series.pointMode = PointMode::TriangleInverted;
+    else if (pointMode == "cross-square")
+      series.pointMode = PointMode::CrossSquare;
+    else if (pointMode == "plus-square")
+      series.pointMode = PointMode::PlusSquare;
     else if (pointMode == "cross-circle")
       series.pointMode = PointMode::CrossCircle;
     else if (pointMode == "plus-circle")
@@ -884,6 +890,7 @@ void JsonHandler::parseXYSeries(const util::json::JsonObject &object) {
     else {
       std::clog << "Unrecognized point-mode: " << pointMode << " on series id: " << series.id << " using 'disk'"
                 << '\n';
+      series.pointMode = PointMode::Disk;
     }
 
   } else if (series.connection == parser::XYSeries::Connection::None)
