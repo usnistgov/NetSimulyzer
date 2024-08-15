@@ -71,8 +71,8 @@ private:
   std::optional<float> targetWidthScale;
   std::optional<float> targetDepthScale;
   glm::vec3 scale{1.0f};
-  std::array<float, 3> rotate{0.0f};
-  glm::quat rotateQuat{};
+  glm::vec3 rotate{0.0f};
+  std::optional<glm::quat> rotateQuat;
   std::optional<glm::vec3> baseColor;
   std::optional<glm::vec3> highlightColor;
 
@@ -121,7 +121,7 @@ public:
   [[nodiscard]] glm::vec3 getScale() const;
 
   void setRotate(float x = 0.0f, float y = 0.0f, float z = 0.0f);
-  [[nodiscard]] std::array<float, 3> getRotate() const;
+  [[nodiscard]] glm::vec3 getRotate() const;
 
   [[nodiscard]] model_id getModelId() const;
 

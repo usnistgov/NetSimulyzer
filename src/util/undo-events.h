@@ -117,7 +117,7 @@ struct NodeOrientationChangeEvent {
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
    */
-  std::array<float, 3> orientation{0.0};
+  glm::vec3 orientation{0.0};
 
   /**
    * The event which generated this undo event
@@ -135,7 +135,7 @@ struct DecorationOrientationChangeEvent {
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
    */
-  std::array<float, 3> orientation{0.0};
+  glm::vec3 orientation{0.0};
 
   /**
    * The event which generated this undo event
