@@ -491,6 +491,10 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
 
+  // Ignore right/middle click events
+  if (!(event->buttons() & Qt::LeftButton))
+    return;
+
   makeCurrent();
 
   // OpenGL starts from the bottom left,
@@ -550,7 +554,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
     return;
   }
 
-  if (!(event->buttons() & Qt::LeftButton)) {
+  if (clickAction == ClickAction::Move && !(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
       mousePressed = false;
       camera.setMobility(Camera::move_state::frozen);
