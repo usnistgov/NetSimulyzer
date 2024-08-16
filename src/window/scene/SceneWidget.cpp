@@ -35,6 +35,7 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include "fmt/ostream.h"
 #include "src/conversion.h"
 #include "src/util/palette.h"
 #include <QByteArray>
@@ -593,6 +594,22 @@ void SceneWidget::wheelEvent(QWheelEvent *event) {
 
 void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
+
+  if (clickAction == ClickAction::None) {
+    makeCurrent();
+    // OpenGL starts from the bottom left,
+    // Qt Starts at the top left,
+    // so adjust the Y coordinate accordingly
+    const auto itemUnderCursor = pickingFbo->read(event->x(), height() - event->y());
+    pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+    doneCurrent();
+
+    if (itemUnderCursor.object && itemUnderCursor.type == 1u)
+      setCursor(Qt::PointingHandCursor);
+    else if (cursor().shape() == Qt::PointingHandCursor)
+      unsetCursor();
+  }
+
 
   if (cameraType == SettingsManager::CameraType::ArcBall && !arcCamera.mousePressed)
     return;
