@@ -718,6 +718,7 @@ void Renderer::renderTransparent(const Model &m, LightingMode lightingMode) {
 void Renderer::render(Floor &f) {
   modelShader.bind();
   modelShader.uniform("model", f.getModelMatrix());
+  modelShader.uniform("useLighting", false);
   modelShader.uniform("useTexture", false);
   modelShader.uniform("material_color", f.getMesh().getMaterial().color.value());
   modelShader.uniform("is_selected", false);
