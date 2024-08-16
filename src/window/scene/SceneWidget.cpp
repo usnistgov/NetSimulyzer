@@ -35,9 +35,11 @@
 #include "../../render/camera/Camera.h"
 #include "../../render/mesh/Mesh.h"
 #include "../../render/mesh/Vertex.h"
+#include "fmt/ostream.h"
 #include "src/conversion.h"
 #include "src/util/palette.h"
 #include <QByteArray>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QMenu>
@@ -491,6 +493,10 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
   QWidget::mousePressEvent(event);
 
+  // Ignore right/middle click events
+  if (!(event->buttons() & Qt::LeftButton))
+    return;
+
   makeCurrent();
 
   // OpenGL starts from the bottom left,
@@ -503,6 +509,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   if (selected.object && selected.type == 1u) {
     emit nodeSelected(selected.id);
     selectedNode = selected.id;
+    clickAction = ClickAction::Select;
     return;
   }
 
@@ -514,6 +521,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
       arcCamera.mousePressed = true;
     }
   }
+  clickAction = ClickAction::Move;
 
   // If we're on macOS, in order to move the cursor,
   // we have to be allowed to in the Accessibility Options
@@ -523,14 +531,11 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 #ifdef Q_OS_MAC
   // Thanks, StackOverflow!
   // https://stackoverflow.com/a/60243598
-  CFStringRef keys[] = { kAXTrustedCheckOptionPrompt };
-  CFTypeRef values[] = { kCFBooleanTrue };
-  CFDictionaryRef options = CFDictionaryCreate(NULL,
-                                               (const void **)&keys,
-                                               (const void **)&values,
-                                               sizeof(keys) / sizeof(keys[0]),
-                                               &kCFTypeDictionaryKeyCallBacks,
-                                               &kCFTypeDictionaryValueCallBacks);
+  CFStringRef keys[] = {kAXTrustedCheckOptionPrompt};
+  CFTypeRef values[] = {kCFBooleanTrue};
+  CFDictionaryRef options =
+      CFDictionaryCreate(NULL, (const void **)&keys, (const void **)&values, sizeof(keys) / sizeof(keys[0]),
+                         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
   AXIsProcessTrustedWithOptions(options);
   CFRelease(options);
 #endif
@@ -542,9 +547,16 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   QWidget::mouseReleaseEvent(event);
 
-  if (!(event->buttons() & Qt::LeftButton)) {
+  // Do not adjust the cursor if the user clicked to select a Node
+  if (clickAction == ClickAction::Select) {
+    clickAction = ClickAction::None;
+    return;
+  }
+
+  if (clickAction == ClickAction::Move && !(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
-      mousePressed = false;      camera.setMobility(Camera::move_state::frozen);
+      mousePressed = false;
+      camera.setMobility(Camera::move_state::frozen);
     } else /* Arcball */ {
       arcCamera.mousePressed = false;
     }
@@ -556,6 +568,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   unsetCursor();
   // Put the cursor back where it was when we started
   QCursor::setPos(mapToGlobal(initialCursorPosition));
+  clickAction = ClickAction::None;
 }
 
 void SceneWidget::wheelEvent(QWheelEvent *event) {
@@ -580,6 +593,21 @@ void SceneWidget::wheelEvent(QWheelEvent *event) {
 void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
   QWidget::mouseMoveEvent(event);
 
+  if (clickAction == ClickAction::None) {
+    makeCurrent();
+    // OpenGL starts from the bottom left,
+    // Qt Starts at the top left,
+    // so adjust the Y coordinate accordingly
+    const auto itemUnderCursor = pickingFbo->read(event->x(), height() - event->y());
+    pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+    doneCurrent();
+
+    if (itemUnderCursor.object && itemUnderCursor.type == 1u)
+      setCursor(Qt::PointingHandCursor);
+    else if (cursor().shape() == Qt::PointingHandCursor)
+      unsetCursor();
+  }
+
   if (cameraType == SettingsManager::CameraType::ArcBall && !arcCamera.mousePressed)
     return;
 
@@ -602,10 +630,20 @@ void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
   QMenu menu;
   menu.addAction("Save as Image", [this]() {
     const auto image = grab();
-    const auto fileName = QFileDialog::getSaveFileName(this, "Save as Image", "", "Images (*.png *.jpeg)");
+    const auto now = QDateTime::currentDateTime();
+    const auto suggestedFilename =
+        QString{"NetSimulyzer Screenshot from "} + now.toString("yyyy-MM-dd HH-mm-ss") + ".png";
+
+    auto fileName = QFileDialog::getSaveFileName(this, "Save as Image", suggestedFilename, "Images (*.png *.jpeg)");
     if (fileName.isEmpty()) {
       return;
     }
+
+    // If we don't have a filetype, add one
+    if (!fileName.contains(".")) {
+      fileName.append(".png");
+    }
+
     image.save(fileName);
   });
 

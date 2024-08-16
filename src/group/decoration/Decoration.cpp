@@ -41,6 +41,7 @@ Decoration::Decoration(const Model &model, const parser::Decoration &ns3Model) :
   this->model.setPosition(toRenderCoordinate(ns3Model.position));
   this->model.setRotate(ns3Model.orientation[0], ns3Model.orientation[2], -ns3Model.orientation[1]);
 
+  this->model.setKeepRatio(ns3Model.keepRatio);
   const auto &bounds = model.getBounds();
   if (ns3Model.height) {
     const auto height = std::abs(bounds.max.y - bounds.min.y);

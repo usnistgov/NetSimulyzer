@@ -117,7 +117,7 @@ struct NodeOrientationChangeEvent {
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
    */
-  std::array<float, 3> orientation{0.0};
+  glm::vec3 orientation{0.0};
 
   /**
    * The event which generated this undo event
@@ -135,7 +135,7 @@ struct DecorationOrientationChangeEvent {
    * Note: each axis is rotated independently (the x rotation is applied, then y, then z)
    * rather than combining all three and then rotating.
    */
-  std::array<float, 3> orientation{0.0};
+  glm::vec3 orientation{0.0};
 
   /**
    * The event which generated this undo event
@@ -207,10 +207,11 @@ struct XYSeriesAddValue {
   parser::XYSeriesAddValue event;
 
   /**
-   * The QCP `t` index to uniquely
-   * identify the added point
+   * Number of points added by this event.
+   * Used to account for dummy points in
+   * `StepFloor` & `StepCeiling` connection types
    */
-  double pointIndex;
+  unsigned int pointCount;
 };
 
 struct XYSeriesAddValues {

@@ -80,6 +80,7 @@ namespace netsimulyzer {
 class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   Q_OBJECT
   enum class PlayMode { Paused, Play };
+  enum class ClickAction { Move, Select, None };
 
   QOpenGLFunctions_3_3_Core openGl;
   SettingsManager settings;
@@ -89,6 +90,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
       settings.get<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType).value();
   QPoint initialCursorPosition{width() / 2, height() / 2};
   bool mousePressed = false;
+  ClickAction clickAction{ClickAction::None};
   TextureCache textures;
   ModelCache models{textures};
   FontManager fontManager{textures};

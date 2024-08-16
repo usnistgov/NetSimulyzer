@@ -42,8 +42,8 @@ the companion *ns-3* module [found here](https://github.com/usnistgov/NetSimulyz
 ## Build Requirements
 * A C++ 17 compliant compiler
   * Minimum supported compilers:
-    * GCC 7.3.0
-    * Clang 6.0.0
+    * GCC 10.5.0
+    * Clang 12.0.0
 * CMake 3.13 or greater
 * A graphics card supporting OpenGL 3.3
 * Qt 5.12

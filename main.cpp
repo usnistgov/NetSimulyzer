@@ -35,6 +35,7 @@
 #include <QOpenGLContext>
 // clang-format on
 
+#include "fmt/core.h"
 #include "src/settings/SettingsManager.h"
 #include "src/window/MainWindow.h"
 #include "src/window/util/file-operations.h"
@@ -151,23 +152,20 @@ std::optional<QFileInfo> promptResourceDir() {
  * otherwise
  */
 std::optional<QFileInfo> autodetectResourceDir() {
-  const auto addOneUp = [] (const QString &path) -> QString {
+  const auto addOneUp = [](const QString &path) -> QString {
     QDir d{path};
     d.cdUp();
     return d.absolutePath();
   };
 
-  std::array<QString, 4> checkPaths{
-      QCoreApplication::applicationDirPath(),
-      addOneUp(QCoreApplication::applicationDirPath()),
-      QDir::currentPath(),
-      addOneUp(QDir::currentPath())
-  };
+  std::array<QString, 4> checkPaths{QCoreApplication::applicationDirPath(),
+                                    addOneUp(QCoreApplication::applicationDirPath()), QDir::currentPath(),
+                                    addOneUp(QDir::currentPath())};
 
   QDir dir{"", "resources"};
   dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
 
-  for (const auto &path: checkPaths) {
+  for (const auto &path : checkPaths) {
     // Make sure the path exists first
     if (!dir.cd(path))
       continue;
@@ -206,11 +204,11 @@ int main(int argc, char *argv[]) {
     using SettingsManager = netsimulyzer::SettingsManager;
 
     if (settingsVersion != std::string{NETSIMULYZER_VERSION}) {
-      std::cout << "Warning: upgrading from previous version's settings: " << settingsVersion << " to "
-                << NETSIMULYZER_VERSION << '\n';
+      fmt::println("Warning: upgrading from previous version's settings: {} to {}", settingsVersion,
+                   NETSIMULYZER_VERSION);
 
       const auto version = parseVersion(settingsVersion);
-      if (version < ParsedSettingsVersion{1,0,6}) {
+      if (version < ParsedSettingsVersion{1, 0, 6}) {
         std::cout << "Migrating: 1.0.6\n";
         QSettings qSettings;
         const auto oldVal = qSettings.value("renderer/showMotionTrails", false);

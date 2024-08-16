@@ -108,11 +108,17 @@ void Model::rebuildModelMatrix() {
   modelMatrix = glm::translate(modelMatrix, position);
 
 
-  // glm::mat4 rotateMatrix{1.0f};
-  // rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[0]), {1, 0, 0});
-  // rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[1]), {0, 1, 0});
-  // rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[2]), {0, 0, 1});
-  modelMatrix *= glm::toMat4(rotateQuat);
+  if (rotateQuat)
+    modelMatrix *= glm::toMat4(rotateQuat.value());
+  else {
+    glm::mat4 rotateMatrix{1.0f};
+    rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[0]), {1, 0, 0});
+    rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[1]), {0, 1, 0});
+    rotateMatrix = glm::rotate(rotateMatrix, glm::radians(rotate[2]), {0, 0, 1});
+
+    modelMatrix *= rotateMatrix;
+  }
+
 
   modelMatrix *= scaleMatrix;
 }
@@ -262,7 +268,7 @@ void Model::setRotate(float x, float y, float z) {
   rebuildModelMatrix();
 }
 
-std::array<float, 3> Model::getRotate() const {
+glm::vec3 Model::getRotate() const {
   return rotate;
 }
 

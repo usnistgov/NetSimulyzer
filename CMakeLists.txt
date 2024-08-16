@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 project(NetSimulyzer
-        VERSION 1.0.11
+        VERSION 1.0.12
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
@@ -76,6 +76,7 @@ if (NOT assimp_FOUND OR NOT TARGET assimp::assimp)
     target_compile_options(assimp PRIVATE -w)
 endif ()
 
+add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
 
@@ -112,6 +113,7 @@ if (IS_DEV_VERSION)
 endif ()
 
 target_link_libraries(netsimulyzer PRIVATE parser)
+target_link_libraries(netsimulyzer PRIVATE fmt)
 target_link_libraries(netsimulyzer PRIVATE assimp)
 target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
