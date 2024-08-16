@@ -76,6 +76,7 @@ if (NOT assimp_FOUND OR NOT TARGET assimp::assimp)
     target_compile_options(assimp PRIVATE -w)
 endif ()
 
+add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
 
@@ -112,6 +113,7 @@ if (IS_DEV_VERSION)
 endif ()
 
 target_link_libraries(netsimulyzer PRIVATE parser)
+target_link_libraries(netsimulyzer PRIVATE fmt)
 target_link_libraries(netsimulyzer PRIVATE assimp)
 target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
