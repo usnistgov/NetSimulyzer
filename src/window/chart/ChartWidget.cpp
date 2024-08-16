@@ -347,7 +347,7 @@ void ChartWidget::populateDropdown() {
   auto model = qobject_cast<QStandardItemModel *>(ui.comboBoxSeries->model());
 
   // Starter for Type sort order labels
-  ChartManager::SeriesType lastType;
+  ChartManager::SeriesType lastType{ChartManager::SeriesType::XY};
   if (sortOrder == SortOrder::Type && !dropdownValues.empty()) {
     lastType = dropdownValues.begin()->type;
     switch (lastType) {
