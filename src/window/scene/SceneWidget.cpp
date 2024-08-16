@@ -503,6 +503,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   if (selected.object && selected.type == 1u) {
     emit nodeSelected(selected.id);
     selectedNode = selected.id;
+    clickAction = ClickAction::Select;
     return;
   }
 
@@ -514,6 +515,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
       arcCamera.mousePressed = true;
     }
   }
+  clickAction = ClickAction::Move;
 
   // If we're on macOS, in order to move the cursor,
   // we have to be allowed to in the Accessibility Options
@@ -542,9 +544,16 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   QWidget::mouseReleaseEvent(event);
 
+  // Do not adjust the cursor if the user clicked to select a Node
+  if (clickAction == ClickAction::Select) {
+    clickAction = ClickAction::None;
+    return;
+  }
+
   if (!(event->buttons() & Qt::LeftButton)) {
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
-      mousePressed = false;      camera.setMobility(Camera::move_state::frozen);
+      mousePressed = false;
+      camera.setMobility(Camera::move_state::frozen);
     } else /* Arcball */ {
       arcCamera.mousePressed = false;
     }
@@ -556,6 +565,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   unsetCursor();
   // Put the cursor back where it was when we started
   QCursor::setPos(mapToGlobal(initialCursorPosition));
+  clickAction = ClickAction::None;
 }
 
 void SceneWidget::wheelEvent(QWheelEvent *event) {
