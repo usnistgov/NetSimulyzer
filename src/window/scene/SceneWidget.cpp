@@ -39,6 +39,7 @@
 #include "src/conversion.h"
 #include "src/util/palette.h"
 #include <QByteArray>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QMenu>
@@ -530,14 +531,11 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 #ifdef Q_OS_MAC
   // Thanks, StackOverflow!
   // https://stackoverflow.com/a/60243598
-  CFStringRef keys[] = { kAXTrustedCheckOptionPrompt };
-  CFTypeRef values[] = { kCFBooleanTrue };
-  CFDictionaryRef options = CFDictionaryCreate(NULL,
-                                               (const void **)&keys,
-                                               (const void **)&values,
-                                               sizeof(keys) / sizeof(keys[0]),
-                                               &kCFTypeDictionaryKeyCallBacks,
-                                               &kCFTypeDictionaryValueCallBacks);
+  CFStringRef keys[] = {kAXTrustedCheckOptionPrompt};
+  CFTypeRef values[] = {kCFBooleanTrue};
+  CFDictionaryRef options =
+      CFDictionaryCreate(NULL, (const void **)&keys, (const void **)&values, sizeof(keys) / sizeof(keys[0]),
+                         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
   AXIsProcessTrustedWithOptions(options);
   CFRelease(options);
 #endif
@@ -610,7 +608,6 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
       unsetCursor();
   }
 
-
   if (cameraType == SettingsManager::CameraType::ArcBall && !arcCamera.mousePressed)
     return;
 
@@ -633,10 +630,20 @@ void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
   QMenu menu;
   menu.addAction("Save as Image", [this]() {
     const auto image = grab();
-    const auto fileName = QFileDialog::getSaveFileName(this, "Save as Image", "", "Images (*.png *.jpeg)");
+    const auto now = QDateTime::currentDateTime();
+    const auto suggestedFilename =
+        QString{"NetSimulyzer Screenshot from "} + now.toString("yyyy-MM-dd HH-mm-ss") + ".png";
+
+    auto fileName = QFileDialog::getSaveFileName(this, "Save as Image", suggestedFilename, "Images (*.png *.jpeg)");
     if (fileName.isEmpty()) {
       return;
     }
+
+    // If we don't have a filetype, add one
+    if (!fileName.contains(".")) {
+      fileName.append(".png");
+    }
+
     image.save(fileName);
   });
 

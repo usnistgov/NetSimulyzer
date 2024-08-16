@@ -34,6 +34,7 @@
 #include "ControlsChartView.h"
 #include "src/window/chart/ChartWidget.h"
 #include <QClipboard>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMenu>
@@ -132,10 +133,19 @@ void ControlsChartView::contextMenuEvent(QContextMenuEvent *event) {
   QMenu menu;
   menu.addAction("Save Chart Image", [this]() {
     const auto image = grab();
-    const auto fileName = QFileDialog::getSaveFileName(this, "Save Chart Image", "", "Images (*.png *.jpeg)");
+    const auto now = QDateTime::currentDateTime();
+    const auto suggestedFilename = QString{"NetSimulyzer Chart from "} + now.toString("yyyy-MM-dd HH-mm-ss") + ".png";
+
+    auto fileName = QFileDialog::getSaveFileName(this, "Save Chart Image", suggestedFilename, "Images (*.png *.jpeg)");
     if (fileName.isEmpty()) {
       return;
     }
+
+    // If we don't have a filetype, add one
+    if (!fileName.contains(".")) {
+      fileName.append(".png");
+    }
+
     image.save(fileName);
   });
 
@@ -179,4 +189,3 @@ ControlsChartView::ControlsChartView(QWidget *parent)
 void ControlsChartView::setChartWidget(netsimulyzer::ChartWidget *value) {
   chartWidget = value;
 }
-
