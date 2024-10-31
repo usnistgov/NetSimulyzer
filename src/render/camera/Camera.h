@@ -75,6 +75,7 @@ private:
   float yaw{-90.0f};
   float pitch{0.0f};
 
+  float moveSpeedSizeScale{1.0f};
   float move_speed{0.05f};
   float turnSpeed{0.1};
   float mouseTurnSpeed{0.5f};
@@ -132,6 +133,9 @@ public:
 
   void move(float delta_time);
   void mouse_move(float delta_x, float delta_y);
+
+  [[nodiscard]] float getMoveSpeedSizeScale() const;
+  void setMoveSpeedSizeScale(float value);
 
   [[nodiscard]] glm::vec3 get_position() const;
   void setPosition(const glm::vec3 &value);

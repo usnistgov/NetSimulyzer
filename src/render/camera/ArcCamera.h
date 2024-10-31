@@ -64,6 +64,7 @@ public:
   const glm::vec3 world_up{0.0f, 1.0f, 0.0f};
   float mouseTurnSpeed;
   float moveSpeed;
+  float moveSpeedSizeScale{1.0f};
   float keyboardTurnSpeed;
   float fieldOfView;
   float zoomSpeed{0.5f}; // TODO: Make configurable

@@ -224,6 +224,51 @@ void SceneWidget::handleUndoEvents() {
     emit selectedItemUpdated();
 }
 
+float SceneWidget::getCameraAutoscale() const {
+  // Scale camera movement so we may cross the whole simulation
+  // In about 20 real life seconds
+  const auto cameraSpeed = settings.get<float>(SettingsManager::Key::MoveSpeed).value();
+  // 20 seconds in ms
+  constexpr auto timeToCrossInMs = 20.0f * 1000.0f;
+
+  // 'Crossing the simulation' means from corner to corner
+  //
+  // (pretend this is square)
+  //
+  //             `newSize`
+  //  origin --> *_____
+  //             |\   |
+  //             | \  |
+  //             |  \ | `newSize`
+  //             |   \|
+  //             ------
+  // since `newSize` is distance from the origin
+  //
+  //                `newSize`
+  //                *_____
+  //                 \   |
+  // `newSize`*sq(2)  \  |
+  //                   \ | `newSize`
+  //                    \|
+  //
+  // so, distance to the origin from one corner is `newSize` * sq(2)
+  // we have to double that to get corner to corner
+  // so, the total diagonal distance is `newSize * std::sqrt(2.0f) * 2.0f`
+  return floor->getSize() * std::sqrt(2.0f) * 2.0f / (cameraSpeed * timeToCrossInMs);
+}
+
+void SceneWidget::applyAutoscaleCameraSpeed() {
+  if (autoscaleCameraMoveSpeed) {
+    const auto speedScale = getCameraAutoscale();
+    camera.setMoveSpeedSizeScale(speedScale);
+    arcCamera.moveSpeedSizeScale = speedScale;
+    return;
+  }
+
+  camera.setMoveSpeedSizeScale(1.0f);
+  arcCamera.moveSpeedSizeScale = 1.0f;
+}
+
 void SceneWidget::initializeGL() {
   if (!initializeOpenGLFunctions()) {
     std::cerr << "Failed OpenGL functions\n";
@@ -665,6 +710,8 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   }
 
   setResourcePath(resourceDirSetting.value());
+
+  applyAutoscaleCameraSpeed();
 }
 
 SceneWidget::~SceneWidget() {
@@ -686,11 +733,17 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
 
   // Don't resize beneath the default
   if (newSize > 100.0f) {
+    makeCurrent();
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
     renderer.resize(*coordinateGrid, newSize + 50.0f, settings.get<int>(SettingsManager::Key::RenderGridStep).value());
+    doneCurrent();
   }
 
   // time step handled by the MainWindow
+
+  const auto speedScale = getCameraAutoscale();
+  camera.setMoveSpeedSizeScale(speedScale);
+  arcCamera.moveSpeedSizeScale = speedScale;
 }
 
 void SceneWidget::reset() {
@@ -705,6 +758,9 @@ void SceneWidget::reset() {
   selectedNode.reset();
   fontManager.reset();
   simulationTime = 0.0;
+
+  camera.setMoveSpeedSizeScale(1.0f);
+  arcCamera.moveSpeedSizeScale = 1.0f;
 }
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
@@ -979,6 +1035,17 @@ void SceneWidget::setRenderLabels(SettingsManager::LabelRenderMode value) {
 
 void SceneWidget::setLabelScale(float value) {
   labelScale = value;
+}
+
+void SceneWidget::setCameraMoveSpeed(const float value) {
+  camera.setMoveSpeed(value);
+  arcCamera.moveSpeed = value;
+  applyAutoscaleCameraSpeed();
+}
+
+void SceneWidget::setAutoscaleCameraMoveSpeed(const bool value) {
+  autoscaleCameraMoveSpeed = value;
+  applyAutoscaleCameraSpeed();
 }
 
 void SceneWidget::setSelectedNode(unsigned int nodeId) {

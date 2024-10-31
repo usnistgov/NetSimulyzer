@@ -72,4 +72,12 @@ texture_id Floor::getTextureId() const {
   return *mesh.getMaterial().textureId;
 }
 
+float Floor::getSize() const {
+  return size;
+}
+
+void Floor::setSize(const float value) {
+  size = value;
+}
+
 } // namespace netsimulyzer

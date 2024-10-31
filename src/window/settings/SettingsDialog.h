@@ -99,6 +99,8 @@ class SettingsDialog : public QDialog {
    */
   void dialogueButtonClicked(QAbstractButton *button);
 
+  void autoscaleMoveSpeedToggled(int state);
+
   /**
    * Set the Window Theme combobox to the default value
    */
@@ -148,6 +150,8 @@ class SettingsDialog : public QDialog {
    * Set the Camera Type combobox to the default value
    */
   void defaultCameraType();
+
+  void defaultAutoscaleMoveSpeed();
 
   /**
    * Set the Floor checkbox to the default value
@@ -364,6 +368,15 @@ signals:
    * @see SettingsManager::CameraTypeFromInt
    */
   void cameraTypeChanged(int value);
+
+  /**
+   * Signal emitted when the user changes the Autoscale Move Speed toggle.
+   *
+   * @param value
+   * True if the user wants to use Autoscaling for movement speed
+   * false otherwise
+   */
+  void autoscaleMoveSpeedChanged(bool value);
 
   /**
    * Signal emitted when the user changes the

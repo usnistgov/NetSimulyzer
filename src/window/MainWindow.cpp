@@ -180,10 +180,7 @@ MainWindow::MainWindow() : QMainWindow() {
     settingsDialog.show();
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [this](float value) {
-    scene.getCamera().setMoveSpeed(value);
-    scene.getArcCamera().moveSpeed = value;
-  });
+  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, &scene, &SceneWidget::setCameraMoveSpeed);
 
   QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged, [this](float value) {
     scene.getCamera().setTurnSpeed(value);
@@ -252,6 +249,9 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&settingsDialog, &SettingsDialog::cameraTypeChanged, [this](const int value) {
     scene.setCameraType(SettingsManager::CameraTypeFromInt(value));
   });
+
+  QObject::connect(&settingsDialog, &SettingsDialog::autoscaleMoveSpeedChanged, &scene,
+                   &SceneWidget::setAutoscaleCameraMoveSpeed);
 
   QObject::connect(&settingsDialog, &SettingsDialog::renderFloorChanged, &scene, &SceneWidget::setFloorRenderState);
 
