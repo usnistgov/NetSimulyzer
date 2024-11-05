@@ -49,17 +49,14 @@
 
 namespace {
 /**
- * Remove the extra ampersand from the title of
- * a dock widget with a mnemonic defined with an
- * ampersand in the title
+ * Adds an ampersand to the begining of
+ * the text of a QAction, so
+ * it may be accessed by keyboard
  *
- * Seems to be only a problem on macOS
- *
- * @param widget
- * The dock widget to correct the title of
+ * @param action The action to modify
  */
-void removeAmpersandDockWidget(QDockWidget &widget) {
-  widget.setWindowTitle(widget.windowTitle().remove('&'));
+void addAmpersand(QAction &action) {
+  action.setText("&" + action.text());
 }
 } // namespace
 
@@ -76,12 +73,6 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
-  // Remove extra ampersands on macOS
-  removeAmpersandDockWidget(*ui.nodesDock);
-  removeAmpersandDockWidget(*ui.nodeDetailsDock);
-  removeAmpersandDockWidget(*ui.logDock);
-  removeAmpersandDockWidget(*ui.playbackDock);
-
   auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
   if (state)
     restoreState(*state, stateVersion);
@@ -91,6 +82,14 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&loadWorker, &LoadWorker::fileLoaded, this, &MainWindow::finishLoading);
   QObject::connect(&loadWorker, &LoadWorker::error, this, &MainWindow::errorLoading);
   loadThread.start();
+
+
+  // Add Ampersands to toggle actions
+  // allowing them to be accessed by keyboard
+  addAmpersand(*ui.nodesDock->toggleViewAction());
+  addAmpersand(*ui.logDock->toggleViewAction());
+  addAmpersand(*ui.playbackDock->toggleViewAction());
+  addAmpersand(*ui.nodeDetailsDock->toggleViewAction());
 
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
