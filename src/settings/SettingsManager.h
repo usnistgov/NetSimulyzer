@@ -43,6 +43,7 @@ public:
     CameraKeyDown,
     SceneKeyPlay,
     MainWindowState,
+    MainWindowGeometry,
     NumberSamples,
     PlaybackTimeStepPreference,
     PlaybackTimeStepUnit,
@@ -209,6 +210,7 @@ private:
       {Key::CameraKeyDown, {"camera/keyDown", Qt::Key_X}},
       {Key::SceneKeyPlay, {"scene/keyPlay", Qt::Key_P}},
       {Key::MainWindowState, {"mainWindow/state", {}}},
+      {Key::MainWindowGeometry, {"mainWindow/geometry", {}}},
       {Key::PlaybackTimeStepPreference, {"playback/timeStepPreference", 10'000'000LL}}, // 10ms in nanoseconds
       {Key::PlaybackTimeStepUnit, {"playback/timeStepUnit", "milliseconds"}},
       {Key::NumberSamples, {"renderer/numberSamples", 2}},
@@ -391,6 +393,11 @@ public:
   [[nodiscard]]
   QColor getRenderBackgroundColor() const;
 };
+
+/**
+ * Convenience alias for `SettingsManager::Key`
+ */
+using Setting = SettingsManager::Key;
 
 // Specialize so we don't have to convert to/from QString all the time
 // Specified after the class because GCC is broken

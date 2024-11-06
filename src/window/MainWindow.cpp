@@ -73,9 +73,10 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
-  auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
-  if (state)
+  if (const auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState))
     restoreState(*state, stateVersion);
+  if (const auto geometry = settings.get<QByteArray>(Setting::MainWindowGeometry))
+    restoreGeometry(geometry.value());
 
   loadWorker.moveToThread(&loadThread);
   QObject::connect(this, &MainWindow::startLoading, &loadWorker, &LoadWorker::load);
@@ -411,6 +412,7 @@ void MainWindow::errorLoading(const QString &message, unsigned long long offset)
 
 void MainWindow::closeEvent(QCloseEvent *event) {
   settings.set(SettingsManager::Key::MainWindowState, saveState(stateVersion));
+  settings.set(SettingsManager::Key::MainWindowGeometry, saveGeometry());
   QMainWindow::closeEvent(event);
 }
 
