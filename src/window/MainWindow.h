@@ -41,7 +41,7 @@
 #include "playback/PlaybackWidget.h"
 #include "scene/SceneWidget.h"
 #include "settings/SettingsDialog.h"
-#include "src/window/detail/DetailWidget.h"
+#include "src/window/detail/DetailManager.h"
 #include "ui_MainWindow.h"
 #include <QLabel>
 #include <QMainWindow>
@@ -63,13 +63,13 @@ signals:
   void startLoading(const QString &fileName);
 
 private:
-  const int stateVersion = 4;
+  const int stateVersion{5};
   SettingsManager settings;
   SettingsDialog settingsDialog{this};
 
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
-  DetailWidget detailWidget{this};
+  DetailManager detailManager{this};
   ScenarioLogWidget logWidget{this};
   SceneWidget scene{this};
   PlaybackWidget playbackWidget{this};

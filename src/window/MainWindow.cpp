@@ -69,7 +69,6 @@ MainWindow::MainWindow() : QMainWindow() {
 
   // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
-  ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
@@ -84,18 +83,15 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&loadWorker, &LoadWorker::error, this, &MainWindow::errorLoading);
   loadThread.start();
 
-
   // Add Ampersands to toggle actions
   // allowing them to be accessed by keyboard
   addAmpersand(*ui.nodesDock->toggleViewAction());
   addAmpersand(*ui.logDock->toggleViewAction());
   addAmpersand(*ui.playbackDock->toggleViewAction());
-  addAmpersand(*ui.nodeDetailsDock->toggleViewAction());
 
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
-  ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
   firstPersonCameraAction.setCheckable(true);
   arcBallCameraAction.setCheckable(true);
@@ -154,19 +150,16 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&scene, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
   QObject::connect(&scene, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
-
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) {
-    detailWidget.describe(scene.getNode(id));
-    scene.setSelectedNode(id);
+  QObject::connect(&nodeWidget, &NodeWidget::focusNode, &scene, &SceneWidget::focusNode);
+  QObject::connect(&nodeWidget, &NodeWidget::describeNode, [this](const unsigned int nodeId) {
+    detailManager.spawnWidget(this, scene.getNode(nodeId));
   });
 
-  QObject::connect(&scene, &SceneWidget::nodeSelected, [this](unsigned int nodeID) {
-    detailWidget.describe(scene.getNode(nodeID));
-    // Scene already has the selected Node ID set
+  QObject::connect(&scene, &SceneWidget::spawnNodeDetailWidget, [this](const unsigned int nodeId) {
+    detailManager.spawnWidget(this, scene.getNode(nodeId));
   });
 
-  QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);
+  QObject::connect(&scene, &SceneWidget::nodesUpdated, &detailManager, &DetailManager::nodesUpdated);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
@@ -320,7 +313,7 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   scene.reset();
   nodeWidget.reset();
-  detailWidget.reset();
+  detailManager.reset();
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);
@@ -411,6 +404,7 @@ void MainWindow::errorLoading(const QString &message, unsigned long long offset)
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+  detailManager.clearWidgets();
   settings.set(SettingsManager::Key::MainWindowState, saveState(stateVersion));
   settings.set(SettingsManager::Key::MainWindowGeometry, saveGeometry());
   QMainWindow::closeEvent(event);

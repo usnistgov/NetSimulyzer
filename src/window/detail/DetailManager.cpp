@@ -31,70 +31,59 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-#include "ui_NodeWidget.h"
-#include <QAbstractTableModel>
-#include <QPoint>
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QVariant>
-#include <QWidget>
-#include <cstdint>
-#include <model.h>
-#include <vector>
+#include "DetailManager.h"
+#include "src/window/MainWindow.h"
+#include <QDockWidget>
+#include <QMainWindow>
+#include <algorithm>
 
 namespace netsimulyzer {
 
-class NodeWidget : public QWidget {
-  Q_OBJECT
+DetailManager::DetailManager(QWidget *parent) : QObject{parent} {
+}
 
-  /**
-   * Provides the data for the nodeTable
-   */
-  class NodeModel : public QAbstractTableModel {
-    /**
-     * Each individual row in the table
-     */
-    std::vector<parser::Node> nodes;
+void DetailManager::spawnWidget(QMainWindow *parent, const Node &node) {
+  auto newWidget = new DetailWidget{parent, *this};
+  newWidget->describe(node);
 
-  public:
-    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent) {};
+  const auto dockWidget = dockWidgets.emplace_back(new QDockWidget{parent});
+  dockWidget->setWidget(newWidget);
+  // Make sure we don't spawn something too small
+  dockWidget->setMinimumWidth(newWidget->minimumWidth());
 
-    [[nodiscard]] int rowCount(const QModelIndex &) const override;
-    [[nodiscard]] int columnCount(const QModelIndex &) const override;
-    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
-    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
+  dockWidget->setWindowTitle(QString::fromStdString(node.getNs3Model().name));
 
-    /**
-     * Add a Node to the table
-     *
-     * @param node
-     * The Node to add to the table
-     */
-    void append(const parser::Node &node);
+  parent->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+  detailWidgets.emplace_back(newWidget);
+}
 
-    /**
-     * Clear all Nodes from the model
-     */
-    void reset();
-  };
+void DetailManager::clearWidgets() {
+  for (const auto dockWidget : dockWidgets) {
+    dockWidget->close();
+    dockWidget->deleteLater();
+  }
 
-  Ui::NodeWidget *ui = new Ui::NodeWidget;
-  NodeModel model;
-  QSortFilterProxyModel proxyModel;
+  detailWidgets.clear();
+  dockWidgets.clear();
+}
 
-public:
-  explicit NodeWidget(QWidget *parent = nullptr);
-  ~NodeWidget() override;
+void DetailManager::widgetClosed(DetailWidget *detailWidget) {
+  // Remove the closed widget from our list
+  detailWidgets.erase(std::remove(detailWidgets.begin(), detailWidgets.end(), detailWidget), detailWidgets.end());
+}
 
-  void addNode(const parser::Node &node);
-  void reset();
-  void contextMenu(QPoint pos);
+void DetailManager::nodesUpdated(QVector<unsigned int> nodes) {
+  for (const auto &widget : detailWidgets) {
+    for (const auto nodeId : nodes) {
+      if (widget->described()->getNs3Model().id == nodeId) {
+        widget->update();
+      }
+    }
+  }
+}
 
-signals:
-  void describeNode(unsigned int id);
-  void focusNode(unsigned int id);
-};
+void DetailManager::reset() {
+  clearWidgets();
+}
 
 } // namespace netsimulyzer

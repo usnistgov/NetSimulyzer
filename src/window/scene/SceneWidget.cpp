@@ -49,7 +49,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QPixmap>
 #include <QSettings>
-#include <QTextStream>
+#include <QVector>
 #include <Qt>
 #include <QtGui/QOpenGLFunctions>
 #include <algorithm>
@@ -80,11 +80,11 @@ void SceneWidget::handleEvents() {
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
   // this event period
-  bool selectedNodeUpdated = false;
+  QVector<unsigned int> updatedNodes;
 
   // Returns true after handling an event
   // false otherwise
-  auto handleEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
+  auto handleEvent = [this, &updatedNodes](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -108,8 +108,7 @@ void SceneWidget::handleEvents() {
       else
         undoEvents.emplace_back(node->second.handle(arg));
 
-      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
-        selectedNodeUpdated = true;
+      updatedNodes.push_back(arg.nodeId);
 
       return true;
     } else if constexpr (std::is_same_v<T, parser::DecorationMoveEvent> ||
@@ -142,8 +141,8 @@ void SceneWidget::handleEvents() {
     events.pop_front();
   }
 
-  if (selectedNodeUpdated)
-    emit selectedItemUpdated();
+  if (!updatedNodes.empty())
+    emit nodesUpdated(updatedNodes);
 }
 
 void SceneWidget::handleUndoEvents() {
@@ -151,9 +150,9 @@ void SceneWidget::handleUndoEvents() {
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
   // this event period
-  bool selectedNodeUpdated = false;
+  QVector<unsigned int> updatedNodes;
 
-  auto handleUndoEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
+  auto handleUndoEvent = [this, &updatedNodes](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -177,8 +176,7 @@ void SceneWidget::handleUndoEvents() {
       else
         node->second.handle(arg);
 
-      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
-        selectedNodeUpdated = true;
+      updatedNodes.push_back(node->second.getNs3Model().id);
 
       events.emplace_front(arg.event);
       return true;
@@ -220,8 +218,8 @@ void SceneWidget::handleUndoEvents() {
     undoEvents.pop_back();
   }
 
-  if (selectedNodeUpdated)
-    emit selectedItemUpdated();
+  if (!updatedNodes.isEmpty())
+    emit nodesUpdated(updatedNodes);
 }
 
 float SceneWidget::getCameraAutoscale() const {
@@ -542,22 +540,6 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   if (!(event->buttons() & Qt::LeftButton))
     return;
 
-  makeCurrent();
-
-  // OpenGL starts from the bottom left,
-  // Qt Starts at the top left,
-  // so adjust the Y coordinate accordingly
-  const auto selected = pickingFbo->read(event->x(), height() - event->y());
-  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
-  doneCurrent();
-
-  if (selected.object && selected.type == 1u) {
-    emit nodeSelected(selected.id);
-    selectedNode = selected.id;
-    clickAction = ClickAction::Select;
-    return;
-  }
-
   if (cameraType == SettingsManager::CameraType::FirstPerson) {
     mousePressed = true;
     camera.setMobility(Camera::move_state::mobile);
@@ -672,7 +654,24 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
+  // We need a current OpenGL context to read from
+  // the picking framebuffer
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
   QMenu menu;
+  if (selected.object) {
+    menu.addAction("Describe", [this, &selected]() {
+      emit spawnNodeDetailWidget(selected.id);
+    });
+  }
+
   menu.addAction("Save as Image", [this]() {
     const auto image = grab();
     const auto now = QDateTime::currentDateTime();

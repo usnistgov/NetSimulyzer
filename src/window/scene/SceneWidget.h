@@ -361,5 +361,7 @@ signals:
   void playing();
   void selectedItemUpdated();
   void nodeSelected(unsigned int nodeId);
+  void spawnNodeDetailWidget(unsigned int nodeId);
+  void nodesUpdated(QVector<unsigned int> nodes);
 };
 } // namespace netsimulyzer

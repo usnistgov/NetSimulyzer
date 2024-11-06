@@ -132,6 +132,9 @@ void DetailWidget::DetailTreeModel::refresh() {
   beginResetModel();
   endResetModel();
 }
+const Node *DetailWidget::DetailTreeModel::getNode() const {
+  return node;
+}
 
 QVariant DetailWidget::DetailTreeModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid() || (role != Qt::DisplayRole && role != Qt::DecorationRole))
@@ -415,7 +418,12 @@ void DetailWidget::restoreExpandedItems() {
   }
 }
 
-DetailWidget::DetailWidget(QWidget *parent) : QWidget(parent) {
+void DetailWidget::closeEvent(QCloseEvent *event) {
+  manager.widgetClosed(this);
+  QWidget::closeEvent(event);
+}
+
+DetailWidget::DetailWidget(QWidget *parent, DetailManager &manager) : QWidget{parent}, manager{manager} {
   ui.setupUi(this);
   ui.treeView->setModel(&model);
 }
@@ -430,6 +438,9 @@ void DetailWidget::describedItemUpdated() {
   saveExpandedItems();
   model.refresh();
   restoreExpandedItems();
+}
+const Node *DetailWidget::described() const {
+  return model.getNode();
 }
 
 void DetailWidget::reset() {

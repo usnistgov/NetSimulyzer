@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "DetailManager.h"
 #include "src/group/node/Node.h"
 #include "ui_DetailWidget.h"
 #include <QAbstractItemModel>
@@ -42,6 +43,8 @@
 #include <vector>
 
 namespace netsimulyzer {
+
+class DetailManager;
 
 class DetailWidget : public QWidget {
   Q_OBJECT
@@ -85,7 +88,7 @@ class DetailWidget : public QWidget {
       children.reserve(maxChildren);
     };
 
-    DetailTreeItem(DisplayField field, DetailTreeItem *parent) : field(field), parent(parent){};
+    DetailTreeItem(DisplayField field, DetailTreeItem *parent) : field(field), parent(parent) {};
 
     DetailTreeItem(DisplayField field, DetailTreeItem *parent, std::size_t maxChildren) : field(field), parent(parent) {
       children.reserve(maxChildren);
@@ -105,6 +108,7 @@ class DetailWidget : public QWidget {
     void describe(const Node &n);
     void reset();
     void refresh();
+    [[nodiscard]] const Node *getNode() const;
     [[nodiscard]] QModelIndexList getPersistentIndexList() const;
 
     QVariant data(const QModelIndex &index, int role) const override;
@@ -116,16 +120,21 @@ class DetailWidget : public QWidget {
   };
 
   Ui::DetailWidget ui{};
+  DetailManager &manager;
   DetailTreeModel model{this};
   std::vector<QModelIndex> oldExpandedItems;
 
   void saveExpandedItems();
   void restoreExpandedItems();
 
+protected:
+  void closeEvent(QCloseEvent *event) override;
+
 public:
-  explicit DetailWidget(QWidget *parent = nullptr);
+  DetailWidget(QWidget *parent, DetailManager &manager);
   void describe(const Node &node);
   void describedItemUpdated();
+  [[nodiscard]] const Node *described() const;
   void reset();
 };
 

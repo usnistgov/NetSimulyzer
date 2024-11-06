@@ -32,69 +32,31 @@
  */
 
 #pragma once
-#include "ui_NodeWidget.h"
-#include <QAbstractTableModel>
-#include <QPoint>
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QVariant>
-#include <QWidget>
-#include <cstdint>
-#include <model.h>
+#include "src/group/node/Node.h"
+#include "src/window/detail/DetailWidget.h"
+#include <QMainWindow>
+#include <QObject>
+#include <QVector>
+#include <unordered_map>
 #include <vector>
 
 namespace netsimulyzer {
+class DetailWidget;
 
-class NodeWidget : public QWidget {
+class DetailManager final : public QObject {
   Q_OBJECT
 
-  /**
-   * Provides the data for the nodeTable
-   */
-  class NodeModel : public QAbstractTableModel {
-    /**
-     * Each individual row in the table
-     */
-    std::vector<parser::Node> nodes;
-
-  public:
-    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent) {};
-
-    [[nodiscard]] int rowCount(const QModelIndex &) const override;
-    [[nodiscard]] int columnCount(const QModelIndex &) const override;
-    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
-    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
-
-    /**
-     * Add a Node to the table
-     *
-     * @param node
-     * The Node to add to the table
-     */
-    void append(const parser::Node &node);
-
-    /**
-     * Clear all Nodes from the model
-     */
-    void reset();
-  };
-
-  Ui::NodeWidget *ui = new Ui::NodeWidget;
-  NodeModel model;
-  QSortFilterProxyModel proxyModel;
-
 public:
-  explicit NodeWidget(QWidget *parent = nullptr);
-  ~NodeWidget() override;
-
-  void addNode(const parser::Node &node);
+  explicit DetailManager(QWidget *parent);
+  void spawnWidget(QMainWindow *parent, const Node &node);
+  void clearWidgets();
+  void widgetClosed(DetailWidget *detailWidget);
+  void nodesUpdated(QVector<unsigned int> nodes);
   void reset();
-  void contextMenu(QPoint pos);
 
-signals:
-  void describeNode(unsigned int id);
-  void focusNode(unsigned int id);
+private:
+  std::vector<DetailWidget *> detailWidgets;
+  std::vector<QDockWidget *> dockWidgets;
 };
 
 } // namespace netsimulyzer

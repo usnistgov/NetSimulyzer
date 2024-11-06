@@ -33,6 +33,7 @@
 
 #include "NodeWidget.h"
 #include <QListWidget>
+#include <QMenu>
 #include <QObject>
 #include <QStandardItemModel>
 #include <QString>
@@ -114,8 +115,10 @@ NodeWidget::NodeWidget(QWidget *parent) : QWidget(parent) {
   ui->setupUi(this);
 
   QObject::connect(ui->nodeTable, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-    emit nodeSelected(index.data(Qt::UserRole).toUInt());
+    emit focusNode(index.data(Qt::UserRole).toUInt());
   });
+
+  QObject::connect(ui->nodeTable, &QWidget::customContextMenuRequested, this, &NodeWidget::contextMenu);
 
   proxyModel.setSourceModel(&model);
   ui->nodeTable->setModel(&proxyModel);
@@ -137,6 +140,25 @@ void NodeWidget::addNode(const parser::Node &node) {
 
 void NodeWidget::reset() {
   model.reset();
+}
+
+void NodeWidget::contextMenu(const QPoint pos) {
+  const auto index = ui->nodeTable->indexAt(pos);
+  if (!index.isValid())
+    return;
+
+  const auto nodeId = index.data(Qt::UserRole).toUInt();
+
+  QMenu menu{this};
+  menu.addAction("Describe", [this, nodeId]() {
+    emit describeNode(nodeId);
+  });
+
+  menu.addAction("Focus", [this, nodeId]() {
+    emit focusNode(nodeId);
+  });
+
+  menu.exec(ui->nodeTable->viewport()->mapToGlobal(pos));
 }
 
 } // namespace netsimulyzer
