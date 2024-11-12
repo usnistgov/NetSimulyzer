@@ -61,6 +61,7 @@ public:
     RenderBackgroundColor,
     RenderBackgroundColorCustom,
     ChartDropdownSortOrder,
+    WindowChartWidgets,
     WindowTheme
   };
 
@@ -228,6 +229,7 @@ private:
       {Key::RenderMotionTrails, {"renderer/showMotionTrails", "enabledOnly"}},
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}},
+      {Key::WindowChartWidgets, {"window/chartWidgets", {}}},
       {Key::WindowTheme, {"window/theme", "dark"}}};
 
   /**
@@ -553,8 +555,7 @@ template <>
 }
 
 template <>
-[[nodiscard]] inline std::optional<SettingsManager::CameraType> SettingsManager::get(Key key,
-                                                                                             RetrieveMode mode) const {
+[[nodiscard]] inline std::optional<SettingsManager::CameraType> SettingsManager::get(Key key, RetrieveMode mode) const {
   const auto &settingKey = getQtKey(key);
   const auto qtSetting = qtSettings.value(settingKey.key);
 

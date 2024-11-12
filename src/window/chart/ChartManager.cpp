@@ -37,7 +37,9 @@
 #include <QGraphicsLayout>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QRect>
 #include <QString>
+#include <QVector>
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -154,7 +156,32 @@ ChartManager::CategoryValueTie ChartManager::makeTie(const parser::CategoryValue
   return tie;
 }
 
-ChartManager::ChartManager(QWidget *parent) : QObject(parent) {
+ChartManager::ChartManager(QMainWindow *parent) : QObject(parent) {
+  const auto maybeCharts = settings.get<QList<QVariant>>(Setting::WindowChartWidgets);
+  if (!maybeCharts)
+    return;
+
+  const auto &charts = maybeCharts.value();
+  for (const auto &chart : charts) {
+    if (!chart.canConvert<QRect>())
+      continue;
+
+    auto newWidget = new ChartWidget{parent, *this, dropdownElements};
+    newWidget->setGeometry(chart.toRect());
+
+    chartWidgets.emplace_back(newWidget);
+  }
+}
+
+ChartManager::~ChartManager() {
+  QList<QVariant> geometry;
+  geometry.reserve(chartWidgets.size());
+
+  for (const auto &widget : chartWidgets) {
+    geometry.push_back(widget->geometry());
+  }
+
+  settings.set(Setting::WindowChartWidgets, geometry);
 }
 
 void ChartManager::reset() {
