@@ -34,6 +34,7 @@
 #pragma once
 #include "ui_NodeWidget.h"
 #include <QAbstractTableModel>
+#include <QPoint>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QVariant>
@@ -57,7 +58,7 @@ class NodeWidget : public QWidget {
     std::vector<parser::Node> nodes;
 
   public:
-    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent){};
+    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent) {};
 
     [[nodiscard]] int rowCount(const QModelIndex &) const override;
     [[nodiscard]] int columnCount(const QModelIndex &) const override;
@@ -89,9 +90,11 @@ public:
 
   void addNode(const parser::Node &node);
   void reset();
+  void contextMenu(QPoint pos);
 
 signals:
-  void nodeSelected(uint32_t id);
+  void describeNode(unsigned int id);
+  void focusNode(unsigned int id);
 };
 
 } // namespace netsimulyzer

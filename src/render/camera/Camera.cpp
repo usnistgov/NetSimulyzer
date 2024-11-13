@@ -138,8 +138,8 @@ glm::mat4 Camera::view_matrix() const {
   return glm::lookAt(position, position + front, up);
 }
 
-void Camera::move(float delta_time) {
-  auto velocity = move_speed * delta_time;
+void Camera::move(const float delta_time) {
+  const auto velocity = move_speed * moveSpeedSizeScale * delta_time;
 
   if (active.front_back == active_directions::direction::forward)
     position += front * velocity;
@@ -164,7 +164,7 @@ void Camera::move(float delta_time) {
   if (active.turn == active_directions::side::none)
     return;
 
-  auto turnVelocity = turnSpeed * delta_time;
+  const auto turnVelocity = turnSpeed * delta_time;
   if (active.turn == active_directions::side::left)
     yaw -= turnVelocity;
   else if (active.turn == active_directions::side::right)
@@ -189,6 +189,14 @@ void Camera::mouse_move(float delta_x, float delta_y) {
     pitch = -89.0f;
 
   update();
+}
+
+float Camera::getMoveSpeedSizeScale() const {
+  return moveSpeedSizeScale;
+}
+
+void Camera::setMoveSpeedSizeScale(const float value) {
+  moveSpeedSizeScale = value;
 }
 
 Camera::move_state Camera::getMobility() const {

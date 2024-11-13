@@ -41,6 +41,8 @@ void SettingsDialog::loadSettings() {
   const auto cameraType = settings.get<SettingsManager::CameraType>(Key::RenderCameraType).value();
   ui.comboCameraType->setCurrentIndex(ui.comboCameraType->findData(static_cast<int>(cameraType)));
 
+  ui.checkBoxScaleMoveSpeed->setChecked(settings.get<bool>(Key::AutoScaleMoveSpeed).value());
+
   ui.checkBoxSkybox->setChecked(settings.get<bool>(Key::RenderSkybox).value());
   ui.checkBoxFloor->setChecked(settings.get<bool>(Key::RenderFloor).value());
 
@@ -171,6 +173,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
 
   loadSettings();
 
+  ui.sliderMoveSpeed->setEnabled(!ui.checkBoxScaleMoveSpeed->isChecked());
+  QObject::connect(ui.checkBoxScaleMoveSpeed, &QCheckBox::stateChanged, this,
+                   &SettingsDialog::autoscaleMoveSpeedToggled);
+
   QObject::connect(ui.buttonResetTheme, &QPushButton::clicked, this, &SettingsDialog::defaultWindowTheme);
   QObject::connect(ui.buttonResetMoveSpeed, &QPushButton::clicked, this, &SettingsDialog::defaultMoveSpeed);
   QObject::connect(ui.buttonResetKeyboardTurnSpeed, &QPushButton::clicked, this,
@@ -192,6 +198,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   QObject::connect(ui.buttonResetSkybox, &QPushButton::clicked, this, &SettingsDialog::defaultEnableSkybox);
   QObject::connect(ui.buttonResetFloor, &QPushButton::clicked, this, &SettingsDialog::defaultEnableFloor);
   QObject::connect(ui.buttonResetCameraType, &QPushButton::clicked, this, &SettingsDialog::defaultCameraType);
+  QObject::connect(ui.buttonResetMoveSpeedScale, &QPushButton::clicked, this,
+                   &SettingsDialog::defaultAutoscaleMoveSpeed);
   QObject::connect(ui.buttonResetBackgroundColor, &QPushButton::clicked, this, &SettingsDialog::defaultBackgroundColor);
   QObject::connect(ui.buttonResetSamples, &QPushButton::clicked, this, &SettingsDialog::defaultSamples);
   QObject::connect(ui.buttonResetBuildingRender, &QPushButton::clicked, this, &SettingsDialog::defaultBuildingEffect);
@@ -256,6 +264,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     ui.buttonResetSkybox->click();
     ui.buttonResetFloor->click();
     ui.buttonResetCameraType->click();
+    ui.buttonResetMoveSpeedScale->click();
     ui.buttonResetBackgroundColor->click();
     ui.buttonResetSamples->click();
     ui.buttonResetBuildingRender->click();
@@ -284,6 +293,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (cameraType != settings.get<SettingsManager::CameraType>(Key::RenderCameraType).value()) {
       settings.set(Key::RenderCameraType, cameraType);
       emit cameraTypeChanged(static_cast<int>(cameraType));
+    }
+
+    const auto autoscaleMoveSpeed = settings.get<bool>(Key::AutoScaleMoveSpeed).value();
+    if (autoscaleMoveSpeed != ui.checkBoxScaleMoveSpeed->isChecked()) {
+      settings.set(Key::AutoScaleMoveSpeed, autoscaleMoveSpeed);
+      emit autoscaleMoveSpeedChanged(ui.checkBoxScaleMoveSpeed->isChecked());
     }
 
     const auto moveSpeed = static_cast<float>(ui.sliderMoveSpeed->value()) / moveSpeedScale;
@@ -504,6 +519,14 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
   }
 }
 
+void SettingsDialog::autoscaleMoveSpeedToggled(const int state) {
+  ui.sliderMoveSpeed->setEnabled(state != Qt::CheckState::Checked);
+  if (state == Qt::CheckState::Checked) {
+    ui.sliderMoveSpeed->setValue(
+        static_cast<int>(*settings.get<float>(SettingsManager::Key::MoveSpeed) * moveSpeedScale));
+  }
+}
+
 void SettingsDialog::defaultWindowTheme() {
   const auto defaultTheme = settings.getDefault<SettingsManager::WindowTheme>(SettingsManager::Key::WindowTheme);
   ui.comboTheme->setCurrentIndex(ui.comboTheme->findData(static_cast<int>(defaultTheme)));
@@ -552,6 +575,9 @@ void SettingsDialog::defaultCameraType() {
   const auto defaultCameraType =
       settings.getDefault<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType);
   ui.comboCameraType->setCurrentIndex(ui.comboCameraType->findData(static_cast<int>(defaultCameraType)));
+}
+void SettingsDialog::defaultAutoscaleMoveSpeed() {
+  ui.checkBoxScaleMoveSpeed->setChecked(settings.getDefault<bool>(SettingsManager::Key::AutoScaleMoveSpeed));
 }
 
 void SettingsDialog::defaultEnableFloor() {

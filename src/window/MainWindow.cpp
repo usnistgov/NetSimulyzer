@@ -49,17 +49,14 @@
 
 namespace {
 /**
- * Remove the extra ampersand from the title of
- * a dock widget with a mnemonic defined with an
- * ampersand in the title
+ * Adds an ampersand to the begining of
+ * the text of a QAction, so
+ * it may be accessed by keyboard
  *
- * Seems to be only a problem on macOS
- *
- * @param widget
- * The dock widget to correct the title of
+ * @param action The action to modify
  */
-void removeAmpersandDockWidget(QDockWidget &widget) {
-  widget.setWindowTitle(widget.windowTitle().remove('&'));
+void addAmpersand(QAction &action) {
+  action.setText("&" + action.text());
 }
 } // namespace
 
@@ -72,19 +69,13 @@ MainWindow::MainWindow() : QMainWindow() {
 
   // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
-  ui.nodeDetailsDock->setWidget(&detailWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
-  // Remove extra ampersands on macOS
-  removeAmpersandDockWidget(*ui.nodesDock);
-  removeAmpersandDockWidget(*ui.nodeDetailsDock);
-  removeAmpersandDockWidget(*ui.logDock);
-  removeAmpersandDockWidget(*ui.playbackDock);
-
-  auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState);
-  if (state)
+  if (const auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState))
     restoreState(*state, stateVersion);
+  if (const auto geometry = settings.get<QByteArray>(Setting::MainWindowGeometry))
+    restoreGeometry(geometry.value());
 
   loadWorker.moveToThread(&loadThread);
   QObject::connect(this, &MainWindow::startLoading, &loadWorker, &LoadWorker::load);
@@ -92,10 +83,15 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&loadWorker, &LoadWorker::error, this, &MainWindow::errorLoading);
   loadThread.start();
 
+  // Add Ampersands to toggle actions
+  // allowing them to be accessed by keyboard
+  addAmpersand(*ui.nodesDock->toggleViewAction());
+  addAmpersand(*ui.logDock->toggleViewAction());
+  addAmpersand(*ui.playbackDock->toggleViewAction());
+
   ui.menuWindow->addAction(ui.nodesDock->toggleViewAction());
   ui.menuWindow->addAction(ui.logDock->toggleViewAction());
   ui.menuWindow->addAction(ui.playbackDock->toggleViewAction());
-  ui.menuWindow->addAction(ui.nodeDetailsDock->toggleViewAction());
 
   firstPersonCameraAction.setCheckable(true);
   arcBallCameraAction.setCheckable(true);
@@ -154,19 +150,16 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&scene, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
   QObject::connect(&scene, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
 
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, &scene, &SceneWidget::focusNode);
-
-  QObject::connect(&nodeWidget, &NodeWidget::nodeSelected, [this](uint32_t id) {
-    detailWidget.describe(scene.getNode(id));
-    scene.setSelectedNode(id);
+  QObject::connect(&nodeWidget, &NodeWidget::focusNode, &scene, &SceneWidget::focusNode);
+  QObject::connect(&nodeWidget, &NodeWidget::describeNode, [this](const unsigned int nodeId) {
+    detailManager.spawnWidget(this, scene.getNode(nodeId));
   });
 
-  QObject::connect(&scene, &SceneWidget::nodeSelected, [this](unsigned int nodeID) {
-    detailWidget.describe(scene.getNode(nodeID));
-    // Scene already has the selected Node ID set
+  QObject::connect(&scene, &SceneWidget::spawnNodeDetailWidget, [this](const unsigned int nodeId) {
+    detailManager.spawnWidget(this, scene.getNode(nodeId));
   });
 
-  QObject::connect(&scene, &SceneWidget::selectedItemUpdated, &detailWidget, &DetailWidget::describedItemUpdated);
+  QObject::connect(&scene, &SceneWidget::nodesUpdated, &detailManager, &DetailManager::nodesUpdated);
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 
@@ -180,10 +173,7 @@ MainWindow::MainWindow() : QMainWindow() {
     settingsDialog.show();
   });
 
-  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, [this](float value) {
-    scene.getCamera().setMoveSpeed(value);
-    scene.getArcCamera().moveSpeed = value;
-  });
+  QObject::connect(&settingsDialog, &SettingsDialog::moveSpeedChanged, &scene, &SceneWidget::setCameraMoveSpeed);
 
   QObject::connect(&settingsDialog, &SettingsDialog::keyboardTurnSpeedChanged, [this](float value) {
     scene.getCamera().setTurnSpeed(value);
@@ -253,6 +243,9 @@ MainWindow::MainWindow() : QMainWindow() {
     scene.setCameraType(SettingsManager::CameraTypeFromInt(value));
   });
 
+  QObject::connect(&settingsDialog, &SettingsDialog::autoscaleMoveSpeedChanged, &scene,
+                   &SceneWidget::setAutoscaleCameraMoveSpeed);
+
   QObject::connect(&settingsDialog, &SettingsDialog::renderFloorChanged, &scene, &SceneWidget::setFloorRenderState);
 
   QObject::connect(&settingsDialog, &SettingsDialog::backgroundColorChanged, &scene, &SceneWidget::setClearColor);
@@ -320,7 +313,7 @@ void MainWindow::load() {
   statusLabel.setText("Loading scenario: " + fileName);
   scene.reset();
   nodeWidget.reset();
-  detailWidget.reset();
+  detailManager.reset();
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);
@@ -411,7 +404,9 @@ void MainWindow::errorLoading(const QString &message, unsigned long long offset)
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+  detailManager.clearWidgets();
   settings.set(SettingsManager::Key::MainWindowState, saveState(stateVersion));
+  settings.set(SettingsManager::Key::MainWindowGeometry, saveGeometry());
   QMainWindow::closeEvent(event);
 }
 

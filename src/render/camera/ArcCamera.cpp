@@ -92,7 +92,7 @@ void ArcCamera::handleKeyRelease(const int key) {
 }
 
 void ArcCamera::move(const float deltaTime) {
-  const auto velocity = moveSpeed * deltaTime;
+  const auto velocity = moveSpeed * moveSpeedSizeScale * deltaTime;
   const auto cameraDirection = glm::normalize(position - target);
   const auto right = glm::normalize(glm::cross(cameraDirection, world_up));
   const auto up = glm::normalize(glm::cross(right, cameraDirection));

@@ -36,6 +36,9 @@
     <layout class="QVBoxLayout" name="layout">
      <item>
       <widget class="QTableView" name="nodeTable">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="sortingEnabled">
         <bool>true</bool>
        </property>

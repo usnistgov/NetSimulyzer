@@ -111,6 +111,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   // that OpenGL can accept
   std::array<float, 3> clearColorGl{static_cast<float>(clearColor.redF()), static_cast<float>(clearColor.greenF()),
                                     static_cast<float>(clearColor.blueF())};
+  bool autoscaleCameraMoveSpeed = settings.get<bool>(SettingsManager::Key::AutoScaleMoveSpeed).value();
 
   std::unique_ptr<PickingFramebuffer> pickingFbo;
 
@@ -153,6 +154,17 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 
   void handleEvents();
   void handleUndoEvents();
+
+  /**
+   * Calculate the autoscale multiplier for
+   * the camera to cross the scenario in a
+   * fixed about of time
+   *
+   * @return
+   * The value to use for the camera move speed multiplier
+   */
+  float getCameraAutoscale() const;
+  void applyAutoscaleCameraSpeed();
 
 protected:
   void initializeGL() override;
@@ -337,6 +349,9 @@ public:
    */
   void setLabelScale(float value);
 
+  void setCameraMoveSpeed(float value);
+  void setAutoscaleCameraMoveSpeed(bool value);
+
   void setSelectedNode(unsigned int nodeId);
   void clearSelectedNode();
 
@@ -346,5 +361,7 @@ signals:
   void playing();
   void selectedItemUpdated();
   void nodeSelected(unsigned int nodeId);
+  void spawnNodeDetailWidget(unsigned int nodeId);
+  void nodesUpdated(QVector<unsigned int> nodes);
 };
 } // namespace netsimulyzer

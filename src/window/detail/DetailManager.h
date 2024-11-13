@@ -32,76 +32,31 @@
  */
 
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
+#include "src/group/node/Node.h"
+#include "src/window/detail/DetailWidget.h"
+#include <QMainWindow>
+#include <QObject>
+#include <QVector>
+#include <unordered_map>
+#include <vector>
 
 namespace netsimulyzer {
-/**
- * 'Trackball' style camera that orbits around `target`
- */
-class ArcCamera {
+class DetailWidget;
+
+class DetailManager final : public QObject {
+  Q_OBJECT
+
 public:
-  /**
-   * The point the camera is circling
-   */
-  glm::vec3 target{0.0f};
-  /**
-   * The position of the camera in orbit
-   */
-  glm::vec3 position;
-
-  static constexpr float defaultDistance{10.0f};
-
-  /**
-   * The distance from the view of the camera
-   * to `target`
-   */
-  float distance{defaultDistance};
-  bool mousePressed{false};
-  bool zoomIn{false};
-  bool zoomOut{false};
-  const glm::vec3 world_up{0.0f, 1.0f, 0.0f};
-  float mouseTurnSpeed;
-  float moveSpeed;
-  float moveSpeedSizeScale{1.0f};
-  float keyboardTurnSpeed;
-  float fieldOfView;
-  float zoomSpeed{0.5f}; // TODO: Make configurable
-
-  int keyForward;
-  int keyBackward;
-  int keyLeft;
-  int keyRight;
-  int keyTurnLeft;
-  int keyTurnRight;
-  int keyUp;
-  int keyDown;
-
-  explicit ArcCamera(const glm::vec3 &target = {0, 0, -10});
-
-  void mouseMove(float dx, float dy);
-  void rotate(float yaw, float pitch);
-
-  void handleKeyPress(int key);
-  void handleKeyRelease(int key);
-  void move(float deltaTime);
+  explicit DetailManager(QWidget *parent);
+  void spawnWidget(QMainWindow *parent, const Node &node);
+  void clearWidgets();
+  void widgetClosed(DetailWidget *detailWidget);
+  void nodesUpdated(QVector<unsigned int> nodes);
   void reset();
-  void wheel(int delta);
-  void zoom(float delta);
-
-  [[nodiscard]] glm::mat4 viewMatrix() const;
 
 private:
-  bool forwardPressed{false};
-  bool backwardPressed{false};
-  bool leftPressed{false};
-  bool rightPressed{false};
-  bool turnLeftPressed{false};
-  bool turnRightPressed{false};
-  bool upPressed{false};
-  bool downPressed{false};
-
-  void updatePosition();
+  std::vector<DetailWidget *> detailWidgets;
+  std::vector<QDockWidget *> dockWidgets;
 };
+
 } // namespace netsimulyzer

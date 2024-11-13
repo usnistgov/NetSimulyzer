@@ -31,77 +31,59 @@
  * Author: Evan Black <evan.black@nist.gov>
  */
 
-#pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
+#include "DetailManager.h"
+#include "src/window/MainWindow.h"
+#include <QDockWidget>
+#include <QMainWindow>
+#include <algorithm>
 
 namespace netsimulyzer {
-/**
- * 'Trackball' style camera that orbits around `target`
- */
-class ArcCamera {
-public:
-  /**
-   * The point the camera is circling
-   */
-  glm::vec3 target{0.0f};
-  /**
-   * The position of the camera in orbit
-   */
-  glm::vec3 position;
 
-  static constexpr float defaultDistance{10.0f};
+DetailManager::DetailManager(QWidget *parent) : QObject{parent} {
+}
 
-  /**
-   * The distance from the view of the camera
-   * to `target`
-   */
-  float distance{defaultDistance};
-  bool mousePressed{false};
-  bool zoomIn{false};
-  bool zoomOut{false};
-  const glm::vec3 world_up{0.0f, 1.0f, 0.0f};
-  float mouseTurnSpeed;
-  float moveSpeed;
-  float moveSpeedSizeScale{1.0f};
-  float keyboardTurnSpeed;
-  float fieldOfView;
-  float zoomSpeed{0.5f}; // TODO: Make configurable
+void DetailManager::spawnWidget(QMainWindow *parent, const Node &node) {
+  auto newWidget = new DetailWidget{parent, *this};
+  newWidget->describe(node);
 
-  int keyForward;
-  int keyBackward;
-  int keyLeft;
-  int keyRight;
-  int keyTurnLeft;
-  int keyTurnRight;
-  int keyUp;
-  int keyDown;
+  const auto dockWidget = dockWidgets.emplace_back(new QDockWidget{parent});
+  dockWidget->setWidget(newWidget);
+  // Make sure we don't spawn something too small
+  dockWidget->setMinimumWidth(newWidget->minimumWidth());
 
-  explicit ArcCamera(const glm::vec3 &target = {0, 0, -10});
+  dockWidget->setWindowTitle(QString::fromStdString(node.getNs3Model().name));
 
-  void mouseMove(float dx, float dy);
-  void rotate(float yaw, float pitch);
+  parent->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+  detailWidgets.emplace_back(newWidget);
+}
 
-  void handleKeyPress(int key);
-  void handleKeyRelease(int key);
-  void move(float deltaTime);
-  void reset();
-  void wheel(int delta);
-  void zoom(float delta);
+void DetailManager::clearWidgets() {
+  for (const auto dockWidget : dockWidgets) {
+    dockWidget->close();
+    dockWidget->deleteLater();
+  }
 
-  [[nodiscard]] glm::mat4 viewMatrix() const;
+  detailWidgets.clear();
+  dockWidgets.clear();
+}
 
-private:
-  bool forwardPressed{false};
-  bool backwardPressed{false};
-  bool leftPressed{false};
-  bool rightPressed{false};
-  bool turnLeftPressed{false};
-  bool turnRightPressed{false};
-  bool upPressed{false};
-  bool downPressed{false};
+void DetailManager::widgetClosed(DetailWidget *detailWidget) {
+  // Remove the closed widget from our list
+  detailWidgets.erase(std::remove(detailWidgets.begin(), detailWidgets.end(), detailWidget), detailWidgets.end());
+}
 
-  void updatePosition();
-};
+void DetailManager::nodesUpdated(QVector<unsigned int> nodes) {
+  for (const auto &widget : detailWidgets) {
+    for (const auto nodeId : nodes) {
+      if (widget->described()->getNs3Model().id == nodeId) {
+        widget->update();
+      }
+    }
+  }
+}
+
+void DetailManager::reset() {
+  clearWidgets();
+}
+
 } // namespace netsimulyzer

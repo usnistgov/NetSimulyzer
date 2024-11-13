@@ -443,6 +443,8 @@ void Renderer::resize(Floor &f, float size) {
 
   glBindBuffer(GL_ARRAY_BUFFER, renderInfo.vbo);
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floorVertices), reinterpret_cast<const void *>(floorVertices));
+
+  f.setSize(size);
 }
 
 CoordinateGrid::RenderInfo Renderer::allocateCoordinateGrid(float size, int stepSize) {

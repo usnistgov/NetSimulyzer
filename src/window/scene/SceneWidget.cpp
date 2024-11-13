@@ -49,7 +49,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QPixmap>
 #include <QSettings>
-#include <QTextStream>
+#include <QVector>
 #include <Qt>
 #include <QtGui/QOpenGLFunctions>
 #include <algorithm>
@@ -80,11 +80,11 @@ void SceneWidget::handleEvents() {
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
   // this event period
-  bool selectedNodeUpdated = false;
+  QVector<unsigned int> updatedNodes;
 
   // Returns true after handling an event
   // false otherwise
-  auto handleEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
+  auto handleEvent = [this, &updatedNodes](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -108,8 +108,7 @@ void SceneWidget::handleEvents() {
       else
         undoEvents.emplace_back(node->second.handle(arg));
 
-      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
-        selectedNodeUpdated = true;
+      updatedNodes.push_back(arg.nodeId);
 
       return true;
     } else if constexpr (std::is_same_v<T, parser::DecorationMoveEvent> ||
@@ -142,8 +141,8 @@ void SceneWidget::handleEvents() {
     events.pop_front();
   }
 
-  if (selectedNodeUpdated)
-    emit selectedItemUpdated();
+  if (!updatedNodes.empty())
+    emit nodesUpdated(updatedNodes);
 }
 
 void SceneWidget::handleUndoEvents() {
@@ -151,9 +150,9 @@ void SceneWidget::handleUndoEvents() {
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
   // this event period
-  bool selectedNodeUpdated = false;
+  QVector<unsigned int> updatedNodes;
 
-  auto handleUndoEvent = [this, &selectedNodeUpdated](auto &&arg) -> bool {
+  auto handleUndoEvent = [this, &updatedNodes](auto &&arg) -> bool {
     // Strip off qualifiers, etc
     // so T holds just the type
     // so we can more easily match it
@@ -177,8 +176,7 @@ void SceneWidget::handleUndoEvents() {
       else
         node->second.handle(arg);
 
-      if (selectedNode.has_value() && node->second.getNs3Model().id == selectedNode.value())
-        selectedNodeUpdated = true;
+      updatedNodes.push_back(node->second.getNs3Model().id);
 
       events.emplace_front(arg.event);
       return true;
@@ -220,8 +218,53 @@ void SceneWidget::handleUndoEvents() {
     undoEvents.pop_back();
   }
 
-  if (selectedNodeUpdated)
-    emit selectedItemUpdated();
+  if (!updatedNodes.isEmpty())
+    emit nodesUpdated(updatedNodes);
+}
+
+float SceneWidget::getCameraAutoscale() const {
+  // Scale camera movement so we may cross the whole simulation
+  // In about 20 real life seconds
+  const auto cameraSpeed = settings.get<float>(SettingsManager::Key::MoveSpeed).value();
+  // 20 seconds in ms
+  constexpr auto timeToCrossInMs = 20.0f * 1000.0f;
+
+  // 'Crossing the simulation' means from corner to corner
+  //
+  // (pretend this is square)
+  //
+  //             `newSize`
+  //  origin --> *_____
+  //             |\   |
+  //             | \  |
+  //             |  \ | `newSize`
+  //             |   \|
+  //             ------
+  // since `newSize` is distance from the origin
+  //
+  //                `newSize`
+  //                *_____
+  //                 \   |
+  // `newSize`*sq(2)  \  |
+  //                   \ | `newSize`
+  //                    \|
+  //
+  // so, distance to the origin from one corner is `newSize` * sq(2)
+  // we have to double that to get corner to corner
+  // so, the total diagonal distance is `newSize * std::sqrt(2.0f) * 2.0f`
+  return floor->getSize() * std::sqrt(2.0f) * 2.0f / (cameraSpeed * timeToCrossInMs);
+}
+
+void SceneWidget::applyAutoscaleCameraSpeed() {
+  if (autoscaleCameraMoveSpeed) {
+    const auto speedScale = getCameraAutoscale();
+    camera.setMoveSpeedSizeScale(speedScale);
+    arcCamera.moveSpeedSizeScale = speedScale;
+    return;
+  }
+
+  camera.setMoveSpeedSizeScale(1.0f);
+  arcCamera.moveSpeedSizeScale = 1.0f;
 }
 
 void SceneWidget::initializeGL() {
@@ -497,22 +540,6 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   if (!(event->buttons() & Qt::LeftButton))
     return;
 
-  makeCurrent();
-
-  // OpenGL starts from the bottom left,
-  // Qt Starts at the top left,
-  // so adjust the Y coordinate accordingly
-  const auto selected = pickingFbo->read(event->x(), height() - event->y());
-  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
-  doneCurrent();
-
-  if (selected.object && selected.type == 1u) {
-    emit nodeSelected(selected.id);
-    selectedNode = selected.id;
-    clickAction = ClickAction::Select;
-    return;
-  }
-
   if (cameraType == SettingsManager::CameraType::FirstPerson) {
     mousePressed = true;
     camera.setMobility(Camera::move_state::mobile);
@@ -627,7 +654,24 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
+  // We need a current OpenGL context to read from
+  // the picking framebuffer
+  makeCurrent();
+
+  // OpenGL starts from the bottom left,
+  // Qt Starts at the top left,
+  // so adjust the Y coordinate accordingly
+  const auto selected = pickingFbo->read(event->x(), height() - event->y());
+  pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+  doneCurrent();
+
   QMenu menu;
+  if (selected.object) {
+    menu.addAction("Describe", [this, &selected]() {
+      emit spawnNodeDetailWidget(selected.id);
+    });
+  }
+
   menu.addAction("Save as Image", [this]() {
     const auto image = grab();
     const auto now = QDateTime::currentDateTime();
@@ -665,6 +709,8 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   }
 
   setResourcePath(resourceDirSetting.value());
+
+  applyAutoscaleCameraSpeed();
 }
 
 SceneWidget::~SceneWidget() {
@@ -686,11 +732,17 @@ void SceneWidget::setConfiguration(parser::GlobalConfiguration configuration) {
 
   // Don't resize beneath the default
   if (newSize > 100.0f) {
+    makeCurrent();
     renderer.resize(*floor, newSize + 50.0f); // Give the new size a bit of extra overrun
     renderer.resize(*coordinateGrid, newSize + 50.0f, settings.get<int>(SettingsManager::Key::RenderGridStep).value());
+    doneCurrent();
   }
 
   // time step handled by the MainWindow
+
+  const auto speedScale = getCameraAutoscale();
+  camera.setMoveSpeedSizeScale(speedScale);
+  arcCamera.moveSpeedSizeScale = speedScale;
 }
 
 void SceneWidget::reset() {
@@ -705,6 +757,9 @@ void SceneWidget::reset() {
   selectedNode.reset();
   fontManager.reset();
   simulationTime = 0.0;
+
+  camera.setMoveSpeedSizeScale(1.0f);
+  arcCamera.moveSpeedSizeScale = 1.0f;
 }
 
 void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
@@ -979,6 +1034,17 @@ void SceneWidget::setRenderLabels(SettingsManager::LabelRenderMode value) {
 
 void SceneWidget::setLabelScale(float value) {
   labelScale = value;
+}
+
+void SceneWidget::setCameraMoveSpeed(const float value) {
+  camera.setMoveSpeed(value);
+  arcCamera.moveSpeed = value;
+  applyAutoscaleCameraSpeed();
+}
+
+void SceneWidget::setAutoscaleCameraMoveSpeed(const bool value) {
+  autoscaleCameraMoveSpeed = value;
+  applyAutoscaleCameraSpeed();
 }
 
 void SceneWidget::setSelectedNode(unsigned int nodeId) {

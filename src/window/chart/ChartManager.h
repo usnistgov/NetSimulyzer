@@ -136,7 +136,8 @@ private:
   void timeRewound(parser::nanoseconds time);
 
 public:
-  explicit ChartManager(QWidget *parent);
+  explicit ChartManager(QMainWindow *parent);
+  ~ChartManager() override;
 
   /**
    * Clear all series and events

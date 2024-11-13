@@ -46,6 +46,7 @@ class Floor {
   Mesh mesh;
   glm::vec3 position{0.0f};
   glm::mat4 model{1.0f};
+  float size{100.0f};
 
 public:
   explicit Floor(Mesh mesh);
@@ -63,6 +64,9 @@ public:
 
   [[nodiscard]] const Mesh &getMesh() const;
   [[nodiscard]] texture_id getTextureId() const;
+
+  [[nodiscard]] float getSize() const;
+  void setSize(float value);
 
   void render();
 };
