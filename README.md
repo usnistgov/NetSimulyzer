@@ -150,7 +150,7 @@ If you are not building for Linux, then skip this section.
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
 Ubuntu:
-* (22.04) `build-essential cmake pkg-config qtbase5-dev libassimp-dev`
+* (24.04 & 22.04) `build-essential cmake pkg-config qtbase5-dev libassimp-dev`
 * (20.04) `build-essential cmake pkg-config qt5-default libassimp-dev`
 
 Arch: `base-devel cmake pkgconf qt5-base assimp`
