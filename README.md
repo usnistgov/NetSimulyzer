@@ -46,7 +46,7 @@ the companion *ns-3* module [found here](https://github.com/usnistgov/NetSimulyz
     * Clang 12.0.0
 * CMake 3.16 or greater
 * A graphics card supporting OpenGL 3.3
-* Qt 5.12
+* Qt 5.15
 * Optional: Doxygen
 
 # Download Prebuilt Releases
