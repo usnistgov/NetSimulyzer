@@ -31,12 +31,12 @@
 
 cmake_minimum_required(VERSION 3.13)
 project(NetSimulyzer
-        VERSION 1.0.13
+        VERSION 1.0.14
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
 # Be sure to set to FALSE when tagging a release version
-set(IS_DEV_VERSION FALSE)
+set(IS_DEV_VERSION TRUE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
