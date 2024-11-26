@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include "ChartManager.h"
 #include <lib/QCustomPlot/qcustomplot.h>
 
 // Pre-declared so we don't have a circular include
@@ -86,4 +87,8 @@ public:
   void setChartWidget(netsimulyzer::ChartWidget *value);
 
   std::unique_ptr<QCPTextElement> title;
+
+private:
+  void exportToGnuplot();
+  void exportToGnuplot(const netsimulyzer::ChartManager::XYSeriesTie &tie);
 };
