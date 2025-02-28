@@ -29,7 +29,7 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-find_package(Qt5 COMPONENTS Core Widgets PrintSupport REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets PrintSupport REQUIRED)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -51,4 +51,4 @@ endif ()
 
 target_include_directories(QCustomPlot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(QCustomPlot PUBLIC Qt5::Core Qt5::Widgets Qt5::PrintSupport)
+target_link_libraries(QCustomPlot PUBLIC Qt6::Core Qt6::Widgets Qt6::PrintSupport)

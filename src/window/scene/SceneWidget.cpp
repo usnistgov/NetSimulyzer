@@ -37,9 +37,11 @@
 #include "../../render/mesh/Vertex.h"
 #include "fmt/ostream.h"
 #include "src/conversion.h"
+#include "src/group/building/Building.h"
 #include "src/util/palette.h"
 #include <QByteArray>
 #include <QDateTime>
+#include <QOpenGLVersionFunctionsFactory>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QMenu>
@@ -376,6 +378,7 @@ void SceneWidget::paintGL() {
 
   glClearColor(clearColorGl[0], clearColorGl[1], clearColorGl[2], 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  renderer.endTransparent();
   if (renderSkybox)
     renderer.render(*skyBox);
 
@@ -568,7 +571,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
 #endif
 
   setCursor(Qt::BlankCursor);
-  initialCursorPosition = {event->x(), event->y()};
+  initialCursorPosition = event->position();
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
@@ -594,7 +597,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
 
   unsetCursor();
   // Put the cursor back where it was when we started
-  QCursor::setPos(mapToGlobal(initialCursorPosition));
+  QCursor::setPos(mapToGlobal(initialCursorPosition.toPoint()));
   clickAction = ClickAction::None;
 }
 
@@ -625,7 +628,7 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
     // OpenGL starts from the bottom left,
     // Qt Starts at the top left,
     // so adjust the Y coordinate accordingly
-    const auto itemUnderCursor = pickingFbo->read(event->x(), height() - event->y());
+    const auto itemUnderCursor = pickingFbo->read(event->position().x(), height() - event->position().y());
     pickingFbo->unbind(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
     doneCurrent();
 
@@ -640,9 +643,9 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
 
   if (cameraType == SettingsManager::CameraType::FirstPerson && !mousePressed)
     return;
-  auto dx = event->x() - initialCursorPosition.x();
+  const auto dx = event->position().x() - initialCursorPosition.x();
   // Prevent inverting the camera
-  auto dy = initialCursorPosition.y() - event->y();
+  const auto dy = initialCursorPosition.y() - event->position().y();
 
   if (cameraType == SettingsManager::CameraType::FirstPerson) {
     camera.mouse_move(dx, dy);
@@ -650,7 +653,7 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
     arcCamera.mouseMove(dx, dy);
   }
 
-  QCursor::setPos(mapToGlobal(initialCursorPosition));
+  QCursor::setPos(mapToGlobal(initialCursorPosition.toPoint()));
 }
 
 void SceneWidget::contextMenuEvent(QContextMenuEvent *event) {
@@ -787,7 +790,7 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   }
 
   nodes.reserve(nodeModels.size());
-  const auto functions = context()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+  const auto functions = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(context());
   const auto trailLength = settings.get<int>(SettingsManager::Key::RenderMotionTrailLength).value();
   for (const auto &node : nodeModels) {
     nodes.try_emplace(node.id, Model{models.load(node.model)}, node,
