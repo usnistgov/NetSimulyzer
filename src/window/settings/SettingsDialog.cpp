@@ -317,49 +317,49 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     settings.set(Key::FieldOfView, fov);
     emit fieldOfViewChanged(fov);
 
-    const auto forwardKey = ui.keyForward->keySequence()[0];
+    const auto forwardKey = ui.keyForward->key();
     if (forwardKey != settings.get<int>(Key::CameraKeyForward).value()) {
       settings.set(Key::CameraKeyForward, forwardKey);
       emit forwardKeyChanged(forwardKey);
     }
 
-    const auto backwardKey = ui.keyBackward->keySequence()[0];
+    const auto backwardKey = ui.keyBackward->key();
     if (backwardKey != settings.get<int>(Key::CameraKeyBackwards).value()) {
       settings.set(Key::CameraKeyBackwards, backwardKey);
       emit backwardKeyChanged(backwardKey);
     }
 
-    const auto leftKey = ui.keyLeft->keySequence()[0];
+    const auto leftKey = ui.keyLeft->key();
     if (leftKey != settings.get<int>(Key::CameraKeyLeft).value()) {
       settings.set(Key::CameraKeyLeft, leftKey);
       emit leftKeyChanged(leftKey);
     }
 
-    const auto rightKey = ui.keyRight->keySequence()[0];
+    const auto rightKey = ui.keyRight->key();
     if (rightKey != settings.get<int>(Key::CameraKeyRight).value()) {
       settings.set(Key::CameraKeyRight, rightKey);
       emit rightKeyChanged(rightKey);
     }
 
-    const auto turnLeftKey = ui.keyTurnLeft->keySequence()[0];
+    const auto turnLeftKey = ui.keyTurnLeft->key();
     if (turnLeftKey != settings.get<int>(Key::CameraKeyLeftTurn).value()) {
       settings.set(Key::CameraKeyLeftTurn, turnLeftKey);
       emit turnLeftKeyChanged(turnLeftKey);
     }
 
-    const auto turnRightKey = ui.keyTurnRight->keySequence()[0];
+    const auto turnRightKey = ui.keyTurnRight->key();
     if (turnRightKey != settings.get<int>(Key::CameraKeyRightTurn).value()) {
       settings.set(Key::CameraKeyRightTurn, turnRightKey);
       emit turnRightKeyChanged(turnRightKey);
     }
 
-    const auto upKey = ui.keyUp->keySequence()[0];
+    const auto upKey = ui.keyUp->key();
     if (upKey != settings.get<int>(Key::CameraKeyUp).value()) {
       settings.set(Key::CameraKeyUp, upKey);
       emit upKeyChanged(upKey);
     }
 
-    const auto downKey = ui.keyDown->keySequence()[0];
+    const auto downKey = ui.keyDown->key();
     if (downKey != settings.get<int>(Key::CameraKeyDown).value()) {
       settings.set(Key::CameraKeyDown, downKey);
       emit downKeyChanged(downKey);
@@ -471,7 +471,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
 
     // Playback
 
-    const auto playKey = ui.keyPlay->keySequence()[0];
+    const auto playKey = ui.keyPlay->key();
     if (playKey != settings.get<int>(Key::SceneKeyPlay).value()) {
       settings.set(Key::SceneKeyPlay, playKey);
       emit playKeyChanged(playKey);

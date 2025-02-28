@@ -234,11 +234,12 @@ int main(int argc, char *argv[]) {
   } else
     settings.set(Key::SettingsVersion, NETSIMULYZER_VERSION);
 
-  QSurfaceFormat format;
+  auto format = QSurfaceFormat::defaultFormat();
   format.setVersion(3, 3);
-  auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
+  const auto samples = *settings.get<int>(Key::NumberSamples, RetrieveMode::AllowDefault);
   format.setSamples(samples);
   format.setProfile(QSurfaceFormat::CoreProfile);
+  format.setRenderableType(QSurfaceFormat::OpenGL);
 #ifndef NDEBUG
   // Only enable debug logging for debug builds
   format.setOption(QSurfaceFormat::DebugContext);
