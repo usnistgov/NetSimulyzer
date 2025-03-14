@@ -89,6 +89,8 @@ public:
   std::unique_ptr<QCPTextElement> title;
 
 private:
+  std::optional<QDir> getExportDir(const QString &title);
   void exportToGnuplot();
   void exportToGnuplot(const netsimulyzer::ChartManager::XYSeriesTie &tie);
+  void exportToGnuplot(const netsimulyzer::ChartManager::SeriesCollectionTie &tie);
 };
