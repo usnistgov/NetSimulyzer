@@ -473,6 +473,11 @@ void ChartWidget::clearSelected() {
 unsigned int ChartWidget::getCurrentSeries() const {
   return currentSeries;
 }
+
+ChartManager &ChartWidget::getManager() const {
+  return manager;
+}
+
 ChartWidget::RangePair ChartWidget::getTieRange() const {
   if (currentSeries == ChartManager::PlaceholderId)
     return {};
