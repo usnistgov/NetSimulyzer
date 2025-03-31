@@ -88,7 +88,7 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   ArcCamera arcCamera{};
   SettingsManager::CameraType cameraType =
       settings.get<SettingsManager::CameraType>(SettingsManager::Key::RenderCameraType).value();
-  QPoint initialCursorPosition{width() / 2, height() / 2};
+  QPointF initialCursorPosition{width() / 2.0, height() / 2.0};
   bool mousePressed = false;
   ClickAction clickAction{ClickAction::None};
   TextureCache textures;

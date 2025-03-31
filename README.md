@@ -40,13 +40,13 @@ the companion *ns-3* module [found here](https://github.com/usnistgov/NetSimulyz
   * Most integrated GPUs (i.e. Intel/AMD CPU Graphics) should work too
 
 ## Build Requirements
-* A C++ 17 compliant compiler
+* A C++ 20 compliant compiler
   * Minimum supported compilers:
     * GCC 10.5.0
     * Clang 12.0.0
-* CMake 3.13 or greater
+* CMake 3.16 or greater
 * A graphics card supporting OpenGL 3.3
-* Qt 5.12
+* Qt 6.4
 * Optional: Doxygen
 
 # Download Prebuilt Releases
@@ -150,22 +150,22 @@ If you are not building for Linux, then skip this section.
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
 Ubuntu:
-* (24.04 & 22.04) `build-essential cmake pkg-config qtbase5-dev libassimp-dev`
-* (20.04) `build-essential cmake pkg-config qt5-default libassimp-dev`
+* (24.04) `build-essential cmake pkg-config qt6-base-dev libassimp-dev`
+* (22.04) `build-essential cmake pkg-config qt6-base-dev libassimp-dev libgl1-mesa-dev`
 
-Arch: `base-devel cmake pkgconf qt5-base assimp`
+Arch: `base-devel cmake pkgconf qt6-base assimp`
 
 ## macOS Homebrew Packages
 If you are not building for macOS (or a distro that uses [Homebrew](https://brew.sh/))
 then skip this section
 
 The following Homebrew items are required to build/run the NetSimulyzer:
-* `qt@5`
+* `qt@6`
 * `cmake`
 
 They may be installed with the following command:
 ```shell
-brew install qt@5 cmake
+brew install qt@6 cmake
 ```
 
 ## Cloning
@@ -221,7 +221,7 @@ Otherwise, the command to configure is identical to the Windows/Linux
 build
 
 ```shell
-cmake -DQt5_DIR=$(brew --prefix qt5)/lib/cmake/Qt5 -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --parallel
 ```
 

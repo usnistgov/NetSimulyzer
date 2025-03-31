@@ -7,18 +7,22 @@ void SingleKeySequenceEdit::setDefault() {
   if (!defaultKey)
     return;
 
-  if (keySequence()[0] != *defaultKey) {
+  if (keySequence()[0].key() != *defaultKey) {
     setKeySequence(*defaultKey);
     emit editingFinished();
   }
 }
 
 void SingleKeySequenceEdit::setDefaultKey(int value) {
-  defaultKey = value;
+  defaultKey = static_cast<Qt::Key>(value);
 }
 
 std::optional<int> SingleKeySequenceEdit::getDefaultKey() const {
   return defaultKey;
+}
+
+Qt::Key SingleKeySequenceEdit::key() const {
+  return keySequence()[0].key();
 }
 
 void SingleKeySequenceEdit::keyPressEvent(QKeyEvent *pEvent) {

@@ -17,7 +17,7 @@ SettingsManager::BuildingRenderMode SettingsManager::BuildingRenderModeFromInt(i
     return SettingsManager::BuildingRenderMode::Opaque;
   default:
     QMessageBox::critical(nullptr, "Invalid value provided for 'Building Render Mode'!",
-                          "An unrecognised value for 'Building Render Mode':" + QString{value} + " was provided");
+                          "An unrecognised value for 'Building Render Mode':" + QString::number(value) + " was provided");
     std::abort();
   }
 }
@@ -32,7 +32,7 @@ SettingsManager::LabelRenderMode SettingsManager::LabelRenderModeFromInt(int val
     return LabelRenderMode::Never;
   default:
     QMessageBox::critical(nullptr, "Invalid value provided for 'Label Render Mode'!",
-                          "An unrecognised value for 'Label Render Mode':" + QString{value} + " was provided");
+                          "An unrecognised value for 'Label Render Mode':" + QString::number(value) + " was provided");
     std::abort();
   }
 }
@@ -51,7 +51,7 @@ SettingsManager::ChartDropdownSortOrder SettingsManager::ChartDropdownSortOrderF
     return SortOrder::None;
   default:
     QMessageBox::critical(nullptr, "Invalid value provided for 'Chart Sort Order'!",
-                          "An unrecognised value for 'Chart Sort Order':" + QString{value} + " was provided");
+                          "An unrecognised value for 'Chart Sort Order':" + QString::number(value)+ " was provided");
     std::abort();
   }
 }
@@ -68,7 +68,7 @@ SettingsManager::MotionTrailRenderMode SettingsManager::MotionTrailRenderModeFro
     return MotionTrailRenderMode::Never;
   default:
     QMessageBox::critical(nullptr, "Invalid value provided for 'Motion Trail Render Mode'!",
-                          "An unrecognised value for 'Motion Trail Render Mode':" + QString{value} + " was provided");
+                          "An unrecognised value for 'Motion Trail Render Mode':" + QString::number(value) + " was provided");
     std::abort();
   }
 }

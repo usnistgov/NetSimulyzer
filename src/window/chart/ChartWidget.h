@@ -99,6 +99,8 @@ public:
    */
   [[nodiscard]] unsigned int getCurrentSeries() const;
 
+  [[nodiscard]] ChartManager& getManager() const;
+
   struct RangePair {
     QCPRange x;
     QCPRange y;

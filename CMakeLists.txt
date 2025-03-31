@@ -29,9 +29,9 @@
 #
 # Author: Evan Black <evan.black@nist.gov>
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 project(NetSimulyzer
-        VERSION 1.0.13
+        VERSION 1.0.14
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
@@ -44,7 +44,7 @@ option(USE_BUNDLED_ASSIMP
     "Build 'assimp' from the bundled sources, rather than searching the OS"
     FALSE)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 
 # Assimp Settings
@@ -80,7 +80,7 @@ add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
 
-find_package(Qt5 COMPONENTS Core Widgets Gui PrintSupport REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Gui PrintSupport OpenGL OpenGLWidgets REQUIRED)
 add_subdirectory(lib/QCustomPlot)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -103,7 +103,7 @@ add_executable(netsimulyzer
         lib/QDarkStyleSheet/qdarkstyle/light/lightstyle.qrc
         resources.qrc)
 
-target_compile_features(netsimulyzer PRIVATE cxx_std_17)
+target_compile_features(netsimulyzer PUBLIC cxx_std_20)
 
 target_compile_options(netsimulyzer PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors)
 target_compile_options(netsimulyzer PRIVATE -Wno-unknown-pragmas) # Disable warnings for IDE pragmas
@@ -117,7 +117,7 @@ target_link_libraries(netsimulyzer PRIVATE fmt)
 target_link_libraries(netsimulyzer PRIVATE assimp)
 target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
-target_link_libraries(netsimulyzer PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
+target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
 # For allowing cursor control on modern macOS
