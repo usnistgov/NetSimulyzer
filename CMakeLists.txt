@@ -79,6 +79,7 @@ endif ()
 add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
+add_subdirectory(resources)
 
 find_package(Qt6 COMPONENTS Core Widgets Gui PrintSupport OpenGL OpenGLWidgets REQUIRED)
 add_subdirectory(lib/QCustomPlot)
@@ -101,7 +102,12 @@ add_executable(netsimulyzer
         netsimulyzer.rc
         lib/QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc
         lib/QDarkStyleSheet/qdarkstyle/light/lightstyle.qrc
-        resources.qrc)
+        resources.qrc
+        ${netsimulyzer_models_simple}
+        ${netsimulyzer_models}
+        ${netsimulyzer_textures_skybox}
+        ${netsimulyzer_textures}
+)
 
 target_compile_features(netsimulyzer PUBLIC cxx_std_20)
 
@@ -120,9 +126,40 @@ target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
 target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
-# For allowing cursor control on modern macOS
+
 if (${APPLE})
+    # For allowing cursor control on modern macOS
     target_link_libraries(netsimulyzer PRIVATE "-framework ApplicationServices")
+
+    set(MACOSX_BUNDLE_ICON_FILE NetSimulyzer.icns)
+    set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/${MACOSX_BUNDLE_ICON_FILE}")
+    set_source_files_properties(${app_icon_macos} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources")
+
+    set_target_properties(netsimulyzer PROPERTIES
+            OUTPUT_NAME "NetSimulyzer"
+            MACOSX_BUNDLE ON
+            MACOSX_FRAMEWORK_IDENTIFIER gov.nist.netsimulyzer
+    )
+    target_sources(netsimulyzer PRIVATE ${app_icon_macos})
+
+
+    # Copy models into the bundle
+    set_source_files_properties(${netsimulyzer_models_simple} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources/models/simple"
+            HEADER_FILE_ONLY ON # Don't try and process .obj models as compiled code
+    )
+    set_source_files_properties(${netsimulyzer_models} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources/models/"
+            HEADER_FILE_ONLY ON
+    )
+    set_source_files_properties(${netsimulyzer_textures_skybox} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources/textures/skybox"
+    )
+    set_source_files_properties(${netsimulyzer_textures} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources/textures"
+    )
+
 endif ()
 
 add_subdirectory(src)
