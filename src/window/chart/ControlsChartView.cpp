@@ -206,6 +206,8 @@ void ControlsChartView::exportToGnuplot() {
     exportToGnuplot(std::get<ChartManager::XYSeriesTie>(tieVariant));
   else if (std::holds_alternative<ChartManager::SeriesCollectionTie>(tieVariant))
     exportToGnuplot(std::get<ChartManager::SeriesCollectionTie>(tieVariant));
+  else if (std::holds_alternative<ChartManager::CategoryValueTie>(tieVariant))
+    exportToGnuplot(std::get<ChartManager::CategoryValueTie>(tieVariant));
 }
 
 std::optional<QDir> ControlsChartView::getExportDir(const QString &title) {
@@ -291,6 +293,76 @@ void ControlsChartView::exportToGnuplot(const netsimulyzer::ChartManager::XYSeri
     scatterStyle = "lines";
 
   script << "plot '" << plotTitle << ".dat' with " << scatterStyle << " linestyle 1";
+}
+
+void ControlsChartView::exportToGnuplot(const netsimulyzer::ChartManager::CategoryValueTie &tie) {
+  const auto plotTitle = QString::fromStdString(tie.model.name);
+
+  const auto dir = getExportDir(plotTitle);
+  if (!dir)
+    return;
+
+  // Gnuplot script
+  QFile gnuFile{dir->absolutePath() + '/' + plotTitle + ".gnu"};
+  if (!gnuFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QMessageBox::critical(this, "Failed to create Gnuplot script", "Failed to create Gnuplot script.");
+    return;
+  }
+
+  // Make the script executable by the user that exported it
+  gnuFile.setPermissions(gnuFile.permissions() | QFileDevice::ExeUser);
+
+  QTextStream script{&gnuFile};
+  script << "#!/usr/bin/gnuplot --persist\n"; // TODO: Verify this location
+
+  // Function that translates numeric tics into categories
+  script << "function $category_value_labels(arg) << EOF\n";
+
+  const auto &categories = tie.model.yAxis.values;
+
+  for (auto i = 0u; i < categories.size(); i++) {
+    const auto &category = categories[i];
+    if (i == 0u) {
+      script << "\tif (arg ==" << category.id << ") { return \"" << QString::fromStdString(category.name) << "\"}\n";
+    }
+    script << "\telse if (arg ==" << category.id << ") { return \"" << QString::fromStdString(category.name) << "\"}\n";
+  }
+  script << "\treturn \"Unrecognised Category\"\n";
+  script << "EOF\n";
+  script << "set title \"" << plotTitle << "\"\n";
+
+  QFile datFile{dir->absolutePath() + '/' + plotTitle + ".dat"};
+
+  if (!datFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QMessageBox::critical(this, "failed to write data file", "failed to open " + datFile.fileName());
+    return;
+  }
+
+  QTextStream stream(&datFile);
+  for (const auto &[_, key, value] : *tie.data.data()) {
+    stream << key << '\t' << value << '\n';
+  }
+
+  script << "set style line 1\\\n";
+  script << "    linecolor rgb '" << tie.pen.color().name() << "'\\\n";
+  script << "    linetype 1 linewidth 1\\\n";
+  script << "    pointtype 7\n"; // See: 'test' command in Gnuplot for reference
+  script << "\n";
+
+  if (!tie.model.xAxis.name.empty())
+    script << "set xlabel \"" << QString::fromStdString(tie.model.xAxis.name) << "\"\n";
+
+  if (!tie.model.yAxis.name.empty())
+    script << "set ylabel \"" << QString::fromStdString(tie.model.yAxis.name) << "\"\n";
+
+  const auto range = chartWidget->getTieRange();
+  script << "set xrange [" << range.x.lower << ':' << range.x.upper << "]\n";
+  script << "set yrange [" << range.y.lower << ':' << range.y.upper << "]\n";
+
+  const QString scatterStyle{"lines"};
+
+  script << "plot '" << plotTitle << ".dat' using 1:2:ytic($category_value_labels($2)) notitle with " << scatterStyle
+         << " linestyle 1";
 }
 
 void ControlsChartView::exportToGnuplot(const netsimulyzer::ChartManager::SeriesCollectionTie &tie) {
