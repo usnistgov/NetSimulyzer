@@ -162,7 +162,8 @@ std::optional<QFileInfo> autodetectResourceDir() {
                                     addOneUp(QCoreApplication::applicationDirPath()), QDir::currentPath(),
                                     addOneUp(QDir::currentPath())};
 
-  QDir dir{"", "resources"};
+  QDir dir{""};
+  dir.setNameFilters(QStringList{} << "resources" << "Resources");
   dir.setFilter(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot | QDir::Filter::Readable);
 
   for (const auto &path : checkPaths) {
