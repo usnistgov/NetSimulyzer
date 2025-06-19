@@ -64,6 +64,7 @@ signals:
 
 private:
   const int stateVersion{5};
+  QByteArray defaultSate;
   SettingsManager settings;
   SettingsDialog settingsDialog{this};
 

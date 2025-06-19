@@ -72,6 +72,8 @@ MainWindow::MainWindow() : QMainWindow() {
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
 
+  defaultSate = saveState();
+
   if (const auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState))
     restoreState(*state, stateVersion);
   if (const auto geometry = settings.get<QByteArray>(Setting::MainWindowGeometry))
@@ -287,6 +289,10 @@ MainWindow::MainWindow() : QMainWindow() {
   });
 
   QObject::connect(ui.actionRemovCharts, &QAction::triggered, &charts, &ChartManager::clearWidgets);
+
+  QObject::connect(ui.actionRestoreDefaultLayout, &QAction::triggered, [this] {
+    restoreState(defaultSate);
+  });
 }
 
 MainWindow::~MainWindow() {
