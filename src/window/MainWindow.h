@@ -67,6 +67,7 @@ private:
   QByteArray defaultSate;
   SettingsManager settings;
   SettingsDialog settingsDialog{this};
+  QDockWidget::DockWidgetFeatures dockFeatures;
 
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
@@ -93,6 +94,7 @@ private:
 
   void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void load();
+  void setDockWidgetFeatures();
 
 protected:
   void closeEvent(QCloseEvent *event) override;

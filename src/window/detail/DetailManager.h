@@ -53,8 +53,10 @@ public:
   void widgetClosed(DetailWidget *detailWidget);
   void nodesUpdated(QVector<unsigned int> nodes);
   void reset();
+  void setDockFeatures(QDockWidget::DockWidgetFeatures features);
 
 private:
+  QDockWidget::DockWidgetFeatures dockFeatures;
   std::vector<DetailWidget *> detailWidgets;
   std::vector<QDockWidget *> dockWidgets;
 };

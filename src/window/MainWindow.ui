@@ -51,6 +51,7 @@
     <addaction name="actionRemovCharts"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultLayout"/>
+    <addaction name="actionLockWidgets"/>
    </widget>
    <widget class="QMenu" name="menuCamera">
     <property name="title">
@@ -217,6 +218,14 @@
   <action name="actionRestoreDefaultLayout">
    <property name="text">
     <string>Restore &amp;Default Layout</string>
+   </property>
+  </action>
+  <action name="actionLockWidgets">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Lock Widget Locations</string>
    </property>
   </action>
  </widget>

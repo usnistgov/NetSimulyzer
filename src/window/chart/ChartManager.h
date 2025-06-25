@@ -107,6 +107,7 @@ private:
       settings.get<SettingsManager::ChartDropdownSortOrder>(SettingsManager::Key::ChartDropdownSortOrder).value()};
   std::vector<DropdownValue> dropdownElements;
   std::vector<ChartWidget *> chartWidgets;
+  QDockWidget::DockWidgetFeatures dockFeatures;
 
   XYSeriesTie makeTie(const parser::XYSeries &model);
   SeriesCollectionTie makeTie(const parser::SeriesCollection &model);
@@ -167,6 +168,8 @@ public:
   void timeChanged(parser::nanoseconds time, parser::nanoseconds increment);
   void enqueueEvents(const std::vector<parser::ChartEvent> &e);
   void setSortOrder(SettingsManager::ChartDropdownSortOrder value);
+
+  void setDockFeatures(QDockWidget::DockWidgetFeatures features);
 };
 
 } // namespace netsimulyzer
