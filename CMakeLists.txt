@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 project(NetSimulyzer
-        VERSION 1.0.14
+        VERSION 1.0.15
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
@@ -49,7 +49,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 # Assimp Settings
 if (NOT USE_BUNDLED_ASSIMP)
-    find_package(assimp 5.0.0)
+    find_package(assimp 6.0.0)
 endif ()
 
 # Just in case they don't have Assimp installed.

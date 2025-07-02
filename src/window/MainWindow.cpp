@@ -67,10 +67,15 @@ MainWindow::MainWindow() : QMainWindow() {
   setWindowTitle(NETSIMULYZER_APPLICATION_NAME);
   setCentralWidget(&scene);
 
+  ui.actionLockWidgets->setChecked(settings.get<bool>(SettingsManager::Key::WindowWidgetsLocked).value());
+  setDockWidgetFeatures();
+
   // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
   ui.logDock->setWidget(&logWidget);
   ui.playbackDock->setWidget(&playbackWidget);
+
+  defaultSate = saveState();
 
   if (const auto state = settings.get<QByteArray>(SettingsManager::Key::MainWindowState))
     restoreState(*state, stateVersion);
@@ -287,6 +292,12 @@ MainWindow::MainWindow() : QMainWindow() {
   });
 
   QObject::connect(ui.actionRemovCharts, &QAction::triggered, &charts, &ChartManager::clearWidgets);
+
+  QObject::connect(ui.actionRestoreDefaultLayout, &QAction::triggered, [this] {
+    restoreState(defaultSate);
+  });
+
+  QObject::connect(ui.actionLockWidgets, &QAction::triggered, this, &MainWindow::setDockWidgetFeatures);
 }
 
 MainWindow::~MainWindow() {
@@ -317,6 +328,23 @@ void MainWindow::load() {
   playbackWidget.reset();
   charts.reset();
   emit startLoading(fileName);
+}
+
+void MainWindow::setDockWidgetFeatures() {
+  using Feature = QDockWidget::DockWidgetFeature;
+  const auto locked = ui.actionLockWidgets->isChecked();
+
+  dockFeatures = locked ? Feature::DockWidgetClosable
+                        : Feature::DockWidgetClosable | Feature::DockWidgetMovable | Feature::DockWidgetFloatable;
+
+  ui.logDock->setFeatures(dockFeatures);
+  ui.nodesDock->setFeatures(dockFeatures);
+  ui.playbackDock->setFeatures(dockFeatures);
+
+  charts.setDockFeatures(dockFeatures);
+  detailManager.setDockFeatures(dockFeatures);
+
+  settings.set(SettingsManager::Key::WindowWidgetsLocked, locked);
 }
 
 void MainWindow::finishLoading(const QString &fileName, unsigned long long milliseconds) {

@@ -515,6 +515,7 @@ void ChartManager::timeRewound(parser::nanoseconds time) {
 
 void ChartManager::spawnWidget(QMainWindow *parent) {
   auto newWidget = new ChartWidget{parent, *this, dropdownElements};
+  newWidget->setFeatures(dockFeatures);
   parent->addDockWidget(Qt::RightDockWidgetArea, newWidget);
 
   chartWidgets.emplace_back(newWidget);
@@ -626,6 +627,12 @@ void ChartManager::setSortOrder(SettingsManager::ChartDropdownSortOrder value) {
   for (const auto widget : chartWidgets) {
     widget->setSortOrder(sortOrder);
   }
+}
+
+void ChartManager::setDockFeatures(const QDockWidget::DockWidgetFeatures features) {
+  dockFeatures = features;
+  for (const auto widget : chartWidgets)
+    widget->setFeatures(features);
 }
 
 } // namespace netsimulyzer

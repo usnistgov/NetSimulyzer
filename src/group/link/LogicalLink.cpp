@@ -99,15 +99,18 @@ void LogicalLink::update() {
 
 void LogicalLink::updateModelMatrix(const glm::vec3 node1Position, const glm::vec3 node2Position,
                                     const float offset) {
-  const auto direction = node2Position - node1Position;
+  const auto direction = glm::normalize(node2Position - node1Position);
 
   // Find the rotation between the front of the object (+X) and the desired direction
   const auto rot1 = rotationBetweenVectors({1.0f, 0.0f, 0.0f}, direction);
 
-  // Recompute desiredUp so that it's perpendicular to the direction
-  // You can skip that part if you really want to force desiredUp
   const auto right = cross(direction, {0.0f, 0.0f, 1.0f});
-  const auto up = cross(right, direction);
+  auto up = cross(right, direction);
+
+  // Special case, if two nodes have the X & Z but different Y
+  // Up ends up as zero, so supplement with the 'world' up
+  if (glm::length2(up) < 0.001f)
+    up = glm::vec3{0.0f, 1.0f, 0.0f};
 
   // Because of the 1st rotation, the up is probably completely screwed up.
   // Find the rotation between the "up" of the rotated object, and the desired up

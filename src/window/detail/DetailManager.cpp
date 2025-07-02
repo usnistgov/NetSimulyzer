@@ -47,6 +47,7 @@ void DetailManager::spawnWidget(QMainWindow *parent, const Node &node) {
   newWidget->describe(node);
 
   const auto dockWidget = dockWidgets.emplace_back(new QDockWidget{parent});
+  dockWidget->setFeatures(dockFeatures);
   dockWidget->setWidget(newWidget);
   // Make sure we don't spawn something too small
   dockWidget->setMinimumWidth(newWidget->minimumWidth());
@@ -84,6 +85,12 @@ void DetailManager::nodesUpdated(QVector<unsigned int> nodes) {
 
 void DetailManager::reset() {
   clearWidgets();
+}
+
+void DetailManager::setDockFeatures(const QDockWidget::DockWidgetFeatures features) {
+  dockFeatures = features;
+  for (const auto widget : dockWidgets)
+    widget->setFeatures(features);
 }
 
 } // namespace netsimulyzer
