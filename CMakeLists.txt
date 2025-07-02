@@ -49,7 +49,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 # Assimp Settings
 if (NOT USE_BUNDLED_ASSIMP)
-    find_package(assimp 5.0.0)
+    find_package(assimp 6.0.0)
 endif ()
 
 # Just in case they don't have Assimp installed.
