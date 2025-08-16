@@ -272,6 +272,8 @@ void JsonHandler::do_parse(JsonHandler::Section section, const util::json::JsonO
       parseNodeColorChangeEvent(object);
     else if (type == "node-transmit")
       parseTransmitEvent(object);
+    else if (type == "node-change")
+      parseNodeChangeEvent(object);
     else if (type == "decoration-position")
       parseDecorationMoveEvent(object);
     else if (type == "decoration-orientation")
@@ -746,6 +748,23 @@ void JsonHandler::parseNodeColorChangeEvent(const util::json::JsonObject &object
 
   if (object.contains("color"))
     event.targetColor = colorFromObject(object["color"].object());
+
+  updateEndTime(event.time);
+  processEndTransmits(event.time);
+  fileParser.sceneEvents.emplace_back(event);
+}
+
+void JsonHandler::parseNodeChangeEvent(const util::json::JsonObject &object) {
+  // This was added after 1.0.4, so no compatibility with 'milliseconds' required
+  requiredFields(object, {"id", "nanoseconds"});
+
+  if (!object.contains("visibility"))
+    return;
+
+  parser::NodeVisibilityChange event;
+  event.nodeId = object["id"].get<unsigned int>();
+  event.visible = object["visibility"].get<bool>();
+  event.time = object["nanoseconds"].get<int_type>();
 
   updateEndTime(event.time);
   processEndTransmits(event.time);

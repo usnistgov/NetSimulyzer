@@ -258,6 +258,14 @@ class JsonHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, JsonH
   void parseNodeColorChangeEvent(const util::json::JsonObject &object);
 
   /**
+   * Parse and emplace a Node Change event
+   *
+   * @param object
+   * The object from the 'events' section with the 'node-change' type
+   */
+  void parseNodeChangeEvent(const util::json::JsonObject &object);
+
+  /**
    * Parse and emplace a series append event
    *
    * @param object

@@ -157,6 +157,18 @@ struct NodeColorChangeEvent {
   parser::NodeColorChangeEvent event;
 };
 
+struct NodeVisibilityEvent {
+  /**
+   * The original visibility state of the Node
+   */
+  bool visible{};
+
+  /**
+   * The event which generated this undo event
+   */
+  parser::NodeVisibilityChange event;
+};
+
 /**
  * An event which undoes a `parser::LogicalLinkCreate`
  */
@@ -273,10 +285,10 @@ struct StreamAppendEvent {
   parser::StreamAppendEvent event;
 };
 
-using SceneUndoEvent =
-    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, DecorationMoveEvent,
-                 NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
-                 StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
+using SceneUndoEvent = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent,
+                                    DecorationMoveEvent, NodeOrientationChangeEvent, NodeColorChangeEvent,
+                                    NodeVisibilityEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
+                                    StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 using ChartUndoEvent = std::variant<XYSeriesAddValue, XYSeriesAddValues, XYSeriesClear, CategorySeriesAddValue>;
 

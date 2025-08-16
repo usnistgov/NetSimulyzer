@@ -41,7 +41,6 @@
 #include "src/util/palette.h"
 #include <QByteArray>
 #include <QDateTime>
-#include <QOpenGLVersionFunctionsFactory>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QMenu>
@@ -49,6 +48,7 @@
 #include <QObject>
 #include <QOpenGLDebugMessage>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLVersionFunctionsFactory>
 #include <QPixmap>
 #include <QSettings>
 #include <QVector>
@@ -100,7 +100,7 @@ void SceneWidget::handleEvents() {
     if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeModelChangeEvent> ||
                   std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
                   std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
-                  std::is_same_v<T, parser::TransmitEndEvent>) {
+                  std::is_same_v<T, parser::TransmitEndEvent> || std::is_same_v<T, parser::NodeVisibilityChange>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
@@ -167,8 +167,9 @@ void SceneWidget::handleUndoEvents() {
       return false;
 
     if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeModelChangeEvent> ||
-                  std::is_same_v<T, undo::NodeOrientationChangeEvent> || std::is_same_v<T, undo::TransmitEvent> ||
-                  std::is_same_v<T, undo::TransmitEndEvent> || std::is_same_v<T, undo::NodeColorChangeEvent>) {
+                  std::is_same_v<T, undo::NodeOrientationChangeEvent> || std::is_same_v<T, undo::NodeVisibilityEvent> ||
+                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
+                  std::is_same_v<T, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
         return false;
