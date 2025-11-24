@@ -75,6 +75,11 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef Q_OS_LINUX
+#include <pointer-constraints.h>
+#include <relative-pointer.h>
+#endif
+
 namespace netsimulyzer {
 
 class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
@@ -148,6 +153,21 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   std::deque<parser::SceneEvent> events;
   std::deque<undo::SceneUndoEvent> undoEvents;
 
+  bool mouseLocked{};
+#ifdef Q_OS_LINUX
+  // Wayland pointer locking...
+  wl_compositor* waylandComposter{};
+  wl_display* waylandDisplay{};
+  zwp_pointer_constraints_v1* pointerConstraint{};
+  zwp_locked_pointer_v1* lockedPointer{};
+  wl_region* lockedRegion{};
+  wl_registry* waylandRegistry{};
+  wl_registry_listener waylandRegistryListener{};
+  zwp_relative_pointer_manager_v1* relativePointerManager{};
+  zwp_relative_pointer_v1* relativePointer{};
+  zwp_relative_pointer_v1_listener relativePointerListener{};
+#endif
+
 #ifndef NDEBUG
   QOpenGLDebugLogger glLogger{this};
 #endif
@@ -165,6 +185,9 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
    */
   float getCameraAutoscale() const;
   void applyAutoscaleCameraSpeed();
+
+  void lockMouse();
+  void unlockMouse();
 
 protected:
   void initializeGL() override;
@@ -354,6 +377,8 @@ public:
 
   void setSelectedNode(unsigned int nodeId);
   void clearSelectedNode();
+
+  void moveCamera(int x, int y);
 
 signals:
   void timeChanged(parser::nanoseconds simulationTime, parser::nanoseconds increment);

@@ -42,6 +42,7 @@
 #include <QByteArray>
 #include <QDateTime>
 #include <QFileDialog>
+#include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
@@ -62,7 +63,14 @@
 #include <ios>
 #include <iostream>
 #include <model.h>
+#ifdef Q_OS_LINUX
+#include <pointer-constraints.h>
+#endif
 #include <qopengl.h>
+#ifdef Q_OS_LINUX
+#include <qpa/qplatformnativeinterface.h>
+#include <relative-pointer.h>
+#endif
 #include <vector>
 
 #ifndef NDEBUG
@@ -268,6 +276,82 @@ void SceneWidget::applyAutoscaleCameraSpeed() {
 
   camera.setMoveSpeedSizeScale(1.0f);
   arcCamera.moveSpeedSizeScale = 1.0f;
+}
+
+void SceneWidget::lockMouse() {
+  if (mouseLocked)
+    return;
+  mouseLocked = true;
+
+  qDebug("Locking mouse");
+
+  // If we're on macOS, in order to move the cursor,
+  // we have to be allowed to in the Accessibility Options
+  // so, check, and if we don't have it, prompt the user
+  // if we don't have such a permission, then camera movement
+  // with the mouse is pretty much impossible...
+#ifdef Q_OS_MAC
+  // Thanks, StackOverflow!
+  // https://stackoverflow.com/a/60243598
+  CFStringRef keys[] = {kAXTrustedCheckOptionPrompt};
+  CFTypeRef values[] = {kCFBooleanTrue};
+  CFDictionaryRef options =
+      CFDictionaryCreate(NULL, (const void **)&keys, (const void **)&values, sizeof(keys) / sizeof(keys[0]),
+                         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+  AXIsProcessTrustedWithOptions(options);
+  CFRelease(options);
+#endif
+
+#ifdef Q_OS_LINUX
+  if (QGuiApplication::platformName() == "wayland") {
+    const auto native = QGuiApplication::platformNativeInterface();
+
+    auto *waylandSurface = static_cast<wl_surface *>(
+        native->nativeResourceForWindow("surface", static_cast<QMainWindow *>(parent())->windowHandle()));
+    auto *pointer = static_cast<wl_pointer *>(native->nativeResourceForIntegration("wl_pointer"));
+
+    waylandRegistry = wl_display_get_registry(waylandDisplay);
+    wl_registry_add_listener(waylandRegistry, &waylandRegistryListener, this);
+
+    wl_display_roundtrip(waylandDisplay);
+
+    relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
+    zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, this);
+
+    if (lockedRegion) {
+      wl_region_destroy(lockedRegion);
+      lockedRegion = nullptr;
+    }
+
+    lockedRegion = wl_compositor_create_region(waylandComposter);
+
+    const auto widgetBounds = rect();
+    wl_region_add(lockedRegion, widgetBounds.x(), widgetBounds.y(), widgetBounds.width(), widgetBounds.height());
+
+    lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraint, waylandSurface, pointer, lockedRegion,
+                                                            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+
+    wl_surface_commit(waylandSurface);
+    wl_display_roundtrip(waylandDisplay);
+
+    wl_registry_destroy(waylandRegistry);
+    return;
+  }
+#endif
+}
+
+void SceneWidget::unlockMouse() {
+  if (!mouseLocked)
+    return;
+  qDebug("Unlocking mouse");
+
+#ifdef Q_OS_LINUX
+  if (QGuiApplication::platformName() == "wayland") {
+    zwp_locked_pointer_v1_destroy(lockedPointer);
+    wl_display_roundtrip(waylandDisplay);
+  }
+#endif
+  mouseLocked = false;
 }
 
 void SceneWidget::initializeGL() {
@@ -554,22 +638,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event) {
   }
   clickAction = ClickAction::Move;
 
-  // If we're on macOS, in order to move the cursor,
-  // we have to be allowed to in the Accessibility Options
-  // so, check, and if we don't have it, prompt the user
-  // if we don't have such a permission, then camera movement
-  // with the mouse is pretty much impossible...
-#ifdef Q_OS_MAC
-  // Thanks, StackOverflow!
-  // https://stackoverflow.com/a/60243598
-  CFStringRef keys[] = {kAXTrustedCheckOptionPrompt};
-  CFTypeRef values[] = {kCFBooleanTrue};
-  CFDictionaryRef options =
-      CFDictionaryCreate(NULL, (const void **)&keys, (const void **)&values, sizeof(keys) / sizeof(keys[0]),
-                         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  AXIsProcessTrustedWithOptions(options);
-  CFRelease(options);
-#endif
+  lockMouse();
 
   setCursor(Qt::BlankCursor);
   initialCursorPosition = event->position();
@@ -585,6 +654,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
   }
 
   if (clickAction == ClickAction::Move && !(event->buttons() & Qt::LeftButton)) {
+    unlockMouse();
     if (cameraType == SettingsManager::CameraType::FirstPerson) {
       mousePressed = false;
       camera.setMobility(Camera::move_state::frozen);
@@ -622,6 +692,9 @@ void SceneWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void SceneWidget::mouseMoveEvent(QMouseEvent *event) {
+  // Not triggered under Wayland
+  // when the cursor is locked
+
   QWidget::mouseMoveEvent(event);
 
   if (clickAction == ClickAction::None) {
@@ -715,6 +788,36 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
   setResourcePath(resourceDirSetting.value());
 
   applyAutoscaleCameraSpeed();
+
+#ifdef Q_OS_LINUX
+
+  if (QGuiApplication::platformName() == "wayland") {
+    waylandRegistryListener.global = [](void *data, wl_registry *registry, const uint32_t name, const char *interface,
+                                        const uint32_t version) {
+      auto *scene = static_cast<SceneWidget *>(data);
+      if (std::strcmp(interface, zwp_pointer_constraints_v1_interface.name) == 0) {
+        scene->pointerConstraint = static_cast<zwp_pointer_constraints_v1 *>(
+            wl_registry_bind(registry, name, &zwp_pointer_constraints_v1_interface, version));
+      } else if (std::strcmp(interface, zwp_relative_pointer_manager_v1_interface.name) == 0) {
+        scene->relativePointerManager = static_cast<zwp_relative_pointer_manager_v1 *>(
+            wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version));
+      }
+    };
+    waylandRegistryListener.global_remove = nullptr;
+
+    relativePointerListener.relative_motion = [](void *data, zwp_relative_pointer_v1 *, uint32_t, uint32_t,
+                                                 const wl_fixed_t, const wl_fixed_t, const wl_fixed_t dx,
+                                                 const wl_fixed_t dy) {
+      auto *scene = static_cast<SceneWidget *>(data);
+      scene->moveCamera(wl_fixed_to_int(dx), -wl_fixed_to_int(dy));
+    };
+
+    const auto native = QGuiApplication::platformNativeInterface();
+    waylandComposter = static_cast<wl_compositor *>(native->nativeResourceForIntegration("compositor"));
+    waylandDisplay = static_cast<wl_display *>(native->nativeResourceForIntegration("wl_display"));
+  }
+
+#endif
 }
 
 SceneWidget::~SceneWidget() {
@@ -724,6 +827,25 @@ SceneWidget::~SceneWidget() {
   makeCurrent();
   glLogger.stopLogging();
   doneCurrent();
+#endif
+
+#ifdef Q_OS_LINUX
+  if (QGuiApplication::platformName() == "wayland") {
+    if (mouseLocked)
+      unlockMouse();
+
+    wl_display_dispatch_pending(waylandDisplay);
+
+    if (lockedRegion)
+      wl_region_destroy(lockedRegion);
+    if (pointerConstraint)
+      zwp_pointer_constraints_v1_destroy(pointerConstraint);
+    if (relativePointerManager)
+      zwp_relative_pointer_manager_v1_destroy(relativePointerManager);
+    if (relativePointer)
+      zwp_relative_pointer_v1_destroy(relativePointer);
+  }
+
 #endif
 }
 
@@ -1062,6 +1184,13 @@ void SceneWidget::setSelectedNode(unsigned int nodeId) {
 
 void SceneWidget::clearSelectedNode() {
   selectedNode.reset();
+}
+void SceneWidget::moveCamera(const int x, const int y) {
+  if (cameraType == SettingsManager::CameraType::FirstPerson) {
+    camera.mouse_move(x, y);
+  } else /* ArcBall */ {
+    arcCamera.mouseMove(x, y);
+  }
 }
 
 } // namespace netsimulyzer
