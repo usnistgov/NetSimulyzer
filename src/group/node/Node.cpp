@@ -206,6 +206,16 @@ undo::NodeColorChangeEvent Node::handle(const parser::NodeColorChangeEvent &e) {
 
   return undo;
 }
+undo::NodeVisibilityEvent Node::handle(const parser::NodeVisibilityChange &e) {
+  undo::NodeVisibilityEvent undo{};
+
+  undo.visible = ns3Node.visible;
+  undo.event = e;
+
+  ns3Node.visible = e.visible;
+
+  return undo;
+}
 
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
@@ -269,6 +279,11 @@ void Node::handle(const undo::NodeColorChangeEvent &e) {
       model.unsetHighlightColor();
   }
 }
+
+void Node::handle(const undo::NodeVisibilityEvent &e) {
+  ns3Node.visible = e.visible;
+}
+
 const TrailBuffer &Node::getTrailBuffer() const {
   return trailBuffer;
 }

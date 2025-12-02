@@ -196,13 +196,13 @@ void SettingsManager::setTheme(SettingsManager::WindowTheme theme) {
   switch (theme) {
   case WindowTheme::Dark: {
     QFile themeQss{":qdarkstyle/dark/darkstyle.qss"};
-    themeQss.open(QFile::ReadOnly | QFile::Text);
+    (void) themeQss.open(QFile::ReadOnly | QFile::Text);
     application->setStyleSheet(QTextStream{&themeQss}.readAll());
     break;
   }
   case WindowTheme::Light: {
     QFile themeQss{":qdarkstyle/light/lightstyle.qss"};
-    themeQss.open(QFile::ReadOnly | QFile::Text);
+    (void) themeQss.open(QFile::ReadOnly | QFile::Text);
     application->setStyleSheet(QTextStream{&themeQss}.readAll());
     break;
   }

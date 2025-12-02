@@ -94,6 +94,7 @@ public:
   undo::TransmitEndEvent handle(const parser::TransmitEndEvent &e);
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
   undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
+  undo::NodeVisibilityEvent handle(const parser::NodeVisibilityChange &e);
 
   void handle(const undo::MoveEvent &e);
   void handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache);
@@ -101,6 +102,7 @@ public:
   void handle(const undo::TransmitEndEvent &e);
   void handle(const undo::NodeOrientationChangeEvent &e);
   void handle(const undo::NodeColorChangeEvent &e);
+  void handle(const undo::NodeVisibilityEvent &e);
 };
 
 } // namespace netsimulyzer

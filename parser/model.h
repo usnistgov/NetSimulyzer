@@ -431,6 +431,27 @@ struct NodeColorChangeEvent {
   std::optional<Ns3Color3> targetColor;
 };
 
+/**
+ * Event that show/hides a Node
+ */
+struct NodeVisibilityChange {
+  /**
+   * The simulation time
+   * for when the event should be run
+   */
+  nanoseconds time = 0LL;
+
+  /**
+   * The target Node of the event
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * If the node should be visible or not
+   */
+  bool visible{};
+};
+
 struct LogicalLinkCreate {
   /**
    * The simulation time (in milliseconds)
@@ -601,16 +622,18 @@ struct StreamAppendEvent {
 /**
  * Variant defined for every event model
  */
-using Event = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, DecorationMoveEvent,
-                           NodeOrientationChangeEvent, DecorationOrientationChangeEvent, XYSeriesAddValue,
-                           XYSeriesAddValues, XYSeriesClear, StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
+using Event =
+    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
+                 NodeVisibilityChange, DecorationOrientationChangeEvent, XYSeriesAddValue, XYSeriesAddValues,
+                 XYSeriesClear, StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Events which affect the rendered scene
  */
-using SceneEvent = std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent,
-                                NodeOrientationChangeEvent, NodeColorChangeEvent, DecorationMoveEvent,
-                                DecorationOrientationChangeEvent, LogicalLinkCreate, LogicalLinkUpdate>;
+using SceneEvent =
+    std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
+                 NodeColorChangeEvent, NodeVisibilityChange, DecorationMoveEvent, DecorationOrientationChangeEvent,
+                 LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Event types specific to the charts model

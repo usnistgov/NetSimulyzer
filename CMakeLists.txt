@@ -31,12 +31,12 @@
 
 cmake_minimum_required(VERSION 3.16)
 project(NetSimulyzer
-        VERSION 1.0.15
+        VERSION 1.0.16
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
 # Be sure to set to FALSE when tagging a release version
-set(IS_DEV_VERSION FALSE)
+set(IS_DEV_VERSION TRUE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
@@ -79,8 +79,17 @@ endif ()
 add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_subdirectory(lib/wayland-protocols-generated)
+endif ()
 
 find_package(Qt6 COMPONENTS Core Widgets Gui PrintSupport OpenGL OpenGLWidgets REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # We need the private modules to lock the mouse cursor on Linux
+    set(QT_NO_PRIVATE_MODULE_WARNING ON)
+    find_package(Qt6 COMPONENTS WaylandClient GuiPrivate WaylandClientPrivate REQUIRED)
+endif ()
+
 add_subdirectory(lib/QCustomPlot)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -119,6 +128,15 @@ target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
 target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(netsimulyzer PRIVATE Qt6::GuiPrivate
+            Qt6::WaylandClient
+            Qt6::WaylandClientPrivate)
+
+    target_link_libraries(netsimulyzer PRIVATE wayland-protocols-generated)
+endif ()
+
 
 # For allowing cursor control on modern macOS
 if (${APPLE})
