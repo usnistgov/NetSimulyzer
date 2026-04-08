@@ -46,7 +46,7 @@ option(USE_BUNDLED_ASSIMP
 
 set(CMAKE_CXX_STANDARD 20)
 
-
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/cmake-modules")
 # Assimp Settings
 if (NOT USE_BUNDLED_ASSIMP)
     find_package(assimp 6.0.0)
