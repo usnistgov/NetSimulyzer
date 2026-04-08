@@ -71,6 +71,14 @@ if (NOT assimp_FOUND OR NOT TARGET assimp::assimp)
     option(ASSIMP_BUILD_STEP_IMPORTER "" ON)
     set(ASSIMP_BUILD_STEP_IMPORTER OFF)
 
+    # Sometimes, we enter a weird mixed state
+    # where assimp finds the OS installed
+    # minizip, then tries to use
+    # it's Hunter installed one.
+    #
+    # This avoids that by making
+    # it build minizip everytime
+    set(ASSIMP_BUILD_MINIZIP TRUE)
     add_subdirectory(lib/assimp)
     # Suppress assimp warnings
     target_compile_options(assimp PRIVATE -w)
