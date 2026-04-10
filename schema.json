@@ -254,8 +254,22 @@
           "minimum": 0
         },
         "time-step": {
-          "type": "integer",
-          "minimum": 0
+          "type": "object",
+          "properties": {
+            "granularity": {
+              "type": "string",
+              "enum": [
+                "milliseconds",
+                "microseconds",
+                "nanoseconds"
+              ]
+            },
+            "increment": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["granularity", "increment"]
         },
         "module-version": {
           "type": "object",
@@ -349,8 +363,19 @@
             ]
           },
           "scale": {
-            "type": "number",
-            "minimum": 0
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": ["x", "y", "z"]
           },
           "type": {
             "type": "string",
@@ -521,6 +546,31 @@
               "required": [
                 "id",
                 "color-type"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "node-change"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "visibility": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id"
               ]
             }
           },
@@ -1016,8 +1066,19 @@
             ]
           },
           "scale": {
-            "type": "number",
-            "minimum": 0
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "required": ["x", "y", "z"]
           },
           "visible": {
             "type": "boolean"
