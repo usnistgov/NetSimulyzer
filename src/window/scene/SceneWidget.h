@@ -156,15 +156,15 @@ class SceneWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
   bool mouseLocked{};
 #ifdef Q_OS_LINUX
   // Wayland pointer locking...
-  wl_compositor* waylandComposter{};
-  wl_display* waylandDisplay{};
-  zwp_pointer_constraints_v1* pointerConstraint{};
-  zwp_locked_pointer_v1* lockedPointer{};
-  wl_region* lockedRegion{};
-  wl_registry* waylandRegistry{};
+  wl_compositor *waylandComposter{};
+  wl_display *waylandDisplay{};
+  zwp_pointer_constraints_v1 *pointerConstraint{};
+  zwp_locked_pointer_v1 *lockedPointer{};
+  wl_region *lockedRegion{};
+  wl_registry *waylandRegistry{};
   wl_registry_listener waylandRegistryListener{};
-  zwp_relative_pointer_manager_v1* relativePointerManager{};
-  zwp_relative_pointer_v1* relativePointer{};
+  zwp_relative_pointer_manager_v1 *relativePointerManager{};
+  zwp_relative_pointer_v1 *relativePointer{};
   zwp_relative_pointer_v1_listener relativePointerListener{};
 #endif
 
@@ -209,6 +209,8 @@ public:
   void add(const std::vector<parser::Area> &areaModels, const std::vector<parser::Building> &buildingModels,
            const std::vector<parser::Decoration> &decorationModels, const std::vector<parser::WiredLink> &links,
            const std::vector<parser::LogicalLink> &parserLogicalLinks, const std::vector<parser::Node> &nodeModels);
+
+  [[nodiscard]] const std::unordered_map<unsigned int, Node> &getNodes() const;
 
   /**
    * Load an individual model specified by `modelPath`

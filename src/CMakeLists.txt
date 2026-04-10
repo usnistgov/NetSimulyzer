@@ -58,6 +58,7 @@ target_sources(netsimulyzer PRIVATE
         render/texture/TextureCache.h render/texture/TextureCache.cpp
         settings/SettingsManager.h settings/SettingsManager.cpp
         util/common-times.h
+        util/is-one-of-v.h
         util/netsimulyzer-time-literals.h
         util/palette.h
         util/undo-events.h

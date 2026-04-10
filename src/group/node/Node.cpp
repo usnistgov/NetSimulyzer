@@ -217,6 +217,17 @@ undo::NodeVisibilityEvent Node::handle(const parser::NodeVisibilityChange &e) {
   return undo;
 }
 
+undo::NodeNameEvent Node::handle(const parser::NodeNameChange &e, FontManager &fontManager) {
+  undo::NodeNameEvent undo{.oldName = ns3Node.name, .event = e};
+
+  ns3Node.name = e.name;
+
+  fontManager.deallocate(bannerRenderInfo);
+  bannerRenderInfo = fontManager.allocate(e.name);
+
+  return undo;
+}
+
 void Node::handle(const undo::MoveEvent &e) {
   model.setPosition(e.position);
   ns3Node.position = e.ns3Position;
@@ -282,6 +293,13 @@ void Node::handle(const undo::NodeColorChangeEvent &e) {
 
 void Node::handle(const undo::NodeVisibilityEvent &e) {
   ns3Node.visible = e.visible;
+}
+
+void Node::handle(const undo::NodeNameEvent &e, FontManager &fontManager) {
+  ns3Node.name = e.oldName;
+
+  fontManager.deallocate(bannerRenderInfo);
+  bannerRenderInfo = fontManager.allocate(ns3Node.name);
 }
 
 const TrailBuffer &Node::getTrailBuffer() const {

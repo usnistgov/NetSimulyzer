@@ -161,4 +161,11 @@ void NodeWidget::contextMenu(const QPoint pos) {
   menu.exec(ui->nodeTable->viewport()->mapToGlobal(pos));
 }
 
+void NodeWidget::nodesUpdated(const std::unordered_map<unsigned int, Node> &nodeList) {
+  reset();
+  for (const auto &node : nodeList | std::views::values) {
+    model.append(node.getNs3Model());
+  }
+}
+
 } // namespace netsimulyzer

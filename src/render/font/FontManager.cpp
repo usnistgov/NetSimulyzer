@@ -65,11 +65,7 @@ void FontManager::init(const std::string &atlasFilePath) {
 
 void FontManager::reset() {
   for (const auto &font : createdFontMeshes) {
-    gl.glDeleteBuffers(1, &font.glyphVbo);
-    gl.glDeleteBuffers(1, &font.backgroundVbo);
-
-    gl.glDeleteVertexArrays(1, &font.glyphVao);
-    gl.glDeleteVertexArrays(1, &font.backgroundVao);
+    deallocate(font);
   }
 
   createdFontMeshes.clear();
@@ -200,7 +196,16 @@ FontManager::FontBannerRenderInfo FontManager::allocate(std::string_view text) {
   gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
   gl.glBindVertexArray(0);
 
+  createdFontMeshes.emplace_back(renderInfo);
   return renderInfo;
+}
+
+void FontManager::deallocate(const FontBannerRenderInfo &info) {
+  gl.glDeleteBuffers(1, &info.glyphVbo);
+  gl.glDeleteBuffers(1, &info.backgroundVbo);
+
+  gl.glDeleteVertexArrays(1, &info.glyphVao);
+  gl.glDeleteVertexArrays(1, &info.backgroundVao);
 }
 
 texture_id FontManager::getAtlasTexture() const {

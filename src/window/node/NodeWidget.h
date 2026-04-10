@@ -32,6 +32,7 @@
  */
 
 #pragma once
+#include "src/group/node/Node.h"
 #include "ui_NodeWidget.h"
 #include <QAbstractTableModel>
 #include <QPoint>
@@ -91,6 +92,8 @@ public:
   void addNode(const parser::Node &node);
   void reset();
   void contextMenu(QPoint pos);
+
+  void nodesUpdated(const std::unordered_map<unsigned int, Node> &nodeList);
 
 signals:
   void describeNode(unsigned int id);

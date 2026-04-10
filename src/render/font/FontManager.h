@@ -80,6 +80,8 @@ public:
   [[nodiscard]] texture_id getAtlasTexture() const;
 
   FontBannerRenderInfo allocate(std::string_view text);
+
+  void deallocate(const FontBannerRenderInfo &info);
 };
 
 } // namespace netsimulyzer

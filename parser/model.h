@@ -432,7 +432,7 @@ struct NodeColorChangeEvent {
 };
 
 /**
- * Event that show/hides a Node
+ * Event that shows/hides a Node
  */
 struct NodeVisibilityChange {
   /**
@@ -450,6 +450,27 @@ struct NodeVisibilityChange {
    * If the node should be visible or not
    */
   bool visible{};
+};
+
+/**
+ * Event that changes a Node's name
+ */
+struct NodeNameChange {
+  /**
+   * The simulation time
+   * for when the event should be run
+   */
+  nanoseconds time = 0LL;
+
+  /**
+   * The target Node of the event
+   */
+  uint32_t nodeId = 0;
+
+  /**
+   * The new name for the node
+   */
+  std::string name;
 };
 
 struct LogicalLinkCreate {
@@ -624,16 +645,16 @@ struct StreamAppendEvent {
  */
 using Event =
     std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, DecorationMoveEvent, NodeOrientationChangeEvent,
-                 NodeVisibilityChange, DecorationOrientationChangeEvent, XYSeriesAddValue, XYSeriesAddValues,
-                 XYSeriesClear, StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
+                 NodeVisibilityChange, NodeNameChange, DecorationOrientationChangeEvent, XYSeriesAddValue,
+                 XYSeriesAddValues, XYSeriesClear, StreamAppendEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Events which affect the rendered scene
  */
 using SceneEvent =
     std::variant<MoveEvent, NodeModelChangeEvent, TransmitEvent, TransmitEndEvent, NodeOrientationChangeEvent,
-                 NodeColorChangeEvent, NodeVisibilityChange, DecorationMoveEvent, DecorationOrientationChangeEvent,
-                 LogicalLinkCreate, LogicalLinkUpdate>;
+                 NodeColorChangeEvent, NodeVisibilityChange, NodeNameChange, DecorationMoveEvent,
+                 DecorationOrientationChangeEvent, LogicalLinkCreate, LogicalLinkUpdate>;
 
 /**
  * Event types specific to the charts model
