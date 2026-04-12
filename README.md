@@ -150,8 +150,8 @@ If you are not building for Linux, then skip this section.
 Make sure cmake and Qt are available on your system. The following are the suggested packages for those requirements:
 
 Ubuntu:
-* (24.04) `build-essential cmake pkg-config qt6-base-dev libassimp-dev`
-* (22.04) `build-essential cmake pkg-config qt6-base-dev libassimp-dev libgl1-mesa-dev`
+* (26.04 & 24.04) `build-essential cmake pkg-config qt6-base-dev qt6-wayland-dev qt6-base-private-dev qt6-wayland-private-dev libassimp-dev zlib1g-dev`
+* (22.04) `build-essential cmake pkg-config qt6-base-dev libassimp-dev zlib1g-dev libgl1-mesa-dev`
 
 Arch: `base-devel cmake pkgconf qt6-base assimp`
 

@@ -86,7 +86,7 @@ public:
 
   void addWiredLink(WiredLink *link);
   void updateLogicalLink(LogicalLink *link);
-  [[nodiscard]] const std::vector<LogicalLink *>& getActiveLogicalLinks() const;
+  [[nodiscard]] const std::vector<LogicalLink *> &getActiveLogicalLinks() const;
 
   undo::MoveEvent handle(const parser::MoveEvent &e);
   undo::NodeModelChangeEvent handle(const parser::NodeModelChangeEvent &e, ModelCache &modelCache);
@@ -95,6 +95,7 @@ public:
   undo::NodeOrientationChangeEvent handle(const parser::NodeOrientationChangeEvent &e);
   undo::NodeColorChangeEvent handle(const parser::NodeColorChangeEvent &e);
   undo::NodeVisibilityEvent handle(const parser::NodeVisibilityChange &e);
+  undo::NodeNameEvent handle(const parser::NodeNameChange &e, FontManager &fontManager);
 
   void handle(const undo::MoveEvent &e);
   void handle(const undo::NodeModelChangeEvent &e, ModelCache &modelCache);
@@ -103,6 +104,7 @@ public:
   void handle(const undo::NodeOrientationChangeEvent &e);
   void handle(const undo::NodeColorChangeEvent &e);
   void handle(const undo::NodeVisibilityEvent &e);
+  void handle(const undo::NodeNameEvent &e, FontManager &fontManager);
 };
 
 } // namespace netsimulyzer

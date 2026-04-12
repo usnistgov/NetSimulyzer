@@ -69,11 +69,11 @@ private:
   SettingsDialog settingsDialog{this};
   QDockWidget::DockWidgetFeatures dockFeatures;
 
+  SceneWidget scene{this};
   ChartManager charts{this};
   NodeWidget nodeWidget{this};
   DetailManager detailManager{this};
   ScenarioLogWidget logWidget{this};
-  SceneWidget scene{this};
   PlaybackWidget playbackWidget{this};
   Ui::MainWindow ui{};
 

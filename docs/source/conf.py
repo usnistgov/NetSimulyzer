@@ -20,7 +20,7 @@
 project = 'NetSimulyzer'
 # copyright = ''
 author = 'Evan Black'
-release = '1.0.16-release'  # 'release' or 'pre'
+release = '1.0.17-release'  # 'release' or 'pre'
 
 
 # -- General configuration ---------------------------------------------------

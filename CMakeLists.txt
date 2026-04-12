@@ -31,12 +31,12 @@
 
 cmake_minimum_required(VERSION 3.16)
 project(NetSimulyzer
-        VERSION 1.0.16
+        VERSION 1.0.17
         LANGUAGES C CXX)
 
 # Flag indicating weather this is a tagged version or not
 # Be sure to set to FALSE when tagging a release version
-set(IS_DEV_VERSION TRUE)
+set(IS_DEV_VERSION FALSE)
 
 set(ENABLE_DOXYGEN FALSE CACHE BOOL "Enable Doxygen for API documentation")
 
@@ -48,6 +48,18 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 # Assimp Settings
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/cmake-modules")
+
+# Sometimes, we enter a weird mixed state
+# where assimp finds the OS installed
+# minizip, then tries to use
+# it's Hunter installed one.
+#
+# This avoids that by making
+# it build minizip everytime
+set(ASSIMP_BUILD_MINIZIP TRUE)
+set(ASSIMP_BUILD_ZLIB TRUE)
+
 if (NOT USE_BUNDLED_ASSIMP)
     find_package(assimp 6.0.0)
 endif ()
@@ -57,7 +69,7 @@ endif ()
 # Make sure we've found the library, and the target
 # just in case we found some older version without
 # that target
-if (NOT assimp_FOUND OR NOT TARGET assimp::assimp)
+if (NOT assimp_FOUND)
     option (ASSIMP_BUILD_TESTS "If the test suite for Assimp is built in addition to the library." ON)
     set(ASSIMP_BUILD_TESTS OFF)
 
@@ -79,15 +91,34 @@ endif ()
 add_subdirectory(lib/fmt)
 add_subdirectory(lib/rapidjson)
 add_subdirectory(parser)
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(WAYLAND wayland-client)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND_FOUND)
     add_subdirectory(lib/wayland-protocols-generated)
 endif ()
 
 find_package(Qt6 COMPONENTS Core Widgets Gui PrintSupport OpenGL OpenGLWidgets REQUIRED)
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND_FOUND)
     # We need the private modules to lock the mouse cursor on Linux
     set(QT_NO_PRIVATE_MODULE_WARNING ON)
-    find_package(Qt6 COMPONENTS WaylandClient GuiPrivate WaylandClientPrivate REQUIRED)
+    find_package(Qt6 COMPONENTS WaylandClient REQUIRED)
+
+    # For some reason, some distros [e.g. Arch] separate
+    # the private Qt items into their own packages
+    # so, if we didn't pick up the private targets above
+    # search for their specific package here
+    if(NOT TARGET Qt6::GuiPrivate)
+        find_package(Qt6 COMPONENTS GuiPrivate REQUIRED)
+    endif()
+
+    if (NOT TARGET Qt6::WaylandClientPrivate)
+        find_package(Qt6 COMPONENTS WaylandClientPrivate REQUIRED)
+    endif ()
+
 endif ()
 
 add_subdirectory(lib/QCustomPlot)
@@ -129,12 +160,13 @@ target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
 target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND_FOUND)
     target_link_libraries(netsimulyzer PRIVATE Qt6::GuiPrivate
             Qt6::WaylandClient
             Qt6::WaylandClientPrivate)
 
     target_link_libraries(netsimulyzer PRIVATE wayland-protocols-generated)
+    target_compile_definitions(netsimulyzer PRIVATE NETSIMULYZER_USE_WAYLAND)
 endif ()
 
 

@@ -30,74 +30,12 @@
  *
  * Author: Evan Black <evan.black@nist.gov>
  */
-
 #pragma once
-#include "src/group/node/Node.h"
-#include "ui_NodeWidget.h"
-#include <QAbstractTableModel>
-#include <QPoint>
-#include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QVariant>
-#include <QWidget>
-#include <cstdint>
-#include <model.h>
-#include <vector>
+#include <type_traits>
 
 namespace netsimulyzer {
 
-class NodeWidget : public QWidget {
-  Q_OBJECT
+template <typename T, typename... Ts>
+inline constexpr bool is_one_of_v = (std::is_same_v<T, Ts> || ...);
 
-  /**
-   * Provides the data for the nodeTable
-   */
-  class NodeModel : public QAbstractTableModel {
-    /**
-     * Each individual row in the table
-     */
-    std::vector<parser::Node> nodes;
-
-  public:
-    explicit NodeModel(QObject *parent = {}) : QAbstractTableModel(parent) {};
-
-    [[nodiscard]] int rowCount(const QModelIndex &) const override;
-    [[nodiscard]] int columnCount(const QModelIndex &) const override;
-    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
-    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
-
-    /**
-     * Add a Node to the table
-     *
-     * @param node
-     * The Node to add to the table
-     */
-    void append(const parser::Node &node);
-
-    /**
-     * Clear all Nodes from the model
-     */
-    void reset();
-  };
-
-  Ui::NodeWidget *ui = new Ui::NodeWidget;
-  NodeModel model;
-  QSortFilterProxyModel proxyModel;
-
-public:
-  explicit NodeWidget(QWidget *parent = nullptr);
-  ~NodeWidget() override;
-
-  void addNode(const parser::Node &node);
-  void reset();
-  void contextMenu(QPoint pos);
-
-  void nodesUpdated(const std::unordered_map<unsigned int, Node> &nodeList);
-
-signals:
-  void describeNode(unsigned int id);
-  void focusNode(unsigned int id);
-};
-
-} // namespace netsimulyzer
+}

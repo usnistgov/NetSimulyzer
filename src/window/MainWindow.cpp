@@ -165,6 +165,9 @@ MainWindow::MainWindow() : QMainWindow() {
   });
 
   QObject::connect(&scene, &SceneWidget::nodesUpdated, &detailManager, &DetailManager::nodesUpdated);
+  QObject::connect(&scene, &SceneWidget::nodesUpdated, [this]() {
+    nodeWidget.nodesUpdated(scene.getNodes());
+  });
 
   QObject::connect(ui.actionLoad, &QAction::triggered, this, &MainWindow::load);
 

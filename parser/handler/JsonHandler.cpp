@@ -38,6 +38,7 @@
 #include <cmath>
 #include <exception>
 #include <sstream>
+#include <fmt/format.h>
 
 using int_type = util::json::JsonValue::int_type;
 using unsigned_int_type = util::json::JsonValue::unsigned_int_type;
@@ -758,17 +759,30 @@ void JsonHandler::parseNodeChangeEvent(const util::json::JsonObject &object) {
   // This was added after 1.0.4, so no compatibility with 'milliseconds' required
   requiredFields(object, {"id", "nanoseconds"});
 
-  if (!object.contains("visibility"))
+  const auto id = object["id"].get<unsigned int>();
+  const auto time = object["nanoseconds"].get<int_type>();
+
+  if (object.contains("visibility")) {
+    parser::NodeVisibilityChange event;
+    event.nodeId = id;
+    event.visible = object["visibility"].get<bool>();
+    event.time = time;
+    fileParser.sceneEvents.emplace_back(event);
+  } else if (object.contains("name")) {
+    parser::NodeNameChange event;
+    event.nodeId = id;
+    event.name = object["name"].get<std::string>();
+    event.time = time;
+    fileParser.sceneEvents.emplace_back(event);
+  } else {
+    fmt::print(stderr, "Unknown `node-change` event type, discarding\n");
     return;
+  }
 
-  parser::NodeVisibilityChange event;
-  event.nodeId = object["id"].get<unsigned int>();
-  event.visible = object["visibility"].get<bool>();
-  event.time = object["nanoseconds"].get<int_type>();
 
-  updateEndTime(event.time);
-  processEndTransmits(event.time);
-  fileParser.sceneEvents.emplace_back(event);
+  updateEndTime(time);
+  processEndTransmits(time);
+
 }
 
 void JsonHandler::parseSeriesAppend(const util::json::JsonObject &object) {

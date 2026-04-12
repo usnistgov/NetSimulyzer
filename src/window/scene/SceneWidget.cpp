@@ -38,6 +38,7 @@
 #include "fmt/ostream.h"
 #include "src/conversion.h"
 #include "src/group/building/Building.h"
+#include "src/util/is-one-of-v.h"
 #include "src/util/palette.h"
 #include <QByteArray>
 #include <QDateTime>
@@ -63,11 +64,11 @@
 #include <ios>
 #include <iostream>
 #include <model.h>
-#ifdef Q_OS_LINUX
+#ifdef NETSIMULYZER_USE_WAYLAND
 #include <pointer-constraints.h>
 #endif
 #include <qopengl.h>
-#ifdef Q_OS_LINUX
+#if NETSIMULYZER_USE_WAYLAND
 #include <qpa/qplatformnativeinterface.h>
 #include <relative-pointer.h>
 #endif
@@ -86,6 +87,7 @@ static void logGlDebugMessage(const QOpenGLDebugMessage &message) {
 namespace netsimulyzer {
 
 void SceneWidget::handleEvents() {
+  makeCurrent();
   // Flag to indicate the selected Node has been updated
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
@@ -105,16 +107,17 @@ void SceneWidget::handleEvents() {
     if (arg.time > simulationTime)
       return false;
 
-    if constexpr (std::is_same_v<T, parser::MoveEvent> || std::is_same_v<T, parser::NodeModelChangeEvent> ||
-                  std::is_same_v<T, parser::NodeOrientationChangeEvent> ||
-                  std::is_same_v<T, parser::NodeColorChangeEvent> || std::is_same_v<T, parser::TransmitEvent> ||
-                  std::is_same_v<T, parser::TransmitEndEvent> || std::is_same_v<T, parser::NodeVisibilityChange>) {
+    if constexpr (is_one_of_v<T, parser::MoveEvent, parser::NodeModelChangeEvent, parser::NodeOrientationChangeEvent,
+                              parser::NodeColorChangeEvent, parser::NodeNameChange, parser::TransmitEvent,
+                              parser::TransmitEndEvent, parser::NodeVisibilityChange>) {
       auto node = nodes.find(arg.nodeId);
       if (node == nodes.end())
         return false;
 
       if constexpr (std::is_same_v<T, parser::NodeModelChangeEvent>)
         undoEvents.emplace_back(node->second.handle(arg, models));
+      else if constexpr (std::is_same_v<T, parser::NodeNameChange>)
+        undoEvents.emplace_back(node->second.handle(arg, fontManager));
       else
         undoEvents.emplace_back(node->second.handle(arg));
 
@@ -153,9 +156,13 @@ void SceneWidget::handleEvents() {
 
   if (!updatedNodes.empty())
     emit nodesUpdated(updatedNodes);
+
+  doneCurrent();
 }
 
 void SceneWidget::handleUndoEvents() {
+  makeCurrent();
+
   // Flag to indicate the selected Node has been updated
   // Use a flag instead of emitting a signal from the
   // handler, just in case the Node is updated several times
@@ -174,16 +181,17 @@ void SceneWidget::handleUndoEvents() {
     if (simulationTime > arg.event.time)
       return false;
 
-    if constexpr (std::is_same_v<T, undo::MoveEvent> || std::is_same_v<T, undo::NodeModelChangeEvent> ||
-                  std::is_same_v<T, undo::NodeOrientationChangeEvent> || std::is_same_v<T, undo::NodeVisibilityEvent> ||
-                  std::is_same_v<T, undo::TransmitEvent> || std::is_same_v<T, undo::TransmitEndEvent> ||
-                  std::is_same_v<T, undo::NodeColorChangeEvent>) {
+    if constexpr (is_one_of_v<T, undo::MoveEvent, undo::NodeModelChangeEvent, undo::NodeOrientationChangeEvent,
+                              undo::NodeVisibilityEvent, undo::NodeNameEvent, undo::TransmitEvent,
+                              undo::TransmitEndEvent, undo::NodeColorChangeEvent>) {
       auto node = nodes.find(arg.event.nodeId);
       if (node == nodes.end())
         return false;
 
       if constexpr (std::is_same_v<T, undo::NodeModelChangeEvent>)
         node->second.handle(arg, models);
+      else if constexpr (std::is_same_v<T, undo::NodeNameEvent>)
+        node->second.handle(arg, fontManager);
       else
         node->second.handle(arg);
 
@@ -231,6 +239,8 @@ void SceneWidget::handleUndoEvents() {
 
   if (!updatedNodes.isEmpty())
     emit nodesUpdated(updatedNodes);
+
+  doneCurrent();
 }
 
 float SceneWidget::getCameraAutoscale() const {
@@ -302,7 +312,7 @@ void SceneWidget::lockMouse() {
   CFRelease(options);
 #endif
 
-#ifdef Q_OS_LINUX
+#ifdef NETSIMULYZER_USE_WAYLAND
   if (QGuiApplication::platformName() == "wayland") {
     const auto native = QGuiApplication::platformNativeInterface();
 
@@ -345,7 +355,7 @@ void SceneWidget::unlockMouse() {
     return;
   qDebug("Unlocking mouse");
 
-#ifdef Q_OS_LINUX
+#ifdef NETSIMULYZER_USE_WAYLAND
   if (QGuiApplication::platformName() == "wayland") {
     zwp_locked_pointer_v1_destroy(lockedPointer);
     wl_display_roundtrip(waylandDisplay);
@@ -435,6 +445,7 @@ void SceneWidget::paintGL() {
     else
       handleUndoEvents();
   }
+  makeCurrent();
 
   // Picking
   pickingFbo->bind(GL_FRAMEBUFFER);
@@ -789,8 +800,7 @@ SceneWidget::SceneWidget(QWidget *parent, const Qt::WindowFlags &f) : QOpenGLWid
 
   applyAutoscaleCameraSpeed();
 
-#ifdef Q_OS_LINUX
-
+#ifdef NETSIMULYZER_USE_WAYLAND
   if (QGuiApplication::platformName() == "wayland") {
     waylandRegistryListener.global = [](void *data, wl_registry *registry, const uint32_t name, const char *interface,
                                         const uint32_t version) {
@@ -829,7 +839,7 @@ SceneWidget::~SceneWidget() {
   doneCurrent();
 #endif
 
-#ifdef Q_OS_LINUX
+#ifdef NETSIMULYZER_USE_WAYLAND
   if (QGuiApplication::platformName() == "wayland") {
     if (mouseLocked)
       unlockMouse();
@@ -959,6 +969,10 @@ void SceneWidget::add(const std::vector<parser::Area> &areaModels, const std::ve
   }
 
   doneCurrent();
+}
+
+const std::unordered_map<unsigned int, Node> &SceneWidget::getNodes() const {
+  return nodes;
 }
 
 void SceneWidget::previewModel(const std::string &modelPath) {
