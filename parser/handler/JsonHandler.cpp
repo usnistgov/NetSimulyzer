@@ -675,6 +675,7 @@ void JsonHandler::parseTransmitEvent(const util::json::JsonObject &object) {
     parser::TransmitEndEvent endEvent;
     endEvent.time = event.time;
     endEvent.startEvent = transmittingIter->second.value();
+    endEvent.nodeId = endEvent.startEvent.nodeId;
     fileParser.sceneEvents.emplace_back(endEvent);
   }
   transmittingNodes[event.nodeId] = event;
