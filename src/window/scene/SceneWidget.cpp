@@ -157,8 +157,6 @@ void SceneWidget::handleEvents() {
 
   if (!updatedNodes.empty())
     emit nodesUpdated(updatedNodes);
-
-  doneCurrent();
 }
 
 void SceneWidget::handleUndoEvents() {
@@ -240,8 +238,6 @@ void SceneWidget::handleUndoEvents() {
 
   if (!updatedNodes.isEmpty())
     emit nodesUpdated(updatedNodes);
-
-  doneCurrent();
 }
 
 float SceneWidget::getCameraAutoscale() const {
