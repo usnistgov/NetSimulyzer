@@ -19,6 +19,7 @@ void SettingsDialog::loadSettings() {
 
   const auto windowTheme = settings.get<SettingsManager::WindowTheme>(Key::WindowTheme).value();
   ui.comboTheme->setCurrentIndex(ui.comboTheme->findData(static_cast<int>(windowTheme)));
+  ui.checkBoxUseNewUI->setChecked(settings.get<bool>(Key::WindowUseNewUi).value());
 
   ui.sliderMoveSpeed->setValue(static_cast<int>(*settings.get<float>(Key::MoveSpeed) * moveSpeedScale));
   ui.sliderKeyboardTurnSpeed->setValue(static_cast<int>(*settings.get<float>(Key::KeyboardTurnSpeed) * turnSpeedScale));
@@ -178,6 +179,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
                    &SettingsDialog::autoscaleMoveSpeedToggled);
 
   QObject::connect(ui.buttonResetTheme, &QPushButton::clicked, this, &SettingsDialog::defaultWindowTheme);
+  QObject::connect(ui.buttonResetNewUi, &QPushButton::clicked, this, &SettingsDialog::defaultUseNewUi);
   QObject::connect(ui.buttonResetMoveSpeed, &QPushButton::clicked, this, &SettingsDialog::defaultMoveSpeed);
   QObject::connect(ui.buttonResetKeyboardTurnSpeed, &QPushButton::clicked, this,
                    &SettingsDialog::defaultKeyboardTurnSpeed);
@@ -244,6 +246,7 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
   switch (ui.buttonBox->standardButton(button)) {
   case QDialogButtonBox::RestoreDefaults:
     ui.buttonResetTheme->click();
+    ui.buttonResetNewUi->click();
 
     ui.buttonResetMoveSpeed->click();
     ui.buttonResetKeyboardTurnSpeed->click();
@@ -286,6 +289,12 @@ void SettingsDialog::dialogueButtonClicked(QAbstractButton *button) {
     if (theme != settings.get<SettingsManager::WindowTheme>(Key::WindowTheme).value()) {
       settings.setTheme(theme);
       settings.set(Key::WindowTheme, theme);
+    }
+
+    const auto useNewUi = ui.checkBoxUseNewUI->isChecked();
+    if (useNewUi != settings.get<bool>(Key::WindowUseNewUi).value()) {
+      settings.set(Key::WindowUseNewUi, useNewUi);
+      requiresRestart = true;
     }
 
     // Camera
@@ -530,6 +539,10 @@ void SettingsDialog::autoscaleMoveSpeedToggled(const int state) {
 void SettingsDialog::defaultWindowTheme() {
   const auto defaultTheme = settings.getDefault<SettingsManager::WindowTheme>(SettingsManager::Key::WindowTheme);
   ui.comboTheme->setCurrentIndex(ui.comboTheme->findData(static_cast<int>(defaultTheme)));
+}
+
+void SettingsDialog::defaultUseNewUi() {
+  ui.checkBoxUseNewUI->setChecked(settings.getDefault<bool>(SettingsManager::Key::WindowUseNewUi));
 }
 
 void SettingsDialog::defaultMoveSpeed() {

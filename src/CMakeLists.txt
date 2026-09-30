@@ -76,7 +76,9 @@ target_sources(netsimulyzer PRIVATE
         window/node/NodeWidget.cpp window/node/NodeWidget.h window/node/NodeWidget.ui
         window/detail/DetailManager.h window/detail/DetailManager.cpp
         window/detail/DetailWidget.h window/detail/DetailWidget.cpp window/detail/DetailWidget.ui
+        window/playback/PlaybackController.cpp window/playback/PlaybackController.h
         window/playback/PlaybackJumpDialog.cpp window/playback/PlaybackJumpDialog.h window/playback/PlaybackJumpDialog.ui
+        window/playback/PlaybackQuick.cpp window/playback/PlaybackQuick.h
         window/playback/PlaybackTimeStepDialog.cpp window/playback/PlaybackTimeStepDialog.h window/playback/PlaybackTimeStepDialog.ui
         window/playback/PlaybackWidget.cpp window/playback/PlaybackWidget.h window/playback/PlaybackWidget.ui
         conversion.h conversion.cpp)

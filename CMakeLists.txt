@@ -91,7 +91,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_subdirectory(lib/wayland-protocols-generated)
 endif ()
 
-find_package(Qt6 COMPONENTS Core Widgets Gui PrintSupport OpenGL OpenGLWidgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Gui Quick QuickWidgets PrintSupport OpenGL OpenGLWidgets REQUIRED)
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # We need the private modules to lock the mouse cursor on Linux
     set(QT_NO_PRIVATE_MODULE_WARNING ON)
@@ -134,7 +134,7 @@ target_link_libraries(netsimulyzer PRIVATE fmt)
 target_link_libraries(netsimulyzer PRIVATE assimp)
 target_include_directories(netsimulyzer PRIVATE lib/glm)
 target_link_libraries(netsimulyzer PRIVATE QCustomPlot)
-target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
+target_link_libraries(netsimulyzer PRIVATE Qt6::Core Qt6::Widgets Qt6::Quick Qt6::QuickWidgets Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets)
 target_link_libraries(netsimulyzer PRIVATE Threads::Threads)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

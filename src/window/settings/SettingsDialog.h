@@ -107,6 +107,12 @@ class SettingsDialog : public QDialog {
   void defaultWindowTheme();
 
   /**
+   * Sets the 'Use New UI' checkbox to
+   * the default state
+   */
+  void defaultUseNewUi();
+
+  /**
    * Set the Move Speed slider to the default value from the Settings Manager
    */
   void defaultMoveSpeed();

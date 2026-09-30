@@ -62,6 +62,7 @@ public:
     RenderBackgroundColorCustom,
     ChartDropdownSortOrder,
     WindowChartWidgets,
+    WindowUseNewUi,
     WindowWidgetsLocked,
     WindowTheme
   };
@@ -231,6 +232,7 @@ private:
       {Key::RenderMotionTrailLength, {"renderer/motionTrailLength", 100}},
       {Key::ChartDropdownSortOrder, {"chart/dropdownSortOrder", "type"}},
       {Key::WindowChartWidgets, {"window/chartWidgets", {}}},
+      {Key::WindowUseNewUi, {"window/newUI", false}},
       {Key::WindowWidgetsLocked, {"window/lockWidgets", false}},
       {Key::WindowTheme, {"window/theme", "dark"}}};
 

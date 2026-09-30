@@ -39,6 +39,7 @@
 #include "log/ScenarioLogWidget.h"
 #include "node/NodeWidget.h"
 #include "playback/PlaybackWidget.h"
+#include "playback/PlaybackQuick.h"
 #include "scene/SceneWidget.h"
 #include "settings/SettingsDialog.h"
 #include "src/window/detail/DetailManager.h"
@@ -46,6 +47,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QThread>
+#include <QQuickWidget>
 
 namespace netsimulyzer {
 class MainWindow : public QMainWindow {
@@ -74,7 +76,8 @@ private:
   NodeWidget nodeWidget{this};
   DetailManager detailManager{this};
   ScenarioLogWidget logWidget{this};
-  PlaybackWidget playbackWidget{this};
+  PlaybackWidget playbackWidget{};
+  PlaybackQuick playbackQuick{this};
   Ui::MainWindow ui{};
 
   QActionGroup cameraGroup{this};

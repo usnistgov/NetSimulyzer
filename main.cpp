@@ -47,6 +47,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSurfaceFormat>
+#include <QQuickWindow>
 #include <iostream>
 #include <optional>
 #include <project.h>
@@ -245,6 +246,11 @@ int main(int argc, char *argv[]) {
   format.setOption(QSurfaceFormat::DebugContext);
 #endif
   QSurfaceFormat::setDefaultFormat(format);
+
+  // Since we're using OpenGL, we need to force Qt Quick
+  // to use the OpenGL rendering engine too
+  // Needs to be srt before `QApplication`
+  QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
   // Default QSurfaceFormat must be set before QApplication
   // on some platforms

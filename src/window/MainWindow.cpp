@@ -49,7 +49,7 @@
 
 namespace {
 /**
- * Adds an ampersand to the begining of
+ * Adds an ampersand to the beginning of
  * the text of a QAction, so
  * it may be accessed by keyboard
  *
@@ -73,7 +73,11 @@ MainWindow::MainWindow() : QMainWindow() {
   // Remember to add show/hide actions & adjust titles below
   ui.nodesDock->setWidget(&nodeWidget);
   ui.logDock->setWidget(&logWidget);
-  ui.playbackDock->setWidget(&playbackWidget);
+
+  if (settings.get<bool>(SettingsManager::Key::WindowUseNewUi).value())
+    ui.playbackDock->setWidget(&playbackQuick);
+  else
+    ui.playbackDock->setWidget(&playbackWidget);
 
   defaultSate = saveState();
 
@@ -129,6 +133,8 @@ MainWindow::MainWindow() : QMainWindow() {
   QObject::connect(&scene, &SceneWidget::timeChanged, this, &MainWindow::timeChanged);
   QObject::connect(&scene, &SceneWidget::timeChanged, &charts, &ChartManager::timeChanged);
   QObject::connect(&scene, &SceneWidget::timeChanged, &logWidget, &ScenarioLogWidget::timeChanged);
+
+  // Playback Widget
   QObject::connect(&scene, &SceneWidget::timeChanged,
                    [this](parser::nanoseconds time, parser::nanoseconds /* increment */) {
                      playbackWidget.setTime(time);
@@ -152,8 +158,32 @@ MainWindow::MainWindow() : QMainWindow() {
 
   QObject::connect(&playbackWidget, &PlaybackWidget::timeSet, &scene, &SceneWidget::setTime);
 
-  QObject::connect(&scene, &SceneWidget::paused, &playbackWidget, &PlaybackWidget::setPaused);
-  QObject::connect(&scene, &SceneWidget::playing, &playbackWidget, &PlaybackWidget::setPlaying);
+  // Playback Quick
+  QObject::connect(&scene, &SceneWidget::timeChanged,
+                   [this](parser::nanoseconds time, parser::nanoseconds /* increment */) {
+                     playbackQuick.setTime(time);
+                   });
+
+  QObject::connect(ui.actionPlayPause, &QAction::triggered, [this]() {
+    if (playbackQuick.isPlaying()) {
+      playbackQuick.setPaused();
+      scene.pause();
+      return;
+    }
+
+    playbackQuick.setPlaying();
+    scene.play();
+  });
+
+  QObject::connect(&playbackQuick, &PlaybackQuick::play, &scene, &SceneWidget::play);
+  QObject::connect(&playbackQuick, &PlaybackQuick::pause, &scene, &SceneWidget::pause);
+  // Playback widget value is above user preference in priority
+  QObject::connect(&playbackQuick, &PlaybackQuick::timeStepChanged, &scene, &SceneWidget::setTimeStep);
+
+  QObject::connect(&playbackQuick, &PlaybackQuick::timeSet, &scene, &SceneWidget::setTime);
+
+  QObject::connect(&scene, &SceneWidget::paused, &playbackQuick, &PlaybackQuick::setPaused);
+  QObject::connect(&scene, &SceneWidget::playing, &playbackQuick, &PlaybackQuick::setPlaying);
 
   QObject::connect(&nodeWidget, &NodeWidget::focusNode, &scene, &SceneWidget::focusNode);
   QObject::connect(&nodeWidget, &NodeWidget::describeNode, [this](const unsigned int nodeId) {
@@ -356,6 +386,7 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
   scene.setConfiguration(config);
 
   playbackWidget.setMaxTime(config.endTime);
+  playbackQuick.setMaxTime(config.endTime);
 
   const auto timeStep = config.timeStep.value_or(
       settings.get<parser::nanoseconds>(SettingsManager::Key::PlaybackTimeStepPreference).value());
@@ -421,6 +452,7 @@ void MainWindow::finishLoading(const QString &fileName, unsigned long long milli
                             10000);
 
   playbackWidget.enableControls();
+  playbackQuick.enableControls();
   statusLabel.setText("Ready");
   loading = false;
   ui.actionLoad->setEnabled(true);

@@ -29,4 +29,10 @@
         <file>shaders/picking.frag</file>
         <file>shaders/picking.vert</file>
     </qresource>
+    <qresource prefix="/">
+        <file>src/window/playback/PlaybackQuick.qml</file>
+        <file>src/window/playback/icons/pause.svg</file>
+        <file>src/window/playback/icons/play.svg</file>
+        <file>src/window/playback/icons/reset.svg</file>
+    </qresource>
 </RCC>
